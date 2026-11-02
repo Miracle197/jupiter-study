@@ -1,0 +1,9 @@
+{
+  "note": "Approximate observing site. Placeholder until the observer provides real coordinates; replace lat/lon/elevation and re-run scripts 04-06.",
+  "placeholder": true,
+  "name": "San Jose, CA (placeholder)",
+  "lat_deg": 37.3382,
+  "lon_deg": -121.8863,
+  "elevation_m": 30,
+  "timezone": "America/Los_Angeles"
+}

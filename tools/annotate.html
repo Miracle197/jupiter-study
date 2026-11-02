@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>卫星人工标注</title>
+<style>
+  :root { color-scheme: dark; --bg: #0d121c; --surface: #141b28; --line: #2a3446; --ink: #e7eaf0; --ink-2: #aab3c3; --accent: #d8b07a;
+    --io: #3987e5; --europa: #d95926; --ganymede: #199e70; --callisto: #c98500; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 system-ui, "PingFang SC", sans-serif; }
+  .app { display: grid; grid-template-columns: 260px minmax(0, 1fr); height: 100vh; }
+  aside { border-right: 1px solid var(--line); overflow: auto; padding: 12px; display: grid; gap: 10px; align-content: start; }
+  main { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-width: 0; }
+  .bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  #view { background: #000; overflow: hidden; position: relative; cursor: crosshair; }
+  #view svg { width: 100%; height: 100%; display: block; }
+  button, select { font: inherit; color: inherit; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+  .list button { display: block; width: 100%; text-align: left; margin-bottom: 3px; }
+  .list button.on { border-color: var(--accent); }
+  .list small { color: var(--ink-2); }
+  textarea { width: 100%; height: 160px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; font: 12px ui-monospace, monospace; }
+  .moon { display: inline-flex; gap: 4px; align-items: center; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  p { margin: 0; color: var(--ink-2); }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <b>照片</b>
+    <p>自动识别有遗漏或认错时，在这里人工修正，然后把结果存成 <code>data/annotations.json</code>，重新运行第 5、6 步。</p>
+    <div class="list" id="list"></div>
+  </aside>
+  <main>
+    <div class="bar">
+      <span>点击照片放置：</span>
+      <span id="moons"></span>
+      <button id="clear" type="button">删除此卫星的位置</button>
+      <label><input type="checkbox" id="exclude"> 整张照片不用</label>
+      <span id="msg" style="color:var(--ink-2)"></span>
+    </div>
+    <div id="view"><svg id="svg"></svg></div>
+    <div class="bar" style="display:grid;gap:6px">
+      <div style="display:flex;gap:10px;align-items:center"><b>annotations.json</b><button id="save" type="button">下载</button>
+        <label>载入已有文件 <input type="file" id="load" accept=".json"></label></div>
+      <textarea id="out" spellcheck="false" aria-label="annotations.json 内容"></textarea>
+    </div>
+  </main>
+</div>
+<script>
+(async function () {
+  const MOONS = ["Io", "Europa", "Ganymede", "Callisto"];
+  const data = await (await fetch("../web/data.json")).json();
+  const photos = data.photos;
+  let ann = {}, cur = 0, moon = "Io";
+  const $ = (id) => document.getElementById(id);
+  $("moons").innerHTML = MOONS.map((m) => `<label class="moon"><input type="radio" name="moon" value="${m}" ${m === moon ? "checked" : ""}><span class="dot" style="background:var(--${m.toLowerCase()})"></span>${m}</label>`).join(" ");
+  document.querySelectorAll('input[name="moon"]').forEach((r) => r.addEventListener("change", () => (moon = r.value)));
+  function list() {
+    $("list").innerHTML = photos.map((p, i) => {
+      const n = Object.keys(p.obs).length, e = Object.values(p.pred).filter((q) => q.status === "visible").length;
+      const fix = ann[p.id] ? " ✎" : "";
+      return `<button type="button" class="${i === cur ? "on" : ""}" data-i="${i}">${p.local}${fix}<br><small>识别 ${n}/${e}</small></button>`;
+    }).join("");
+  }
+  $("list").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) { cur = +b.dataset.i; draw(); list(); } });
+  function pos(p, m) {
+    const a = ann[p.id];
+    if (a && a.moons && m in a.moons) return a.moons[m];
+    return p.obs[m] ? [p.obs[m].px, p.obs[m].py] : null;
+  }
+  let R = 1;
+  function draw() {
+    const p = photos[cur];
+    R = 9 * p.scale;
+    MOONS.forEach((m) => { const q = p.pred[m]; R = Math.max(R, Math.hypot(q.px - p.jx, q.py - p.jy) + 3 * p.scale); });
+    const svg = $("svg");
+    svg.setAttribute("viewBox", `${p.jx - R} ${p.jy - R} ${2 * R} ${2 * R}`);
+    const u = R / 100;
+    let h = `<image href="../web/${p.img}" x="0" y="0" width="${p.w}" height="${p.h}" preserveAspectRatio="none"></image>`;
+    MOONS.forEach((m) => {
+      const q = p.pred[m], c = `var(--${m.toLowerCase()})`, k = 2 * u;
+      h += `<g stroke="${c}" stroke-width="${0.5 * u}" opacity="0.7"><line x1="${q.px - k}" y1="${q.py}" x2="${q.px + k}" y2="${q.py}"/><line x1="${q.px}" y1="${q.py - k}" x2="${q.px}" y2="${q.py + k}"/></g>`;
+      const o = pos(p, m);
+      if (o) h += `<circle cx="${o[0]}" cy="${o[1]}" r="${3 * u}" fill="none" stroke="${c}" stroke-width="${0.8 * u}"/><text x="${o[0] + 4 * u}" y="${o[1]}" fill="#fff" font-size="${3.5 * u}">${m}</text>`;
+    });
+    svg.innerHTML = h;
+    $("exclude").checked = !!(ann[p.id] && ann[p.id].exclude);
+    $("msg").textContent = `${p.id} · 十字 = 星历预测，圆圈 = 当前位置`;
+    $("out").value = JSON.stringify(ann, null, 1);
+  }
+  function entry(p) { return (ann[p.id] = ann[p.id] || { exclude: false, moons: {} }); }
+  $("svg").addEventListener("click", (ev) => {
+    const svg = $("svg"), pt = svg.createSVGPoint();
+    pt.x = ev.clientX; pt.y = ev.clientY;
+    const q = pt.matrixTransform(svg.getScreenCTM().inverse());
+    entry(photos[cur]).moons[moon] = [Math.round(q.x * 10) / 10, Math.round(q.y * 10) / 10];
+    draw(); list();
+  });
+  $("clear").addEventListener("click", () => { entry(photos[cur]).moons[moon] = null; draw(); list(); });
+  $("exclude").addEventListener("change", (e) => { entry(photos[cur]).exclude = e.target.checked; draw(); list(); });
+  $("out").addEventListener("change", () => { try { ann = JSON.parse($("out").value || "{}"); draw(); list(); } catch (e) { $("msg").textContent = "JSON 格式不对，没有应用"; } });
+  $("save").addEventListener("click", () => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(ann, null, 1)], { type: "application/json" }));
+    a.download = "annotations.json"; a.click();
+  });
+  $("load").addEventListener("change", async (e) => { const f = e.target.files[0]; if (f) { ann = JSON.parse(await f.text()); draw(); list(); } });
+  list(); draw();
+})();
+</script>
+</body>
+</html>

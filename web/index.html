@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>木星卫星观测记录</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Spectral:wght@500;600&display=swap">
+<style>
+/* Layout: an observer's logbook — a time bar that drives everything, the photo and the 3D model side by side, then the measurements in reading order. */
+:root {
+  color-scheme: dark;
+  --bg: #0d121c; --surface: #141b28; --surface-2: #1b2433; --line: #2a3446;
+  --ink: #e7eaf0; --ink-2: #aab3c3; --ink-3: #8790a3; --accent: #d8b07a; --accent-ink: #1a1206;
+  --moon-io: #3987e5; --moon-europa: #d95926; --moon-ganymede: #199e70; --moon-callisto: #c98500;
+  --good: #3fa66b; --warn: #d7a23a;
+  --photo-bg: #05070b; --photo-ink: #e9edf5;
+  --f-display: "Spectral", "Songti SC", "Noto Serif CJK SC", Georgia, serif;
+  --f-body: "IBM Plex Sans", "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Microsoft YaHei", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --bg: #f4f6f9; --surface: #ffffff; --surface-2: #eef1f5; --line: #d5dbe4;
+    --ink: #121826; --ink-2: #485267; --ink-3: #626b7e; --accent: #8a5a22; --accent-ink: #ffffff;
+    --moon-io: #2a78d6; --moon-europa: #eb6834; --moon-ganymede: #1baf7a; --moon-callisto: #eda100;
+    --good: #2f8a55; --warn: #a86f00;
+  }
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f4f6f9; --surface: #ffffff; --surface-2: #eef1f5; --line: #d5dbe4;
+  --ink: #121826; --ink-2: #485267; --ink-3: #626b7e; --accent: #8a5a22; --accent-ink: #ffffff;
+  --moon-io: #2a78d6; --moon-europa: #eb6834; --moon-ganymede: #1baf7a; --moon-callisto: #eda100;
+  --good: #2f8a55; --warn: #a86f00;
+}
+
+html { background: var(--bg); }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 48px;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 1240px; margin: 0 auto; display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 600; text-wrap: balance; margin: 0; line-height: 1.2; }
+h1 { font-size: clamp(28px, 4.2vw, 44px); letter-spacing: -0.01em; }
+h2 { font-size: 24px; }
+h3 { font-size: 17px; font-family: var(--f-body); font-weight: 600; }
+p { margin: 0; max-width: 68ch; }
+.muted { color: var(--ink-2); }
+.small { font-size: 13px; }
+.mono, .num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+a { color: var(--accent); }
+button, select, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* header */
+.masthead { display: grid; gap: 14px; padding-top: 28px; }
+.eyebrow { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); font-weight: 500; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-top: 4px; }
+.fact { display: grid; gap: 0; }
+.fact b { font-family: var(--f-mono); font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.fact span { font-size: 12px; color: var(--ink-3); }
+.note {
+  border-left: 3px solid var(--warn); padding: 8px 12px; background: var(--surface); border-radius: 0 var(--r) var(--r) 0;
+  font-size: 13px; color: var(--ink-2); max-width: 80ch;
+}
+
+/* time bar */
+.timebar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg);
+  display: grid; gap: 8px; padding-block: 10px; border-bottom: 1px solid var(--line);
+}
+.timebar-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.clock { font-family: var(--f-mono); font-size: 18px; font-variant-numeric: tabular-nums; min-width: 0; }
+.clock small { font-size: 12px; color: var(--ink-3); margin-left: 6px; }
+.btn {
+  border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 5px 11px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; font-size: 14px;
+}
+.btn:hover { border-color: var(--ink-3); }
+.btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: var(--surface); padding: 5px 10px; cursor: pointer; font-size: 13px; border-right: 1px solid var(--line); }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.spacer { flex: 1 1 auto; }
+.slider-wrap { position: relative; }
+#t-slider { width: 100%; accent-color: var(--accent); margin: 0; }
+#ticks { display: block; width: 100%; height: 18px; }
+#ticks .tk { stroke: var(--ink-3); stroke-width: 2; cursor: pointer; }
+#ticks .tk.on { stroke: var(--accent); stroke-width: 3; }
+#ticks .tkhit { fill: transparent; cursor: pointer; }
+@media (max-width: 560px) {
+  .timebar { gap: 4px; padding-block: 6px; }
+  .clock { font-size: 15px; flex: 1 1 100%; }
+  .clock small { display: block; margin-left: 0; }
+  .timebar .spacer, label[for="speed"] { display: none; }
+  .timebar .btn { padding: 4px 9px; font-size: 13px; }
+}
+select.sel { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 4px 8px; font-size: 13px; }
+
+/* workbench */
+.bench { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+@media (max-width: 980px) { .bench { grid-template-columns: minmax(0, 1fr); } }
+.panel { display: grid; gap: 10px; min-width: 0; align-content: start; }
+.panel-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
+.panel-head h2 { font-size: 20px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 13px; }
+.chk { display: inline-flex; gap: 5px; align-items: center; cursor: pointer; color: var(--ink-2); }
+.stage {
+  position: relative; background: var(--photo-bg); border-radius: var(--r); overflow: hidden;
+  aspect-ratio: 1 / 1; width: 100%; max-width: 100%;
+}
+.stage svg, .stage canvas { display: block; width: 100%; height: 100%; }
+.stage .badge {
+  position: absolute; left: 10px; top: 10px; font-size: 12px; color: var(--photo-ink); background: rgba(5, 7, 11, 0.65);
+  padding: 3px 8px; border-radius: 6px; font-family: var(--f-mono); pointer-events: none;
+}
+.stage .legend {
+  position: absolute; right: 10px; bottom: 10px; display: grid; gap: 2px; font-size: 12px; color: var(--photo-ink);
+  background: rgba(5, 7, 11, 0.65); padding: 6px 9px; border-radius: 6px; pointer-events: none;
+}
+.ov-label { font-family: var(--f-body); fill: var(--photo-ink); paint-order: stroke; stroke: var(--photo-bg); stroke-linejoin: round; }
+.scene-labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.scene-label {
+  position: absolute; left: 0; top: 0; font-size: 12px; color: var(--photo-ink); white-space: nowrap;
+  text-shadow: 0 0 3px var(--photo-bg), 0 0 3px var(--photo-bg);
+}
+.scene-label--muted { opacity: 0.7; }
+.pick {
+  position: absolute; left: 10px; bottom: 10px; max-width: calc(100% - 20px); font-size: 12px; color: var(--photo-ink);
+  background: rgba(5, 7, 11, 0.78); padding: 7px 10px; border-radius: 6px; font-family: var(--f-mono);
+}
+
+.info { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 6px 14px; font-size: 13px; }
+.info div { display: grid; }
+.info dt { color: var(--ink-3); font-size: 12px; }
+.info dd { margin: 0; font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 6px 10px 6px 0; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { color: var(--ink-3); font-weight: 500; font-size: 12px; }
+td.num, th.num { text-align: right; }
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+.pill { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 99px; border: 1px solid var(--line); color: var(--ink-2); }
+.pill--ok { border-color: var(--good); color: var(--good); }
+.pill--warn { border-color: var(--warn); color: var(--warn); }
+
+/* sections */
+section.block { display: grid; gap: 14px; padding-top: 18px; border-top: 1px solid var(--line); }
+.cols { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+@media (max-width: 900px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+.figure { display: grid; gap: 6px; min-width: 0; }
+.figure figcaption { font-size: 13px; color: var(--ink-2); }
+.result { font-family: var(--f-mono); font-size: 13px; color: var(--ink-2); }
+.big { font-family: var(--f-mono); font-size: 26px; font-variant-numeric: tabular-nums; color: var(--ink); }
+.multiples { display: grid; gap: 4px; }
+.mult-row { display: grid; grid-template-columns: 92px minmax(0, 1fr); align-items: center; gap: 8px; }
+.mult-row .name { font-size: 13px; }
+@media (max-width: 560px) { .mult-row { grid-template-columns: minmax(0, 1fr); } }
+.key { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12px; color: var(--ink-2); align-items: center; }
+.key i { display: inline-block; width: 18px; height: 0; border-top: 2px solid var(--ink-2); vertical-align: middle; margin-right: 6px; }
+.key i.dash { border-top-style: dashed; }
+.key i.dot { width: 8px; height: 8px; border: 0; border-radius: 50%; background: var(--ink-2); }
+.method { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px 28px; }
+.method div { display: grid; gap: 4px; align-content: start; }
+.method p { font-size: 14px; color: var(--ink-2); }
+
+/* charts */
+svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
+.chart-grid line { stroke: var(--line); stroke-width: 1; }
+.chart-grid line.v { stroke-opacity: 0.5; }
+.chart-grid line.zero { stroke: var(--ink-3); stroke-opacity: 0.6; }
+.chart .tick { fill: var(--ink-3); font-size: 11px; font-family: var(--f-mono); }
+.chart .axis-label { fill: var(--ink-3); font-size: 11px; }
+.chart .ref { stroke: var(--ink-3); stroke-dasharray: 3 3; stroke-width: 1.2; }
+.chart .ref-label { fill: var(--ink-2); font-size: 11px; }
+.chart .cursor { stroke: var(--accent); stroke-width: 1.5; }
+.chart .pt { stroke: var(--surface); stroke-width: 1.5; }
+.chart .pt--dim { opacity: 0.35; }
+.chart .hit { fill: transparent; }
+.chart .hit:focus-visible { outline: none; stroke: var(--accent); stroke-width: 2; }
+.chart-tip {
+  position: fixed; z-index: 20; pointer-events: none; background: var(--surface); color: var(--ink); border: 1px solid var(--line);
+  border-radius: 8px; padding: 7px 10px; font-size: 12px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25); max-width: 260px;
+}
+.chart-tip b { font-weight: 600; }
+.chart-tip .mono { font-size: 12px; }
+.loading { color: var(--ink-3); font-size: 14px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <div class="eyebrow">伽利略卫星 · 手机目镜摄影 · 2023-12 至 2024-01</div>
+    <h1>木星卫星观测记录</h1>
+    <p class="muted">一位朋友用手机贴着望远镜目镜，在约 40 天里拍下的木星与四颗伽利略卫星。每张照片里的光点都被找出、认出，并换算成以木星半径为单位的坐标，再和 NASA JPL 星历对照。拖动时间轴，照片和 3D 模型会一起移动。</p>
+    <div class="facts" id="facts"></div>
+    <p class="note" id="site-note" hidden></p>
+  </header>
+
+  <div class="timebar" role="group" aria-label="时间控制">
+    <div class="timebar-row">
+      <div class="clock" id="clock" aria-live="polite">—</div>
+      <div class="spacer"></div>
+      <button class="btn" id="prev" type="button" aria-label="上一张照片">◀ 上一张</button>
+      <button class="btn" id="play" type="button" aria-pressed="false">播放</button>
+      <button class="btn" id="next" type="button" aria-label="下一张照片">下一张 ▶</button>
+      <label class="small muted" for="speed">速度</label>
+      <select class="sel" id="speed">
+        <option value="1">1 小时/秒</option>
+        <option value="4" selected>4 小时/秒</option>
+        <option value="24">1 天/秒</option>
+      </select>
+    </div>
+    <div class="slider-wrap">
+      <input type="range" id="t-slider" min="0" max="1" step="0.0005" value="0" aria-label="观测时间">
+      <svg id="ticks" preserveAspectRatio="none" aria-hidden="true"></svg>
+    </div>
+  </div>
+
+  <div class="bench">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>照片</h2>
+        <span class="small muted" id="photo-name"></span>
+      </div>
+      <div class="toolbar">
+        <label class="chk"><input type="checkbox" id="ov-obs" checked> 识别出的卫星</label>
+        <label class="chk"><input type="checkbox" id="ov-pred" checked> 星历预测位置</label>
+        <label class="chk"><input type="checkbox" id="ov-align"> 转正（赤道水平、东在左）</label>
+      </div>
+      <div class="stage" id="photo-stage">
+        <svg id="photo-svg" aria-label="木星照片与卫星标注"></svg>
+        <div class="badge" id="photo-badge"></div>
+        <div class="legend" id="photo-legend"></div>
+      </div>
+      <dl class="info" id="photo-info"></dl>
+      <div class="tablewrap"><table id="photo-table"></table></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>3D 模型</h2>
+        <span class="small muted">拖动旋转 · 滚轮缩放 · 点击卫星看数据</span>
+      </div>
+      <div class="toolbar">
+        <div class="seg" role="group" aria-label="视角" id="views">
+          <button type="button" data-view="earth" aria-pressed="true">从地球看</button>
+          <button type="button" data-view="top" aria-pressed="false">俯视</button>
+          <button type="button" data-view="side" aria-pressed="false">侧视</button>
+          <button type="button" data-view="free" aria-pressed="false">斜视</button>
+        </div>
+        <div class="seg" role="group" aria-label="轨道来源" id="modes">
+          <button type="button" data-mode="eph" aria-pressed="false">星历</button>
+          <button type="button" data-mode="both" aria-pressed="true">叠加</button>
+          <button type="button" data-mode="rec" aria-pressed="false">照片重建</button>
+        </div>
+        <label class="chk"><input type="checkbox" id="sight" checked> 照片视线</label>
+      </div>
+      <div class="stage" id="scene-stage">
+        <div class="pick" id="pick" hidden></div>
+      </div>
+      <p class="small muted" id="scene-note">实线是 JPL 星历给出的真实轨道（过去一圈），虚线是只用这些照片拟合出的轨道。卫星画大了 5 倍。一张照片只能确定卫星在天空上的位置，不知道它离我们更近还是更远，所以每颗卫星对应的是一条朝向地球的“视线”（虚直线），真实位置在这条线上某处。</p>
+    </div>
+  </div>
+
+  <section class="block" id="sec-x">
+    <h2>位置随时间的变化</h2>
+    <p class="muted">从地球看，每颗卫星都在木星两侧来回摆动，投影位置正好是一条正弦曲线。图中纵轴是卫星沿木星赤道方向离木星中心的距离（木星半径 Rj，正值为天空东侧）。点击任意一个点可跳到那张照片。</p>
+    <div class="key">
+      <span><i class="dot"></i>照片测量值</span>
+      <span><i></i>JPL 星历</span>
+      <span><i class="dash"></i>用照片拟合的正弦</span>
+    </div>
+    <div class="multiples" id="x-multiples"><p class="loading">加载中…</p></div>
+  </section>
+
+  <section class="block" id="sec-kepler">
+    <h2>轨道周期与开普勒第三定律</h2>
+    <div class="cols">
+      <div class="figure">
+        <div class="tablewrap"><table id="fit-table"></table></div>
+        <p class="small muted" id="fit-note"></p>
+      </div>
+      <figure class="figure" style="margin:0">
+        <div id="kepler-chart"></div>
+        <figcaption id="kepler-cap"></figcaption>
+      </figure>
+    </div>
+    <div class="cols">
+      <div class="figure">
+        <h3>由此推算的木星质量</h3>
+        <div class="big" id="mass-big">—</div>
+        <p class="small muted" id="mass-note"></p>
+      </div>
+      <div class="figure">
+        <h3>“光晕系数”：照片里的木星比真实大多少</h3>
+        <p class="small muted" id="bloom-note"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="sec-incl">
+    <h2>卫星之间的倾角</h2>
+    <div class="cols">
+      <figure class="figure" style="margin:0">
+        <div id="incl-chart"></div>
+        <figcaption>同一张照片里任意两颗卫星连线方向的夹角。横轴：星历给出的真实夹角；纵轴：照片测得的夹角。落在虚线上表示完全一致。</figcaption>
+      </figure>
+      <div class="figure">
+        <p id="incl-text"></p>
+        <p class="small muted">四颗伽利略卫星的轨道面相对木星赤道只倾斜 0.05°–0.5°，所以它们几乎总是排成一条直线。照片里看到的“倾角”大小主要由地球看木星的视角（约 3°，即木星赤道面对着地球的倾斜）和卫星在轨道上前后位置决定。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="sec-checks">
+    <h2>数据检验</h2>
+    <div class="cols">
+      <figure class="figure" style="margin:0">
+        <h3>拍摄时间对不对？</h3>
+        <div id="time-chart"></div>
+        <figcaption id="time-cap"></figcaption>
+      </figure>
+      <figure class="figure" style="margin:0">
+        <h3>画面旋转与观测地</h3>
+        <div class="toolbar"><label class="small muted" for="night-sel">夜晚</label><select class="sel" id="night-sel"></select></div>
+        <div id="orient-chart"></div>
+        <figcaption id="orient-cap"></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>方法</h2>
+    <div class="method">
+      <div><h3>1. 找光点</h3><p>木星是最亮的饱和光斑，它的圆盘边缘取亮度下降最快的位置。卫星是扣除光晕背景后的局部亮点；过长的条纹（衍射星芒）会被排除，手抖造成的短条纹保留。</p></div>
+      <div><h3>2. 认卫星</h3><p>把同一时刻 JPL 星历预测的卫星分布缩放、旋转后套到照片上，找能对上最多光点的方式，从而认出 Io、Europa、Ganymede、Callisto，并剔除背景星和鬼影。全部照片都是镜像的（望远镜光路里有一次反射），这一点一次性统一判定。</p></div>
+      <div><h3>3. 换算坐标</h3><p>每张照片手机缩放不同，所以用木星圆盘半径当尺子，把位置换算成木星半径 Rj；方向用卫星连线确定。这套“照片自己的尺子”不依赖星历，用于周期和开普勒定律。</p></div>
+      <div><h3>4. 观测地坐标</h3><p>星历按观测地计算。坐标对卫星相对木星的位置几乎没有影响（差异小于 0.001 Rj），但能算出木星当时的高度和大气质量（低空照片权重更低），以及画面随时间的旋转，用来判断望远镜支架类型、检验观测地。</p></div>
+      <div><h3>5. 拟合与重建</h3><p>每颗卫星的 X(t) 拟合正弦得到周期和半径；配合开普勒定律估算木星质量。3D 里的“照片重建”轨道用拟合的相位推出前后深度（卫星都是顺行公转），轨道椭圆的扁度来自照片里卫星偏离赤道线的量。</p></div>
+    </div>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/scene3d.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
