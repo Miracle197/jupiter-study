@@ -1,9 +1,9 @@
 {
-  "note": "Approximate observing site. Placeholder until the observer provides real coordinates; replace lat/lon/elevation and re-run scripts 04-06.",
-  "placeholder": true,
-  "name": "San Jose, CA (placeholder)",
-  "lat_deg": 37.3382,
-  "lon_deg": -121.8863,
-  "elevation_m": 30,
+  "note": "Observing site provided by the photographer (33 58' 36.1\" N, 117 18' 37.2\" W). Elevation is approximate (not provided).",
+  "placeholder": false,
+  "name": "Riverside, CA",
+  "lat_deg": 33.976694,
+  "lon_deg": -117.310333,
+  "elevation_m": 320,
   "timezone": "America/Los_Angeles"
 }

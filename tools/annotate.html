@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>卫星人工标注</title>
+<title>卫星人工标注 · Moon Annotator</title>
 <style>
   :root { color-scheme: dark; --bg: #0d121c; --surface: #141b28; --line: #2a3446; --ink: #e7eaf0; --ink-2: #aab3c3; --accent: #d8b07a;
     --io: #3987e5; --europa: #d95926; --ganymede: #199e70; --callisto: #c98500; }
@@ -27,22 +27,23 @@
 <body>
 <div class="app">
   <aside>
-    <b>照片</b>
+    <b>照片 · Photos</b>
     <p>自动识别有遗漏或认错时，在这里人工修正，然后把结果存成 <code>data/annotations.json</code>，重新运行第 5、6 步。</p>
+    <p>Fix missed or wrong detections here, save the result as <code>data/annotations.json</code>, then re-run steps 5 and 6.</p>
     <div class="list" id="list"></div>
   </aside>
   <main>
     <div class="bar">
-      <span>点击照片放置：</span>
+      <span>点击照片放置 · Click to place:</span>
       <span id="moons"></span>
-      <button id="clear" type="button">删除此卫星的位置</button>
-      <label><input type="checkbox" id="exclude"> 整张照片不用</label>
+      <button id="clear" type="button">删除此卫星 · Remove this moon</button>
+      <label><input type="checkbox" id="exclude"> 整张照片不用 · Exclude photo</label>
       <span id="msg" style="color:var(--ink-2)"></span>
     </div>
     <div id="view"><svg id="svg"></svg></div>
     <div class="bar" style="display:grid;gap:6px">
-      <div style="display:flex;gap:10px;align-items:center"><b>annotations.json</b><button id="save" type="button">下载</button>
-        <label>载入已有文件 <input type="file" id="load" accept=".json"></label></div>
+      <div style="display:flex;gap:10px;align-items:center"><b>annotations.json</b><button id="save" type="button">下载 · Download</button>
+        <label>载入已有文件 · Load file <input type="file" id="load" accept=".json"></label></div>
       <textarea id="out" spellcheck="false" aria-label="annotations.json 内容"></textarea>
     </div>
   </main>
@@ -60,7 +61,7 @@
     $("list").innerHTML = photos.map((p, i) => {
       const n = Object.keys(p.obs).length, e = Object.values(p.pred).filter((q) => q.status === "visible").length;
       const fix = ann[p.id] ? " ✎" : "";
-      return `<button type="button" class="${i === cur ? "on" : ""}" data-i="${i}">${p.local}${fix}<br><small>识别 ${n}/${e}</small></button>`;
+      return `<button type="button" class="${i === cur ? "on" : ""}" data-i="${i}">${p.local}${fix}<br><small>识别 found ${n}/${e}</small></button>`;
     }).join("");
   }
   $("list").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) { cur = +b.dataset.i; draw(); list(); } });
@@ -86,7 +87,7 @@
     });
     svg.innerHTML = h;
     $("exclude").checked = !!(ann[p.id] && ann[p.id].exclude);
-    $("msg").textContent = `${p.id} · 十字 = 星历预测，圆圈 = 当前位置`;
+    $("msg").textContent = `${p.id} · 十字 = 星历预测 (+ = ephemeris)，圆圈 = 当前位置 (○ = current)`;
     $("out").value = JSON.stringify(ann, null, 1);
   }
   function entry(p) { return (ann[p.id] = ann[p.id] || { exclude: false, moons: {} }); }
@@ -99,7 +100,7 @@
   });
   $("clear").addEventListener("click", () => { entry(photos[cur]).moons[moon] = null; draw(); list(); });
   $("exclude").addEventListener("change", (e) => { entry(photos[cur]).exclude = e.target.checked; draw(); list(); });
-  $("out").addEventListener("change", () => { try { ann = JSON.parse($("out").value || "{}"); draw(); list(); } catch (e) { $("msg").textContent = "JSON 格式不对，没有应用"; } });
+  $("out").addEventListener("change", () => { try { ann = JSON.parse($("out").value || "{}"); draw(); list(); } catch (e) { $("msg").textContent = "JSON 格式不对，没有应用 · Invalid JSON, not applied"; } });
   $("save").addEventListener("click", () => {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([JSON.stringify(ann, null, 1)], { type: "application/json" }));

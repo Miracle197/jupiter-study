@@ -64,6 +64,8 @@ button, select, input { font: inherit; color: inherit; }
 .eyebrow { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); font-weight: 500; }
 .facts { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-top: 4px; }
 .fact { display: grid; gap: 0; }
+.masthead-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.lang-btn { font-size: 13px; padding: 3px 10px; }
 .fact b { font-family: var(--f-mono); font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums; }
 .fact span { font-size: 12px; color: var(--ink-3); }
 .note {
@@ -199,29 +201,32 @@ svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
 <body>
 <div class="wrap">
   <header class="masthead">
-    <div class="eyebrow">伽利略卫星 · 手机目镜摄影 · 2023-12 至 2024-01</div>
-    <h1>木星卫星观测记录</h1>
-    <p class="muted">一位朋友用手机贴着望远镜目镜，在约 40 天里拍下的木星与四颗伽利略卫星。每张照片里的光点都被找出、认出，并换算成以木星半径为单位的坐标，再和 NASA JPL 星历对照。拖动时间轴，照片和 3D 模型会一起移动。</p>
+    <div class="masthead-top">
+      <div class="eyebrow" data-i18n="eyebrow"></div>
+      <button class="btn lang-btn" id="lang" type="button" data-i18n="lang.switch" data-i18n-attr="aria-label:lang.switchLabel"></button>
+    </div>
+    <h1 data-i18n="h1"></h1>
+    <p class="muted" data-i18n="intro"></p>
     <div class="facts" id="facts"></div>
     <p class="note" id="site-note" hidden></p>
   </header>
 
-  <div class="timebar" role="group" aria-label="时间控制">
+  <div class="timebar" role="group" data-i18n-attr="aria-label:time.group">
     <div class="timebar-row">
       <div class="clock" id="clock" aria-live="polite">—</div>
       <div class="spacer"></div>
-      <button class="btn" id="prev" type="button" aria-label="上一张照片">◀ 上一张</button>
-      <button class="btn" id="play" type="button" aria-pressed="false">播放</button>
-      <button class="btn" id="next" type="button" aria-label="下一张照片">下一张 ▶</button>
-      <label class="small muted" for="speed">速度</label>
+      <button class="btn" id="prev" type="button" data-i18n="btn.prev" data-i18n-attr="aria-label:btn.prev.aria"></button>
+      <button class="btn" id="play" type="button" aria-pressed="false" data-i18n="btn.play"></button>
+      <button class="btn" id="next" type="button" data-i18n="btn.next" data-i18n-attr="aria-label:btn.next.aria"></button>
+      <label class="small muted" for="speed" data-i18n="speed"></label>
       <select class="sel" id="speed">
-        <option value="1">1 小时/秒</option>
-        <option value="4" selected>4 小时/秒</option>
-        <option value="24">1 天/秒</option>
+        <option value="1" data-i18n="speed.1"></option>
+        <option value="4" selected data-i18n="speed.4"></option>
+        <option value="24" data-i18n="speed.24"></option>
       </select>
     </div>
     <div class="slider-wrap">
-      <input type="range" id="t-slider" min="0" max="1" step="0.0005" value="0" aria-label="观测时间">
+      <input type="range" id="t-slider" min="0" max="1" step="0.0005" value="0" data-i18n-attr="aria-label:time.slider">
       <svg id="ticks" preserveAspectRatio="none" aria-hidden="true"></svg>
     </div>
   </div>
@@ -229,16 +234,16 @@ svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
   <div class="bench">
     <div class="panel">
       <div class="panel-head">
-        <h2>照片</h2>
+        <h2 data-i18n="photo.h"></h2>
         <span class="small muted" id="photo-name"></span>
       </div>
       <div class="toolbar">
-        <label class="chk"><input type="checkbox" id="ov-obs" checked> 识别出的卫星</label>
-        <label class="chk"><input type="checkbox" id="ov-pred" checked> 星历预测位置</label>
-        <label class="chk"><input type="checkbox" id="ov-align"> 转正（赤道水平、东在左）</label>
+        <label class="chk"><input type="checkbox" id="ov-obs" checked> <span data-i18n="ov.obs"></span></label>
+        <label class="chk"><input type="checkbox" id="ov-pred" checked> <span data-i18n="ov.pred"></span></label>
+        <label class="chk"><input type="checkbox" id="ov-align"> <span data-i18n="ov.align"></span></label>
       </div>
       <div class="stage" id="photo-stage">
-        <svg id="photo-svg" aria-label="木星照片与卫星标注"></svg>
+        <svg id="photo-svg" data-i18n-attr="aria-label:photo.aria"></svg>
         <div class="badge" id="photo-badge"></div>
         <div class="legend" id="photo-legend"></div>
       </div>
@@ -248,47 +253,47 @@ svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
 
     <div class="panel">
       <div class="panel-head">
-        <h2>3D 模型</h2>
-        <span class="small muted">拖动旋转 · 滚轮缩放 · 点击卫星看数据</span>
+        <h2 data-i18n="scene.h"></h2>
+        <span class="small muted" data-i18n="scene.hint"></span>
       </div>
       <div class="toolbar">
-        <div class="seg" role="group" aria-label="视角" id="views">
-          <button type="button" data-view="earth" aria-pressed="true">从地球看</button>
-          <button type="button" data-view="top" aria-pressed="false">俯视</button>
-          <button type="button" data-view="side" aria-pressed="false">侧视</button>
-          <button type="button" data-view="free" aria-pressed="false">斜视</button>
+        <div class="seg" role="group" data-i18n-attr="aria-label:view.group" id="views">
+          <button type="button" data-view="earth" aria-pressed="true" data-i18n="view.earth"></button>
+          <button type="button" data-view="top" aria-pressed="false" data-i18n="view.top"></button>
+          <button type="button" data-view="side" aria-pressed="false" data-i18n="view.side"></button>
+          <button type="button" data-view="free" aria-pressed="false" data-i18n="view.free"></button>
         </div>
-        <div class="seg" role="group" aria-label="轨道来源" id="modes">
-          <button type="button" data-mode="eph" aria-pressed="false">星历</button>
-          <button type="button" data-mode="both" aria-pressed="true">叠加</button>
-          <button type="button" data-mode="rec" aria-pressed="false">照片重建</button>
+        <div class="seg" role="group" data-i18n-attr="aria-label:mode.group" id="modes">
+          <button type="button" data-mode="eph" aria-pressed="false" data-i18n="mode.eph"></button>
+          <button type="button" data-mode="both" aria-pressed="true" data-i18n="mode.both"></button>
+          <button type="button" data-mode="rec" aria-pressed="false" data-i18n="mode.rec"></button>
         </div>
-        <label class="chk"><input type="checkbox" id="sight" checked> 照片视线</label>
+        <label class="chk"><input type="checkbox" id="sight" checked> <span data-i18n="sight"></span></label>
       </div>
       <div class="stage" id="scene-stage">
         <div class="pick" id="pick" hidden></div>
       </div>
-      <p class="small muted" id="scene-note">实线是 JPL 星历给出的真实轨道（过去一圈），虚线是只用这些照片拟合出的轨道。卫星画大了 5 倍。一张照片只能确定卫星在天空上的位置，不知道它离我们更近还是更远，所以每颗卫星对应的是一条朝向地球的“视线”（虚直线），真实位置在这条线上某处。</p>
+      <p class="small muted" data-i18n="scene.note"></p>
     </div>
   </div>
 
   <section class="block" id="sec-x">
-    <h2>位置随时间的变化</h2>
-    <p class="muted">从地球看，每颗卫星都在木星两侧来回摆动，投影位置正好是一条正弦曲线。图中纵轴是卫星沿木星赤道方向离木星中心的距离（木星半径 Rj，正值为天空东侧）。点击任意一个点可跳到那张照片。</p>
+    <h2 data-i18n="x.h"></h2>
+    <p class="muted" data-i18n="x.p"></p>
     <div class="key">
-      <span><i class="dot"></i>照片测量值</span>
-      <span><i></i>JPL 星历</span>
-      <span><i class="dash"></i>用照片拟合的正弦</span>
+      <span><i class="dot"></i><span data-i18n="key.obs"></span></span>
+      <span><i></i><span data-i18n="key.eph"></span></span>
+      <span><i class="dash"></i><span data-i18n="key.fit"></span></span>
     </div>
-    <div class="multiples" id="x-multiples"><p class="loading">加载中…</p></div>
+    <div class="multiples" id="x-multiples"><p class="loading" data-i18n="loading"></p></div>
   </section>
 
   <section class="block" id="sec-kepler">
-    <h2>轨道周期与开普勒第三定律</h2>
+    <h2 data-i18n="k.h"></h2>
     <div class="cols">
       <div class="figure">
         <div class="tablewrap"><table id="fit-table"></table></div>
-        <p class="small muted" id="fit-note"></p>
+        <p class="small muted" data-i18n="fit.note"></p>
       </div>
       <figure class="figure" style="margin:0">
         <div id="kepler-chart"></div>
@@ -297,42 +302,42 @@ svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
     </div>
     <div class="cols">
       <div class="figure">
-        <h3>由此推算的木星质量</h3>
+        <h3 data-i18n="mass.h"></h3>
         <div class="big" id="mass-big">—</div>
         <p class="small muted" id="mass-note"></p>
       </div>
       <div class="figure">
-        <h3>“光晕系数”：照片里的木星比真实大多少</h3>
+        <h3 data-i18n="bloom.h"></h3>
         <p class="small muted" id="bloom-note"></p>
       </div>
     </div>
   </section>
 
   <section class="block" id="sec-incl">
-    <h2>卫星之间的倾角</h2>
+    <h2 data-i18n="i.h"></h2>
     <div class="cols">
       <figure class="figure" style="margin:0">
         <div id="incl-chart"></div>
-        <figcaption>同一张照片里任意两颗卫星连线方向的夹角。横轴：星历给出的真实夹角；纵轴：照片测得的夹角。落在虚线上表示完全一致。</figcaption>
+        <figcaption data-i18n="i.cap"></figcaption>
       </figure>
       <div class="figure">
         <p id="incl-text"></p>
-        <p class="small muted">四颗伽利略卫星的轨道面相对木星赤道只倾斜 0.05°–0.5°，所以它们几乎总是排成一条直线。照片里看到的“倾角”大小主要由地球看木星的视角（约 3°，即木星赤道面对着地球的倾斜）和卫星在轨道上前后位置决定。</p>
+        <p class="small muted" data-i18n="i.bg"></p>
       </div>
     </div>
   </section>
 
   <section class="block" id="sec-checks">
-    <h2>数据检验</h2>
+    <h2 data-i18n="c.h"></h2>
     <div class="cols">
       <figure class="figure" style="margin:0">
-        <h3>拍摄时间对不对？</h3>
+        <h3 data-i18n="t.h"></h3>
         <div id="time-chart"></div>
         <figcaption id="time-cap"></figcaption>
       </figure>
       <figure class="figure" style="margin:0">
-        <h3>画面旋转与观测地</h3>
-        <div class="toolbar"><label class="small muted" for="night-sel">夜晚</label><select class="sel" id="night-sel"></select></div>
+        <h3 data-i18n="o.h"></h3>
+        <div class="toolbar"><label class="small muted" for="night-sel" data-i18n="o.night"></label><select class="sel" id="night-sel"></select></div>
         <div id="orient-chart"></div>
         <figcaption id="orient-cap"></figcaption>
       </figure>
@@ -340,19 +345,20 @@ svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
   </section>
 
   <section class="block">
-    <h2>方法</h2>
+    <h2 data-i18n="m.h"></h2>
     <div class="method">
-      <div><h3>1. 找光点</h3><p>木星是最亮的饱和光斑，它的圆盘边缘取亮度下降最快的位置。卫星是扣除光晕背景后的局部亮点；过长的条纹（衍射星芒）会被排除，手抖造成的短条纹保留。</p></div>
-      <div><h3>2. 认卫星</h3><p>把同一时刻 JPL 星历预测的卫星分布缩放、旋转后套到照片上，找能对上最多光点的方式，从而认出 Io、Europa、Ganymede、Callisto，并剔除背景星和鬼影。全部照片都是镜像的（望远镜光路里有一次反射），这一点一次性统一判定。</p></div>
-      <div><h3>3. 换算坐标</h3><p>每张照片手机缩放不同，所以用木星圆盘半径当尺子，把位置换算成木星半径 Rj；方向用卫星连线确定。这套“照片自己的尺子”不依赖星历，用于周期和开普勒定律。</p></div>
-      <div><h3>4. 观测地坐标</h3><p>星历按观测地计算。坐标对卫星相对木星的位置几乎没有影响（差异小于 0.001 Rj），但能算出木星当时的高度和大气质量（低空照片权重更低），以及画面随时间的旋转，用来判断望远镜支架类型、检验观测地。</p></div>
-      <div><h3>5. 拟合与重建</h3><p>每颗卫星的 X(t) 拟合正弦得到周期和半径；配合开普勒定律估算木星质量。3D 里的“照片重建”轨道用拟合的相位推出前后深度（卫星都是顺行公转），轨道椭圆的扁度来自照片里卫星偏离赤道线的量。</p></div>
+      <div><h3 data-i18n="m1.h"></h3><p data-i18n="m1.p"></p></div>
+      <div><h3 data-i18n="m2.h"></h3><p data-i18n="m2.p"></p></div>
+      <div><h3 data-i18n="m3.h"></h3><p data-i18n="m3.p"></p></div>
+      <div><h3 data-i18n="m4.h"></h3><p data-i18n="m4.p"></p></div>
+      <div><h3 data-i18n="m5.h"></h3><p data-i18n="m5.p"></p></div>
     </div>
   </section>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="js/i18n.js"></script>
 <script src="js/charts.js"></script>
 <script src="js/scene3d.js"></script>
 <script src="js/app.js"></script>

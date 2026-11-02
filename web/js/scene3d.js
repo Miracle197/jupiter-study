@@ -261,6 +261,7 @@
       setView,
       setSightPhoto(ph) { state.sightPhoto = ph; updateSight(); },
       setShowSight(v) { state.showSight = v; updateSight(); },
+      setEarthLabel(text) { earthLabel.textContent = text; },
       refreshColors() {
         MOONS.forEach((m) => {
           const c = new THREE.Color(colorOf(m));
