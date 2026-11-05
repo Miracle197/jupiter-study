@@ -1,19 +1,19 @@
 {
  "method_A_dots": {
-  "median_err_deg": 0.7817731232613752
+  "median_err_deg": 0.7541184230405948
  },
  "method_B_turning_sky": {
   "photos_with_gravity": 57,
   "photos_used_in_fit": 57,
-  "scatter_per_photo_deg": 3.9233741341659627,
+  "scatter_per_photo_deg": 3.9194478769068577,
   "mirror_sense_s": -1,
   "altitude_term_k": -1,
   "jupiter_highest_at_on_2023_12_03": "21:20.6",
-  "jupiter_highest_err_min": 1.866925675187151,
-  "jupiter_declination_deg": 13.800768575679264,
-  "jupiter_declination_err_deg": 0.7097674315132229,
-  "jupiter_drift_min_per_day": -0.5586330800151655,
-  "jupiter_drift_err": 0.10767995902869043,
+  "jupiter_highest_err_min": 1.865445129201255,
+  "jupiter_declination_deg": 13.795941661394885,
+  "jupiter_declination_err_deg": 0.7092251161330108,
+  "jupiter_drift_min_per_day": -0.5573598128749644,
+  "jupiter_drift_err": 0.10757808651736768,
   "candidates": [
    {
     "s": -1,
@@ -42,7 +42,7 @@
    {
     "s": -1,
     "k": 0,
-    "rms_deg": 8.7,
+    "rms_deg": 8.69,
     "above_horizon": false
    },
    {
@@ -54,28 +54,29 @@
   ]
  },
  "A_vs_B": {
-  "rms_deg": 5.093531126206924,
+  "rms_deg": 4.792933640036767,
   "photos_disagree_over_3sigma": []
  },
  "method_C_same_night_pairs": {
-  "pairs": 32,
-  "agree_with_B_on_ends": 32
+  "pairs": 36,
+  "agree_with_B_on_ends": 36
  },
  "final": {
-  "median_err_photo_deg": 0.8936688019925008,
+  "median_err_photo_deg": 0.8319194050997138,
   "photos_where_final_differs_from_A_over_3deg": {
-   "2023-12-05T1933": 8.3,
+   "2023-12-05T1933": 8.2,
    "2023-12-05T2105": 8.1,
+   "2023-12-12T2104": 10.1,
    "2024-01-02T2245": -3.1
   },
-  "plusX_margin_min_sigma": 3.2940986025452874,
+  "plusX_margin_min_sigma": 3.9918790091383887,
   "photos_plusX_margin_below_3sigma": []
  },
  "site_30m": {
-  "max_err_site_deg": 6.425818731197197e-06,
-  "max_B_shift_deg": 0.000184636186659759,
-  "declination_shift_deg": 0.00036585036236047586,
-  "highest_time_shift_min": 9.968912959124054e-05
+  "max_err_site_deg": 5.360002762777513e-06,
+  "max_B_shift_deg": 0.00018044708714626267,
+  "declination_shift_deg": 0.0003631131227965767,
+  "highest_time_shift_min": 8.967440214391331e-05
  },
  "clock_checks": [
   {
@@ -87,37 +88,11 @@
   }
  ],
  "dots": {
-  "band_half_width_rj": 2.3445,
-  "strong_in_band": 185,
-  "strong_outside_band": 5,
-  "band_rms_rj": 0.40954022341473933,
-  "max_abs_X_rj_in_band": 33.16,
-  "outside_band": [
-   [
-    "2023-12-09T2142",
-    4.038,
-    -9.689
-   ],
-   [
-    "2023-12-12T2104",
-    23.127,
-    5.998
-   ],
-   [
-    "2023-12-13T2133",
-    -12.93,
-    -6.273
-   ],
-   [
-    "2023-12-16T2235",
-    6.745,
-    -3.167
-   ],
-   [
-    "2023-12-17T2236",
-    0.531,
-    3.117
-   ]
-  ]
+  "band_half_width_rj": 2.5709999999999997,
+  "strong_in_band": 205,
+  "strong_outside_band": 0,
+  "band_rms_rj": 0.43058018147950894,
+  "max_abs_X_rj_in_band": 25.444,
+  "outside_band": []
  }
 }

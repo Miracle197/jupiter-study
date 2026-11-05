@@ -38,7 +38,8 @@ from PIL import Image, ImageDraw, ImageFont
 from scipy import ndimage as ndi
 
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent))
-from common import OUT, RAW, ImageOps, gray, local_time, night_of, photo_list, relative_magnification, save_json
+from common import (OUT, RAW, ImageOps, gray, local_time, night_of, photo_list, relative_magnification,
+                    save_json, usable, visual_check)
 from detect import find_dots, find_jupiter, radial_profile
 
 OUT1 = OUT / "step1"
@@ -58,18 +59,36 @@ def disk_edge(g, jx, jy, r_sat):
     return float(r[sel][np.argmin(grad[sel])])
 
 
+def apply_visual_check(dots, confirmed, r_sat):
+    """Mark each detected dot as confirmed or not, and add confirmed dots the detector missed."""
+    if confirmed is None:
+        return dots
+    left = list(confirmed)
+    for d in dots:
+        hit = [c for c in left if c["found_by"] == "detector" and np.hypot(c["x"] - d["x"], c["y"] - d["y"]) < 3]
+        d["confirmed"] = bool(hit)
+        if hit:
+            left.remove(hit[0])
+    for c in left:                                   # seen by eye, missed by the detector
+        dots.append({"x": c["x"], "y": c["y"], "snr": 0.0, "flux": 0.0, "elong": 1.0,
+                     "size": round(0.15 * r_sat, 1), "confirmed": True, "found_by": "eye"})
+    return dots
+
+
 def measure_all(recs):
     det = {}
+    vc = visual_check()
     for rec in recs:
         g = gray(rec)
         jx, jy, r_sat = find_jupiter(g)
         dots, noise = find_dots(g, jx, jy, r_sat)
+        dots = apply_visual_check(dots, None if vc is None else vc.get(rec["stem"], []), r_sat)
         det[rec["stem"]] = {"w": rec["w"], "h": rec["h"],
                             "jupiter": {"x": jx, "y": jy, "r_sat": r_sat,
                                         "r_edge": disk_edge(g, jx, jy, r_sat)},
                             "noise": noise, "dots": dots}
         print(f"  {rec['stem']:18s} Jupiter r_edge={det[rec['stem']]['jupiter']['r_edge']:6.1f}px  "
-              f"dots={sum(d['snr'] >= MIN_SNR for d in dots)}")
+              f"dots used={sum(usable(d, MIN_SNR) for d in dots)} of {len(dots)} found")
     return det
 
 
@@ -77,7 +96,7 @@ def measure_all(recs):
 def dot_vectors(d):
     """Strong dots as complex numbers relative to Jupiter (y up), in pixels."""
     j = d["jupiter"]
-    z = np.array([complex(c["x"] - j["x"], -(c["y"] - j["y"])) for c in d["dots"] if c["snr"] >= MIN_SNR])
+    z = np.array([complex(c["x"] - j["x"], -(c["y"] - j["y"])) for c in d["dots"] if usable(c, MIN_SNR)])
     r = j["r_edge"]
     return z[(abs(z) > 1.8 * r) & (abs(z) < 35 * r)] if len(z) else z
 
@@ -267,7 +286,7 @@ def contact_sheet(recs, det, scales, path, half_rj=28, tile=320, cols=6):
         sheet.paste(im, (x0, y0))
         c = (x0 + tile / 2, y0 + tile / 2)
         for d in det[r["stem"]]["dots"]:                            # mark the strong dots
-            if d["snr"] < MIN_SNR:
+            if not usable(d, MIN_SNR):
                 continue
             px = c[0] + (d["x"] - j["x"]) / rj * px_per_rj
             py = c[1] + (d["y"] - j["y"]) / rj * px_per_rj

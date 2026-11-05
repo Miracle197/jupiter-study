@@ -72,6 +72,19 @@ def apple_gravity(path):
     return None
 
 
+def visual_check():
+    """Dots confirmed photo by photo (data/visual_check.json), or None if there is no such file."""
+    p = ROOT / "data" / "visual_check.json"
+    return json.load(open(p))["photos"] if p.exists() else None
+
+
+def usable(dot, min_snr):
+    """Use a dot: confirmed by the visual check if there is one, else bright enough."""
+    if "confirmed" in dot:
+        return bool(dot["confirmed"])
+    return dot["snr"] >= min_snr
+
+
 def local_time(rec):
     """Clock time of the photo (EXIF when the camera wrote it, else the file name)."""
     return datetime.fromisoformat(rec["exif_time"] or rec["name_time"])

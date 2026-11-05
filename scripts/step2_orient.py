@@ -50,7 +50,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 sys.path.insert(0, str(Path(__file__).parent))
 import field_rotation
-from common import OUT, RAW, ROOT, ImageOps, apple_gravity, local_time, night_of, photo_list, save_json
+from common import OUT, RAW, ROOT, ImageOps, apple_gravity, local_time, night_of, photo_list, save_json, usable
 from field_rotation import REF_DAY, SIDEREAL, wrap180
 from step1_scale import dot_vectors, match
 
@@ -82,7 +82,8 @@ def dots_rj(d, rj):
     out = []
     for k, c in enumerate(d["dots"]):
         z = complex(c["x"] - j["x"], -(c["y"] - j["y"])) / rj
-        if 1.5 < abs(z) < MAX_R and c["snr"] >= MIN_SNR_LINE:
+        near = 1.0 if c.get("confirmed") else 1.5        # a confirmed dot may sit right at Jupiter's edge
+        if near < abs(z) < MAX_R and usable(c, MIN_SNR_LINE):
             out.append((k, z, c))
     return out
 
@@ -216,7 +217,7 @@ def combine(pts, theta_a, theta_b, sig_b):
     Returns final directed angle, its error, the number of dots on the final
     line, and how safely the +X end is known (in B errors).
     """
-    strong = [p for p in pts if p[2]["snr"] >= STRONG_SNR]
+    strong = [p for p in pts if usable(p[2], STRONG_SNR)]
     pts = strong or pts                  # faint dots near Jupiter are mostly glare ripples
     z = np.array([p[1] for p in pts]) if pts else np.zeros(0, complex)
     r = np.abs(z)
@@ -299,7 +300,7 @@ def notebook_plot(recs, rows, orient, path):
             ms = 3 + min(p["snr"], 200) / 30
             if p["in_band"]:
                 ax.plot(p["X_rj"], y, "*", ms=ms, color="C0" if sure else "C1")
-            elif p["snr"] >= 40:
+            elif p["strong"]:
                 ax.plot(p["X_rj"], y, "o", ms=ms * 0.7, mfc="none", mec="0.5", mew=0.8)
         ax.text(-31, y, r["stem"][2:].replace("T", " "), va="center", ha="right", fontsize=7, family="monospace")
         if not sure:
@@ -440,11 +441,11 @@ def main():
                          "err_photo_Y_rj": round(float(np.hypot(abs(w_.real) * np.radians(o["err_photo_deg"]), cen)), 3),
                          "err_site_X_rj": 0.0,
                          "err_site_Y_rj": float(f"{abs(w_.real) * np.radians(o['err_site_deg']):.2e}"),
-                         "snr": c["snr"], "in_band": None,
+                         "snr": c["snr"], "strong": usable(c, STRONG_SNR), "in_band": None,
                          "plus_x_margin_sigma": round(o["sign_margin_sigma"], 1)})
 
     # the dots form a band, not a perfect line: find its edge from the data (first wide gap in |Y|)
-    band = band_edge([abs(p["Y_rj"]) for p in rows if p["snr"] >= STRONG_SNR])
+    band = band_edge([abs(p["Y_rj"]) for p in rows if p["strong"]])
     for p in rows:
         p["in_band"] = abs(p["Y_rj"]) < band
 
@@ -471,8 +472,8 @@ def main():
     T0, dec, c, drift = sol["p"]
     e = np.sqrt(np.diag(sol["cov"]))
     resid_ab = np.array([orient[s]["A_minus_B_deg"] for s in stems])
-    on = [p for p in rows if p["in_band"] and p["snr"] >= STRONG_SNR]
-    off = [p for p in rows if not p["in_band"] and p["snr"] >= STRONG_SNR]
+    on = [p for p in rows if p["in_band"] and p["strong"]]
+    off = [p for p in rows if not p["in_band"] and p["strong"]]
     summary = {
         "method_A_dots": {"median_err_deg": float(np.median(sig_a))},
         "method_B_turning_sky": {
