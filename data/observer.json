@@ -1,9 +1,7 @@
 {
-  "note": "Observing site provided by the photographer (33 58' 36.1\" N, 117 18' 37.2\" W). Elevation is approximate (not provided).",
-  "placeholder": false,
-  "name": "Riverside, CA",
-  "lat_deg": 33.976694,
-  "lon_deg": -117.310333,
-  "elevation_m": 320,
-  "timezone": "America/Los_Angeles"
+ "description": "Where the photos were taken (given by the photographer)",
+ "lat_deg": 33.976683,
+ "lon_deg": -117.310320,
+ "dms": "33° 58' 36.1\" N, 117° 18' 37.2\" W",
+ "timezone": "America/Los_Angeles (PST, UTC-8)"
 }

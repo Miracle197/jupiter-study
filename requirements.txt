@@ -3,4 +3,4 @@ scipy
 pillow
 pillow-heif
 scikit-image
-astropy
+matplotlib
