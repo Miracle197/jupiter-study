@@ -1,0 +1,12 @@
+{
+ "photos": 58,
+ "strong_dots_on_line": 161,
+ "strong_dots_off_line": 29,
+ "line_half_thickness_rms_rj": 0.2484395023650702,
+ "line_half_thickness_rms_rj_beyond_5rj": 0.2482045826560927,
+ "max_abs_X_rj": 33.16,
+ "linked_groups": 5,
+ "photos_in_linked_groups": 22,
+ "end_links": 32,
+ "median_err_angle_deg": 0.7817731232613752
+}
