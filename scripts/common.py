@@ -51,6 +51,27 @@ def photo_list():
     return recs
 
 
+def apple_gravity(path):
+    """Gravity measured by the iPhone when the photo was taken, or None.
+
+    Apple stores it in its EXIF maker note (tag 0x0008, "AccelerationVector"):
+    three signed rationals in units of g, in the phone's frame (x to the right
+    and y to the top of the phone held upright, z out of the screen).
+    """
+    import struct
+    ifd = Image.open(path).getexif().get_ifd(0x8769)
+    mn = ifd.get(0x927C)
+    if not mn or not mn.startswith(b"Apple iOS"):
+        return None
+    n = struct.unpack(">H", mn[14:16])[0]
+    for k in range(n):
+        tag, typ, cnt, off = struct.unpack(">HHII", mn[16 + 12 * k:28 + 12 * k])
+        if tag == 0x0008 and typ == 10 and cnt == 3:
+            v = struct.unpack(">6i", mn[off:off + 24])
+            return [v[0] / v[1], v[2] / v[3], v[4] / v[5]]
+    return None
+
+
 def local_time(rec):
     """Clock time of the photo (EXIF when the camera wrote it, else the file name)."""
     return datetime.fromisoformat(rec["exif_time"] or rec["name_time"])

@@ -18,7 +18,7 @@ observing site given by the photographer (`data/observer.json`: 33.976683° N,
 | Step | What | Status |
 |---|---|---|
 | 1 | Put every photo on the same scale | ✅ done |
-| 2 | Same orientation: turn the line of dots horizontal | ✅ done |
+| 2 | Same orientation: line horizontal, same end on the same side in all photos | ✅ done |
 | 3 | … | |
 
 ## Step 1: same scale
@@ -55,6 +55,10 @@ patterns gives the true scale ratio of the two photos. Over 16 such pairs:
 - The Jupiter edge alone is good to about **±3.5%** per photo.
 - Photos linked through their dots on the same night (22 of them) are averaged
   together, which brings their error down to 1.7–2.5%.
+- Note: the ±3.5% comes only from photo pairs close in time on the same night.
+  Differences in focus and seeing between nights are not in it, so the real
+  single-photo error may be larger. It can be measured again once the orbits
+  are fitted (each body should always reach the same greatest distance).
 
 **Two separate error bars** (`output/step1/scale.csv`):
 
@@ -76,59 +80,72 @@ found; orientation not fixed yet):
 
 ![same scale](output/step1/same_scale.jpg)
 
-A first observation: almost every dot stays within 26 Rj of Jupiter (one dot on Dec 12 is at 33 Rj; see step 2).
+A first observation: almost every dot stays within 26 Rj of Jupiter (one dot on Dec 12 is at 33 Rj).
 
 ## Step 2: same orientation
 
-**Problem**: the phone was turned a different way for every photo, and the
-view may be mirrored.
+**Problem**: the phone was turned differently for each photo and the sky itself
+turns during the night, so the line of dots points a different way in every
+photo. The line also has two ends, which must be matched up.
 
-**Galileo's first finding: the dots always lie on one straight line.** In each
-photo, find the line through Jupiter that passes closest to the dots (brighter
-dots count more) and turn the photo so that line is horizontal. Each dot then
-has X = distance along the line and Y = distance across it, in Jupiter radii.
+**Galileo's first finding: the dots always lie on one straight line.** Three
+independent methods find it and are compared:
 
-**Results**:
-- The line is very thin: 161 bright dots lie on it with an rms distance of only
-  **0.25 Rj**, while they reach up to 26 Rj along it.
-- The line angle is well measured: median ±0.8° per photo (up to ±3.6° for
-  photos with a single dot).
-- 29 bright dots are off the line (hollow circles). Most are only 0.5–1.3 Rj
-  off (shake doubles or a slightly wrong Jupiter centre). A few may be
-  **background stars**: the dot ~20 Rj out and 3 Rj off on Dec 5, and the dot
-  at +5.5 Rj, 1.3 Rj off, in all three Jan 10 photos (it stays put for 4 hours
-  and turns with the sky, so it is not a lens reflection). The 33 Rj dot on
-  Dec 12 also needs a look. To be decided later from how they move.
+| Method | How | Strength | Limit |
+|---|---|---|---|
+| A Dots | in each photo, the line through Jupiter closest to the dots | precise angle (median ±0.8°) | cannot tell the two ends apart |
+| B Gravity + turning sky | the iPhone recorded which way was down; measured from there, the line turns the same way every night, so one fitted curve predicts its direction in every photo, **including which end is which** | puts every photo on the same end | ±3.9° per photo |
+| C Same-night pairs | photos up to 3 h apart matched through their dot patterns | direct, reliable | only links photos of one night; used to check B |
 
-**Which end is which**: the line has two ends. Photos of the same night (up to
-3 hours apart) are paired through their dot patterns; the rotation of the
-match says which end of one photo's line is which end of the other's. This
-links 5 groups, 22 photos (Dec 3, Dec 4, Jan 8, Jan 9, Jan 10), each with a
-common direction. Every other photo is alone in its group and its "+X" end is
-arbitrary for now (flagged).
+![turning sky](output/step2/field_rotation.png)
 
-Without knowing where Jupiter was in the sky (that needs an ephemeris), a
-single photo cannot tell east from west. I tried **atmospheric dispersion**
-(the air acts like a prism: Jupiter's side toward the zenith turns bluer, the
-side toward the horizon redder) to find "up". The red-blue offset is indeed
-larger when Jupiter is low, but its direction is dominated by eyepiece colour
-error and phone processing and does not agree between photos of the same
-night, so it is not used. East/west is left for a later step, from the motion.
+**What B found** (left): the phone stayed almost upright (within about 10°),
+yet the line turns by over 100° in a night, and every night of December and
+January falls on the same curve. What turns is the sky: as Jupiter rises and
+sets, the sky turns relative to the horizon (the parallactic angle), and the
+telescope adds a turn that follows its altitude. Fitting the curve gives, from
+the photos alone:
 
-**Errors** (`output/step2/positions.csv`):
+- Jupiter was highest at **21:20 ± 2 min** on Dec 3, declination **+13.8° ± 0.7°**, and came back 0.56 ± 0.11 min per day earlier than the stars (its own motion among them)
+- the sense of the turning says the view is **not mirrored**; with the altitude term, it looks like a reflector with the eyepiece sticking out sideways
+- the Jan 10 photo named 18:11 has camera time 20:11. With the camera time the prediction is 4° off; with the file-name time, 55°. **The camera time is right**
 
-| Source | Why |
-|---|---|
-| Photo `err_photo_X_rj` / `err_photo_Y_rj` | step 1 scale + dot and Jupiter centring + line angle |
-| Site `err_site_rj` | 0. This step only uses what is inside the photo (the line, the distances), which does not depend on where the camera stood. The site would only enter when turning photos to a "north up" sky frame, which also needs Jupiter's position in the sky |
+**Cross-checks**:
+- A vs B (B from a fit without that photo): rms 5.1° over 58 photos, none beyond 3 sigma (right panel)
+- C checks B: on all **32/32** same-night pairs, B matches the ends correctly
+- every photo's +X end is known with a margin of at least 3.3 sigma
+- the gravity axes are checked too: correct axes 3.8° rms, left-right flipped 7.1°, no gravity 5.3°
 
-**Galileo-style notebook** (one row per photo; same colour = same group,
-common direction; grey = direction unknown; hollow = bright dot off the line):
+**Final direction**: the most likely angle given A's dots and B's prediction
+together. A far dot fixes the angle much better than a near one (0.25 Rj off
+the line is 0.7° at 20 Rj but 3.6° at 4 Rj), so dots are weighted by distance;
+only bright dots are used (faint dots near Jupiter are mostly glare ripples).
+B picks the +X end. Median error ±0.9°. Three photos change by 3–8° compared
+with A alone (on Dec 5 the near and far dots disagree; B sides with the far one).
+
+**A band, not a line**: once turned, the distances of the dots from the line
+have a clear gap between 1.6 and 3.1 Rj. Within it (±2.3 Rj) are 185 bright
+dots that move along with the whole system; outside, only 5 scattered dots.
+The band's rms width is 0.41 Rj.
+
+**Which end is +X**: +X is the same end of the sky in every photo. Whether it
+is east or west depends on whether the telescope shows the sky upright or
+upside down, which the photos do not show.
+
+**Errors** (`output/step2/orientation.csv`, `positions.csv`):
+
+| Source | Size | Why |
+|---|---|---|
+| Photo `err_photo_deg` | median ±0.9° | angle from A and B combined; positions add the step 1 scale error |
+| Site `err_site_deg` | at most 6e-6° | B uses the latitude. Refitting with it moved by 30 m changes the predicted angle by at most 0.0002°, the declination by 0.0004°, the transit time by 0.0001 min; B is only part of the final angle |
+
+**Galileo-style notebook** (one row per photo, +X the same end in all; hollow =
+bright dot outside the band):
 
 ![notebook](output/step2/notebook.png)
 
-The dots already move within one night: on Jan 8 the leftmost dot goes from
--4 to -7.5 Rj, and on Jan 9 the two dots near +4 Rj close in on each other.
+Motion over several nights now shows: from Dec 3 to 5 the leftmost dot stays
+at -20 to -25 Rj; on Jan 8–9 the dot at -19 Rj moves in to -13 Rj.
 
 The real photos, turned and cut to a strip along the line: `output/step2/strips.jpg`.
 
@@ -141,6 +158,7 @@ scripts/common.py         photo list, EXIF, decoding
 scripts/detect.py         find Jupiter and dots
 scripts/step1_scale.py    step 1
 scripts/step2_orient.py   step 2
+scripts/field_rotation.py step 2 method B: the turning-sky model
 output/step1/             step 1 results
   scale.csv               1 Rj in pixels for each photo, both error bars
   pairs.csv               same-night dot-pattern matches
@@ -148,9 +166,11 @@ output/step1/             step 1 results
   ruler_check.png         the three rulers compared
   same_scale.jpg          all photos on one scale
 output/step2/             step 2 results
-  orientation.csv         line angle, group, flip for each photo
+  orientation.csv         per photo: methods A, B, final direction, both errors, Jupiter altitude
   positions.csv           X, Y (Rj) of every dot with both error bars
-  links.csv               photo pairs used to match line ends
+  links.csv               method C pairs and whether B agrees
+  summary.json            turning-sky fit, method comparisons, site effect
+  field_rotation.png      the turning-sky curve and A minus B
   notebook.png            Galileo-style notebook
   strips.jpg              photos turned, cut to strips
 ```
