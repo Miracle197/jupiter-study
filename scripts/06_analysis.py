@@ -300,6 +300,9 @@ def build_web(rows, fits, eph, hourly, res, jd0):
             "jupiter_mass_true": res["jupiter_mass_true"], "bloom_median": res["bloom_median"],
             "inclination": res["inclination"], "time_scan": res["time_scan"], "field_rotation": res["field_rotation"],
             "bloom_16_84": res["bloom_16_84"], "n_points": res["n_points"]}
+    gal = ROOT / "data" / "galileo.json"   # written by 07_galileo.py (run it before this script)
+    if gal.exists():
+        data["galileo"] = json.load(open(gal))
     json.dump(data, open(ROOT / "web" / "data.json", "w"), separators=(",", ":"))
     print("web/data.json written,", round((ROOT / "web" / "data.json").stat().st_size / 1024), "KB")
 

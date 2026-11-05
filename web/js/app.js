@@ -176,7 +176,7 @@
     const amt = a >= 120 ? t_("unit.hour", { n: (a / 60).toFixed(1) }) : t_("unit.min", { n: a });
     const note = a < 1 ? t_("clock.onPhoto") : t_("clock.near", { dir: t_(dtMin > 0 ? "clock.earlier" : "clock.later"), amt });
     $("clock").innerHTML = `${fmtLocal(state.t)} PST<small>${note}</small>`;
-    if (i !== state.photo) { state.photo = i; renderPhoto(); }
+    if (i !== state.photo) { state.photo = i; renderPhoto(); markGalileoRow(); }
     scene.setTime(state.t);
     scene.setSightPhoto(a <= 90 ? photos[i] : null);
     cursors.forEach((c) => c.setCursor(state.t));
@@ -184,6 +184,7 @@
   function selectPhoto(i) {
     state.photo = i;
     renderPhoto();
+    markGalileoRow();
     setTime(photos[i].t, i);
   }
   slider.addEventListener("input", () => setTime(+slider.value));
@@ -386,9 +387,146 @@
     $("orient-cap").innerHTML = cap;
   }
 
+  // ---------- Galileo mode (no ephemeris) ----------
+  const gState = { v: "standard", c: "raw" };
+  function galileoView() {
+    const g = data.galileo;
+    const res = g[gState.v];
+    // challenge: the overall mirror cannot be known; show it the same way round as the standard version
+    const flip = gState.v === "challenge" && res.mirrored_overall ? -1 : 1;
+    const rows = [];
+    let k = 0;
+    g.photos.forEach((p, i) => {
+      const sgn0 = res.signs[i] * flip;
+      const dots = p.dots.map((d) => {
+        const out = { X: d.X * sgn0, Y: d.Y, lab: res.labels[k], truth: g.truth_labels[k] };
+        k++;
+        return out;
+      });
+      rows.push({ id: p.id, t: p.t, night: p.night, dots });
+    });
+    return { g, res, rows };
+  }
+  function drawGalileo() {
+    if (!data.galileo) { $("sec-galileo").hidden = true; return; }
+    const { g, res, rows } = galileoView();
+    const ev = g.evidence;
+    $("g-rule").textContent = t_(gState.v === "standard" ? "g.rule.std" : "g.rule.ch");
+    $("g-s1").textContent = t_("g.s1.p", { deg: ev.line_scatter_deg_median.toFixed(1), max: ev.max_dots, far: Math.ceil(ev.max_distance), cand: ev.n_candidates, kept: ev.n_on_line });
+
+    // observing log
+    const R = Math.ceil(ev.max_distance) + 1;
+    const pos = (X) => 50 - (X / R) * 48; // east (+X) on the left
+    const ringColor = (lab) => (lab >= 0 ? color(MOONS[lab]) : null);
+    let h = `<div class="g-row g-head"><span class="g-time">${t_("g.sk.east")} ←</span><span class="g-track">`;
+    for (let x = -Math.floor(R / 5) * 5; x <= R; x += 5) h += `<i class="g-tick" style="left:${pos(x)}%"></i>${x !== 0 && Math.abs(x) % 10 === 0 ? `<span class="g-lab" style="left:${pos(x)}%;top:-2px">${Math.abs(x)}</span>` : ""}`;
+    h += `<span class="g-lab" style="left:98%">${t_("g.sk.west")}</span></span></div>`;
+    let lastNight = null;
+    rows.forEach((r) => {
+      const i = photos.findIndex((p) => p.id === r.id);
+      const ph = photos[i];
+      const label = ph.local.slice(5);
+      h += `<button type="button" class="g-row${r.night !== lastNight ? " newnight" : ""}${i === state.photo ? " on" : ""}" data-i="${i}"><span class="g-time">${label}</span><span class="g-track"><i class="g-jup" style="left:50%"></i>`;
+      lastNight = r.night;
+      r.dots.forEach((d) => {
+        const left = pos(Math.max(-R, Math.min(R, d.X)));
+        if (gState.c === "raw") h += `<span class="g-star" style="left:${left}%">*</span>`;
+        else if (gState.c === "blind") h += d.lab >= 0 ? `<i class="g-dot" style="left:${left}%;background:${ringColor(d.lab)}"></i>` : `<i class="g-dot junk" style="left:${left}%"></i>`;
+        else h += d.truth ? `<i class="g-dot" style="left:${left}%;background:${color(d.truth)}"></i>` : `<i class="g-dot junk" style="left:${left}%"></i>`;
+      });
+      h += `</span></button>`;
+    });
+    $("g-sketch").innerHTML = h;
+    const key = gState.c === "raw" ? "" :
+      MOONS.map((m, i) => `<span><i class="dot" style="background:${color(m)}"></i>${gState.c === "blind" ? ["I", "II", "III", "IV"][i] : m}</span>`).join("") +
+      `<span><i class="dot" style="background:transparent;border:1.5px solid var(--ink-3)"></i>${t_(gState.c === "blind" ? "g.sk.junk" : "g.sk.notmoon")}</span>`;
+    $("g-key").innerHTML = key;
+
+    // distance histogram with the four peaks
+    const hist = ev.hist;
+    const bars = hist.counts.map((c, i) => [hist.edges[i], hist.edges[i + 1], c]);
+    const kmax = Math.max(...ev.kde.y), cmax = Math.max(...hist.counts);
+    const kde = ev.kde.x.map((x, i) => [x, (ev.kde.y[i] / kmax) * cmax]);
+    const peakPts = ev.peaks.map((pk, i) => [pk, (ev.kde.y[ev.kde.x.findIndex((x) => x >= pk)] / kmax) * cmax, { i }]);
+    Charts.plot($("g-hist"), {
+      width: 520, height: 230, margin: { l: 36, r: 12, t: 16, b: 34 },
+      x: { min: 0, max: 28, ticks: [0, 5, 10, 15, 20, 25], label: t_("g.hist.x") },
+      y: { min: 0, max: Math.ceil(cmax * 1.15), label: t_("g.hist.y") },
+      series: [
+        { type: "bars", data: bars, color: tok("--ink-3"), opacity: 0.45 },
+        { type: "line", data: kde, color: tok("--accent"), width: 2 },
+        { type: "points", data: peakPts.map(([x, y, m]) => [x, y, m]), color: tok("--accent"), r: 5, tip: (m) => `${["I", "II", "III", "IV"][m.i]} · ${ev.peaks[m.i].toFixed(1)} Rj` },
+        { type: "text", data: peakPts.map(([x, y, m]) => [x, y, ["I", "II", "III", "IV"][m.i]]), dx: -4, dy: -10 },
+      ],
+      ariaLabel: t_("g.hist.aria"),
+    });
+    $("g-s3").textContent = t_("g.s3.p", { peaks: ev.peaks.map((x) => x.toFixed(1)).join(" / ") });
+
+    // periodograms
+    const box = $("g-pgram");
+    box.innerHTML = "";
+    const lg = (P) => Math.log10(P);
+    res.periodograms.forEach((pg, k) => {
+      const row = document.createElement("div");
+      row.className = "mult-row";
+      row.innerHTML = `<div class="name"><span class="swatch" style="background:${color(MOONS[k])}"></span>${["I", "II", "III", "IV"][k]}</div><div></div>`;
+      box.appendChild(row);
+      const pts = [];
+      pg.f.forEach((f, i) => { const P = 1 / f; if (P >= 0.38 && P <= 40) pts.push([lg(P), pg.score[i]]); });
+      pts.sort((a, b) => a[0] - b[0]);
+      const Pb = 1 / pg.f_best;
+      const refs = [{ x: lg(Pb), label: t_("g.pg.days", { p: Pb.toFixed(3) }) }];
+      Charts.plot(row.lastChild, {
+        width: 520, height: 96, margin: { l: 10, r: 10, t: 14, b: 22 },
+        x: { min: lg(0.38), max: lg(40), ticks: [0.5, 1, 2, 5, 10, 20, 40].map(lg), format: (v) => String(Math.round(Math.pow(10, v) * 10) / 10) },
+        y: { min: 0, max: 1.05, ticks: [], format: () => "" },
+        refLines: refs,
+        series: [{ type: "line", data: pts, color: color(MOONS[k]), width: 1.4 },
+          ...pg.aliases.filter((f) => 1 / f >= 0.38 && 1 / f <= 40).map((f) => ({ type: "dashed", data: [[lg(1 / f), 0], [lg(1 / f), 1.05]], color: tok("--ink-3"), width: 1 }))],
+        ariaLabel: t_("g.pg.aria", { r: ["I", "II", "III", "IV"][k] }),
+      });
+    });
+    const xl = document.createElement("p");
+    xl.className = "small muted";
+    xl.textContent = t_("g.pg.x");
+    box.appendChild(xl);
+
+    // results table
+    const th = (k2, num) => `<th${num ? ' class="num"' : ""}>${t_(k2)}</th>`;
+    $("g-table").innerHTML = `<thead><tr>${th("g.t.ring")}${th("g.t.P", 1)}${th("g.t.true", 1)}${th("g.t.err", 1)}${th("g.t.a", 1)}${th("g.t.n", 1)}${th("g.t.answer")}</tr></thead><tbody>` +
+      res.moons.map((m, i) => `<tr><td><span class="swatch" style="background:${color(MOONS[i])}"></span>${m.ring}</td><td class="num">${m.P.toFixed(3)}</td><td class="num">${m.true_P.toFixed(3)}</td>
+        <td class="num">${sgn(m.P_err_pct, 2)}%</td><td class="num">${m.a.toFixed(2)}</td><td class="num">${m.n}</td><td>${NAME(m.true_name)}</td></tr>`).join("") + "</tbody>";
+    const gr = res.grade;
+    let gtext = t_("g.grade", { kept: ev.n_on_line, correct: gr.correct, wrong: gr.wrong_moon, junk: gr.junk_kept, rej: gr.moon_rejected });
+    if (gState.v === "challenge") {
+      const nn = new Set(g.photos.map((p) => p.night)).size;
+      gtext += " " + t_("g.grade.ch", { nights: nn, agree: Math.round(res.sign_agreement * 100), restarts: res.search.restarts, reach: res.search.restarts_reaching_best });
+    }
+    $("g-grade").textContent = gtext;
+    const kp = res.kepler;
+    $("g-kepler").textContent = t_("g.kepler", { spread: (kp.a3_over_P2_spread * 100).toFixed(1), slope: kp.slope.toFixed(3), mass: (kp.mass_kg_no_glare_correction / 1e27).toFixed(2) });
+  }
+  $("g-sketch").addEventListener("click", (e) => {
+    const b = e.target.closest(".g-row[data-i]");
+    if (b) selectPhoto(+b.dataset.i);
+  });
+  document.querySelectorAll("#g-version button").forEach((b) => b.addEventListener("click", () => {
+    document.querySelectorAll("#g-version button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+    gState.v = b.dataset.v;
+    drawGalileo();
+  }));
+  document.querySelectorAll("#g-color button").forEach((b) => b.addEventListener("click", () => {
+    document.querySelectorAll("#g-color button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+    gState.c = b.dataset.c;
+    drawGalileo();
+  }));
+  function markGalileoRow() {
+    document.querySelectorAll("#g-sketch .g-row[data-i]").forEach((r) => r.classList.toggle("on", +r.dataset.i === state.photo));
+  }
+
   function drawAll() {
     cursors.length = 0;
-    drawHeader(); drawX(); drawFits(); drawIncl(); drawChecks(); renderPhoto(); playLabel(); showPick();
+    drawHeader(); drawX(); drawFits(); drawIncl(); drawGalileo(); drawChecks(); renderPhoto(); playLabel(); showPick();
     scene.setEarthLabel(t_("earth"));
     setTime(state.t, state.photo);
   }
