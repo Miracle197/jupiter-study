@@ -1,0 +1,415 @@
+<title>假如我是伽利略</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&family=Noto+Sans+SC:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column; photos sit on a fixed night-sky panel; charts span the column. */
+:root {
+  --bg: #eef0f4;          /* cool paper */
+  --surface: #ffffff;
+  --fg: #1b2130;          /* ink */
+  --muted: #5a6376;
+  --rule: #d5d9e2;
+  --accent: #2b4a9b;      /* ink blue */
+  --jupiter: #c98a2b;
+  --b1: #c8432f; --b2: #c08313; --b3: #2f8a52; --b4: #2f64c9; --b5: #8a4fc4; --b6: #4a8f9c;
+  --none: #8a91a0;
+  --sky: #06080d;         /* photo panels stay dark in both themes */
+  --sky-fg: #d8dde8;
+  --display: "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --body: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0e121a; --surface: #151b26; --fg: #e4e8f0; --muted: #9aa3b5; --rule: #2a3242; --accent: #8fa8f0;
+  --jupiter: #e6ac55; --b1: #ef7a63; --b2: #e8b445; --b3: #5cc485; --b4: #74a2f5; --b5: #b993ec; --b6: #7cc3cf;
+  --none: #6f7789; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0e121a; --surface: #151b26; --fg: #e4e8f0; --muted: #9aa3b5; --rule: #2a3242; --accent: #8fa8f0;
+  --jupiter: #e6ac55; --b1: #ef7a63; --b2: #e8b445; --b3: #5cc485; --b4: #74a2f5; --b5: #b993ec; --b6: #7cc3cf;
+  --none: #6f7789; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.7;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 48px }
+.wrap { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 56px }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.3 }
+h1 { font-size: clamp(30px, 5vw, 46px); letter-spacing: 0.02em }
+h2 { font-size: clamp(22px, 3vw, 28px) }
+h3 { font-size: 17px }
+p { margin: 0; max-width: 68ch }
+.lead { color: var(--muted); font-size: 16px }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent) }
+.num, td.n, .mono { font-family: var(--mono); font-variant-numeric: tabular-nums }
+header { padding-top: 40px; display: flex; flex-direction: column; gap: 14px }
+section { display: flex; flex-direction: column; gap: 18px }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px }
+.cols > * { min-width: 0 }
+.facts { display: flex; flex-wrap: wrap; gap: 10px 22px; margin: 0; padding: 0; list-style: none }
+.facts li { display: flex; gap: 8px; align-items: baseline }
+.swatch { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; transform: translateY(1px) }
+.chart { width: 100%; height: auto; display: block }
+.chart text { fill: var(--muted); font-family: var(--mono); font-size: 11px }
+.chart .grid { stroke: var(--rule); stroke-width: 1 }
+.chart .axis { stroke: var(--muted); stroke-width: 1 }
+.figure { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 14px 14px 10px; display: flex; flex-direction: column; gap: 8px; min-width: 0 }
+.caption { font-size: 13px; color: var(--muted) }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted) }
+.legend span { display: inline-flex; align-items: center; gap: 6px }
+.btns { display: flex; flex-wrap: wrap; gap: 6px }
+button { font: 500 13px var(--body); color: var(--fg); background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; padding: 5px 11px; cursor: pointer }
+button:hover { border-color: var(--accent) }
+button[aria-pressed="true"] { background: var(--accent); color: var(--surface); border-color: var(--accent) }
+button:focus-visible, .tl circle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+table { border-collapse: collapse; width: 100%; font-size: 14px }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--rule); vertical-align: top }
+th { font-weight: 500; color: var(--muted); font-size: 12px }
+td.n, th.n { text-align: right }
+.scroll { overflow-x: auto }
+
+/* observation explorer */
+.obs { background: var(--sky); color: var(--sky-fg); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 14px }
+.obs .pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px }
+@media (max-width: 640px) { .obs .pair { grid-template-columns: 1fr } }
+.obs figure { margin: 0; display: flex; flex-direction: column; gap: 6px; min-width: 0 }
+.obs figcaption { font-size: 12px; color: #8b94a8 }
+.src { position: relative; width: 100%; aspect-ratio: 1 / 1; background: #000; border-radius: 4px; overflow: hidden }
+.src img, .src svg { position: absolute; inset: 0; width: 100%; height: 100% }
+.obs .kv span { font-size: 15px }
+.obs .title { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline }
+.obs .title b { font-family: var(--display); font-size: 20px; font-weight: 600 }
+.obs button { background: #121722; color: var(--sky-fg); border-color: #2a3345 }
+.obs .kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 6px 18px; font-size: 13px }
+.obs .kv div { display: flex; flex-direction: column }
+.obs .kv small { color: #8b94a8; font-size: 11px; letter-spacing: 0.06em }
+.obs .kv span { font-family: var(--mono); font-variant-numeric: tabular-nums }
+.tl text { fill: #8b94a8; font-family: var(--mono); font-size: 11px }
+.tl circle { cursor: pointer }
+.obs .legend { color: #aab2c4 }
+.site { color: #8b94a8 }
+@media (prefers-reduced-motion: no-preference) { .strip svg .pred { transition: opacity .2s } }
+.loading { color: var(--muted) }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">jupiter-study · 只用 58 张手机照片</div>
+    <h1>假如我是伽利略</h1>
+    <p class="lead">2023 年 12 月 3 日到 2024 年 1 月 11 日，在加州 Riverside 用手机贴着望远镜目镜拍了 58 张木星照片。
+      假设我是 1610 年第一个用望远镜看木星的人：没有星表，不知道木星旁边的光点是什么。
+      只靠照片、相机记下的时间和手机重力传感器，一步步找出它们的规律。每个结果都带两种误差：照片误差和拍摄地点（±30 米）误差。</p>
+    <ul class="facts" id="facts"><li class="loading">正在载入数据…</li></ul>
+  </header>
+
+  <section aria-labelledby="obs-h">
+    <div class="eyebrow">观测记录本</div>
+    <h2 id="obs-h">每一张照片</h2>
+    <p class="lead">点时间轴上的任意一张照片，或用键盘 ← → 切换。两张图都是原照片里木星附近的同一部分，没有转正：左边不加任何标记，右边用小圈标出确认过的光点。</p>
+    <div class="obs" id="obs">
+      <svg class="tl chart" id="timeline" viewBox="0 0 1000 78" role="group" aria-label="58 张照片的时间轴"></svg>
+      <div class="title"><b id="obs-name">—</b><div class="btns"><button id="prev" type="button">← 上一张</button><button id="next" type="button">下一张 →</button></div></div>
+      <div class="pair">
+        <figure><div class="src"><img id="obs-src" alt="原照片：木星附近，未转正，无标记"></div><figcaption>原照片</figcaption></figure>
+        <figure><div class="src"><img id="obs-src2" alt="同一张照片，标出确认的光点"><svg id="obs-over" viewBox="0 0 720 720"></svg></div><figcaption>标出确认的光点</figcaption></figure>
+      </div>
+      <div class="legend" id="obs-legend"></div>
+      <div class="kv" id="obs-kv"></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="s1-h">
+    <div class="eyebrow">第 1 步 · 比例</div>
+    <h2 id="s1-h">用木星当尺子</h2>
+    <p>每张照片的放大倍数都不一样：木星的半径从 20 像素到 130 像素都有。所有距离都换算成“木星半径”（Rj）。
+      过曝的木星取亮度下降最快的那一圈当边缘。同一晚相隔不久的两张照片，光点排列几乎不变，对齐它们就能得到两张照片真实的比例，用来检验各种尺子。</p>
+    <div class="figure">
+      <svg class="chart" id="ruler" viewBox="0 0 960 380"></svg>
+      <div class="legend" id="ruler-legend"></div>
+      <div class="caption" id="ruler-cap"></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="s2-h">
+    <div class="eyebrow">第 2 步 · 方向</div>
+    <h2 id="s2-h">天空在照片里转动</h2>
+    <p>手机几乎一直竖直拿着（重力传感器记录了每张照片哪边朝下），光点连成的线却一晚上转了 100° 以上，而且每一晚都落在同一条曲线上。
+      转的是天空：木星升起又落下，天空相对地平线转动。拟合这条曲线，就能给每张照片定方向、分清线的两头。</p>
+    <div class="cols">
+      <div class="figure">
+        <h3>方法 B：所有照片落在一条曲线上</h3>
+        <svg class="chart" id="sky" viewBox="0 0 560 360"></svg>
+        <div class="caption">横轴：离木星升到最高点的小时数（拟合得出）。纵轴：+X 端相对手机“上方”的角度。误差棒为最终方向的照片误差。</div>
+      </div>
+      <div class="figure">
+        <h3>方法 A 与 B 逐张比对</h3>
+        <svg class="chart" id="ab" viewBox="0 0 560 360"></svg>
+        <div class="caption">A：光点连线（只看这一张）。B：曲线预测（拟合时不含这一张）。阴影为 B 的 ±1σ。</div>
+      </div>
+    </div>
+    <div class="scroll"><table id="sky-table"></table></div>
+  </section>
+
+  <section aria-labelledby="s3-h">
+    <div class="eyebrow">第 3 步 · 运动规律</div>
+    <h2 id="s3-h">四个来回摆动的天体</h2>
+    <p>来回摆动的东西在最远点附近停留得最久，所以光点离木星的距离在几个地方堆积，每个堆积对应一个天体。
+      从最外面的开始，逐个试遍所有周期；预测有光点而照片里没有，也算证据。每个天体的位置都按 X = A sin(2π t / P + φ) 拟合，同时为每张照片拟合一个比例修正。</p>
+    <div class="figure">
+      <div class="btns" id="m-range"></div>
+      <svg class="chart" id="motion" viewBox="0 0 960 420"></svg>
+      <div class="legend" id="m-legend"></div>
+      <div class="caption">点：照片里的光点，误差棒为照片误差（比例已按第 3 步修正）；× 为没有归给任何天体的光点。线和阴影：拟合的摆动及 ±1σ。灰带：木星光晕，看不到光点。</div>
+    </div>
+    <div class="cols" id="folded"></div>
+    <div class="scroll"><table id="bodies"></table></div>
+    <p class="caption" id="m-notes"></p>
+  </section>
+
+  <footer class="caption">数据由 <span class="mono">scripts/make_demo.py</span> 从第 1–3 步的结果生成；第 2 步方向与第 3 步周期只来自照片、EXIF、手机重力传感器和拍摄地点。</footer>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const css = (v) => `var(${v})`;
+const BODY_VAR = ["--b1", "--b2", "--b3", "--b4", "--b5", "--b6"];
+let D, bodyIdx = {}, cur = 0;
+
+const fmt = (x, d = 2) => (x == null || !isFinite(x)) ? "—" : Number(x).toFixed(d);
+const sci = (x) => (x == null || !isFinite(x)) ? "—" : (x === 0 ? "0" : Number(x).toExponential(1).replace("e", "×10^").replace(/\^(-?)\+?0*(\d+)/, (m, s, d) => "^" + s + d));
+function niceTicks(a, b, n = 6) {
+  const span = b - a, step0 = span / n, mag = Math.pow(10, Math.floor(Math.log10(step0)));
+  const step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => span / s <= n) || 10 * mag;
+  const out = []; for (let v = Math.ceil(a / step) * step; v <= b + 1e-9; v += step) out.push(+v.toFixed(10)); return out;
+}
+const lin = (d0, d1, r0, r1) => (v) => r0 + (v - d0) / (d1 - d0) * (r1 - r0);
+function frame(W, H, m, xr, yr, opt = {}) {
+  const x = opt.xlog ? (v) => lin(Math.log(xr[0]), Math.log(xr[1]), m.l, W - m.r)(Math.log(v)) : lin(xr[0], xr[1], m.l, W - m.r);
+  const y = opt.ylog ? (v) => lin(Math.log(yr[0]), Math.log(yr[1]), H - m.b, m.t)(Math.log(v)) : lin(yr[0], yr[1], H - m.b, m.t);
+  const xt = opt.xticks || niceTicks(xr[0], xr[1], opt.nx || 8), yt = opt.yticks || niceTicks(yr[0], yr[1], opt.ny || 6);
+  let s = "";
+  for (const v of yt) s += `<line class="grid" x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}"/><text x="${m.l - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
+  for (const v of xt) s += `<line class="grid" y1="${m.t}" y2="${H - m.b}" x1="${x(v)}" x2="${x(v)}"/><text x="${x(v)}" y="${H - m.b + 16}" text-anchor="middle">${opt.xfmt ? opt.xfmt(v) : v}</text>`;
+  s += `<line class="axis" x1="${m.l}" x2="${W - m.r}" y1="${H - m.b}" y2="${H - m.b}"/><line class="axis" x1="${m.l}" x2="${m.l}" y1="${m.t}" y2="${H - m.b}"/>`;
+  if (opt.xlabel) s += `<text x="${(m.l + W - m.r) / 2}" y="${H - 6}" text-anchor="middle">${opt.xlabel}</text>`;
+  if (opt.ylabel) s += `<text transform="translate(13 ${(m.t + H - m.b) / 2}) rotate(-90)" text-anchor="middle">${opt.ylabel}</text>`;
+  return { x, y, s };
+}
+const ebar = (x, y0, y1, c, w = 1) => `<line x1="${x}" x2="${x}" y1="${y0}" y2="${y1}" style="stroke:${c};stroke-width:${w}"/>`;
+const hbar = (y, x0, x1, c, w = 1) => `<line y1="${y}" y2="${y}" x1="${x0}" x2="${x1}" style="stroke:${c};stroke-width:${w}"/>`;
+
+/* ---------- model of each body ---------- */
+function model(b, t) {
+  const A = b.reach_rj, f = b.freq_per_day, ph = b.phase_rad, th = 2 * Math.PI * f * t + ph;
+  const C = b.cov_reach_freq_phase, J = [Math.sin(th), A * Math.cos(th) * 2 * Math.PI * t, A * Math.cos(th)];
+  let v = 0; for (let i = 0; i < 3; i++) for (let k = 0; k < 3; k++) v += J[i] * C[i][k] * J[k];
+  return { x: A * Math.sin(th), s: Math.sqrt(Math.max(v, 0)) };
+}
+const bodyColor = (name) => name && bodyIdx[name.split("+")[0]] != null ? css(BODY_VAR[bodyIdx[name.split("+")[0]] % 6]) : css("--none");
+const scaleScatter = () => D.motion.photo_scale.measured_single_photo_scale_scatter;
+function dotErr(p, Xc) {   // error of a scale-corrected dot position (Rj)
+  const base = 0.25 + 0.02 * Math.abs(Xc);
+  return Math.hypot(base, p.scale_fitted ? 0 : Math.abs(Xc) * scaleScatter());
+}
+const dateLabel = (iso) => { const d = new Date(iso); return `${d.getMonth() + 1}月${d.getDate()}日 ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
+
+/* ---------- header facts ---------- */
+function facts() {
+  const li = D.bodies.map((b, i) => `<li><span class="swatch" style="background:${css(BODY_VAR[i % 6])}"></span><span>${b.name}</span><span class="num">P = ${fmt(b.period_d, 3)} ± ${fmt(b.period_err_photo_d, 3)} 天</span></li>`);
+  $("facts").innerHTML = li.join("") + `<li class="caption">（± 为照片误差；地点误差见第 3 步表格）</li>`;
+}
+
+/* ---------- observation explorer ---------- */
+function timeline() {
+  const W = 1000, m = { l: 20, r: 20 }, x = lin(-0.5, 40.5, m.l, W - m.r);
+  const perNight = {};
+  let s = "";
+  for (const [d, lab] of [[0, "12月3日"], [13, "12月16日"], [29, "1月1日"], [39, "1月11日"]]) s += `<text x="${x(d)}" y="74" text-anchor="middle">${lab}</text>`;
+  s += `<line x1="${m.l}" x2="${W - m.r}" y1="60" y2="60" style="stroke:#2a3345"/>`;
+  D.photos.forEach((p, i) => {
+    const k = perNight[p.night] = (perNight[p.night] || 0) + 1;
+    const cy = 52 - (k - 1) * 6.2;
+    s += `<circle data-i="${i}" tabindex="0" role="button" aria-label="${dateLabel(p.time)}" cx="${x(p.t)}" cy="${cy}" r="${i === cur ? 5.5 : 3.6}" style="fill:${i === cur ? "var(--jupiter)" : "#6d7790"}"/>`;
+  });
+  $("timeline").innerHTML = s;
+}
+function showPhoto(i) {
+  cur = (i + D.photos.length) % D.photos.length;
+  const p = D.photos[cur], B = p.src, k = B.px / B.size;
+  $("obs-name").textContent = `${dateLabel(p.time)} · 第 ${cur + 1} / ${D.photos.length} 张`;
+  $("obs-src").src = `src/${p.id}.jpg`;
+  $("obs-src2").src = `src/${p.id}.jpg`;
+  let s = "";
+  for (const d of p.pdots) {
+    const x = (d.x - B.x0) * k, y = (d.y - B.y0) * k;
+    if (x < -20 || y < -20 || x > B.px + 20 || y > B.px + 20) continue;
+    const c = d.found_by === "eye" ? "var(--b2)" : "var(--b3)";
+    s += `<circle cx="${x}" cy="${y}" r="9" style="fill:none;stroke:${c};stroke-width:1.4"/>`;
+  }
+  $("obs-over").innerHTML = s;
+  const nEye = p.pdots.filter(d => d.found_by === "eye").length;
+  $("obs-legend").innerHTML = `<span><svg width="18" height="18"><circle cx="9" cy="9" r="7" style="fill:none;stroke:var(--b3);stroke-width:2"/></svg>确认的光点（程序也找到了）</span>` +
+    `<span><svg width="18" height="18"><circle cx="9" cy="9" r="7" style="fill:none;stroke:var(--b2);stroke-width:2"/></svg>确认的光点（程序漏掉、核对时补上）</span>`;
+  const kv = [
+    ["拍摄时间（相机时钟）", p.time.replace("T", " ") + (p.camera ? ` · ${p.camera}` : "")],
+    ["确认的光点", `${p.pdots.length} 个` + (nEye ? `（其中 ${nEye} 个是核对时补上的）` : "")],
+    ["比例修正（第 3 步）", `× ${fmt(p.scale_fix, 3)}` + (p.scale_fitted ? "" : "（未单独拟合）") +
+      `<br><span class="site">第 1 步：1 Rj = ${fmt(p.rj_px, 1)} px；修正后 1 Rj = ${fmt(p.rj_px * p.scale_fix, 1)} px</span>`],
+  ];
+  $("obs-kv").innerHTML = kv.map(([k, v]) => `<div><small>${k}</small><span>${v}</span></div>`).join("");
+  timeline();
+}
+
+/* ---------- step 1: rulers ---------- */
+function ruler() {
+  const W = 960, H = 380, m = { l: 56, r: 20, t: 14, b: 44 };
+  const f = frame(W, H, m, [0.3, 2.2], [0.3, 2.2], { xlog: true, ylog: true, xticks: [0.3, 0.5, 0.7, 1, 1.5, 2], yticks: [0.3, 0.5, 0.7, 1, 1.5, 2],
+    xlabel: "两张照片的真实比例（光点图案对齐得到）", ylabel: "尺子给出的比例" });
+  let s = f.s + `<line x1="${f.x(0.3)}" y1="${f.y(0.3)}" x2="${f.x(2.2)}" y2="${f.y(2.2)}" style="stroke:var(--muted);stroke-dasharray:4 4"/>`;
+  const series = [["edge", "木星边缘（采用）", "--accent"], ["blob", "木星白色亮斑", "--jupiter"], ["zoom", "手机变焦（EXIF）", "--b1"]];
+  const leg = [];
+  for (const [k, lab, c] of series) {
+    const pts = D.ruler.filter(r => r[k]);
+    const rms = 100 * Math.sqrt(pts.reduce((a, r) => a + Math.log(r.dots / r[k]) ** 2, 0) / pts.length);
+    for (const r of pts) s += k === "zoom" ? `<path d="M${f.x(r.dots)} ${f.y(r[k]) - 5}l4.5 8h-9z" style="fill:${css(c)}"/>` : `<circle cx="${f.x(r.dots)}" cy="${f.y(r[k])}" r="${k === "edge" ? 4.5 : 3.5}" style="fill:${css(c)};opacity:${k === "edge" ? 1 : .75}"/>`;
+    leg.push(`<span><span class="swatch" style="background:${css(c)}"></span>${lab}：差 ${fmt(rms, 1)}%</span>`);
+  }
+  $("ruler").innerHTML = s;
+  $("ruler-legend").innerHTML = leg.join("");
+  $("ruler-cap").textContent = `${D.ruler.length} 对同一晚的照片。离虚线越近越准。木星边缘单张照片的误差约 ±${fmt(100 * D.ruler_summary.sig_disk_single_photo, 1)}%；` +
+    `第 3 步用卫星的最远距离重新测得单张照片比例的实际偏差约 ±${fmt(100 * scaleScatter(), 1)}%，图里的误差棒用的是这个值。拍摄地点 30 米的误差对比例的影响小于 10^-9。`;
+}
+
+/* ---------- step 2: turning sky ---------- */
+function sky() {
+  const W = 560, H = 360, m = { l: 50, r: 14, t: 12, b: 42 };
+  const xs = D.sky.curve.map(c => c[0]), ys = D.photos.map(p => p.rel).concat(D.sky.curve.map(c => c[1]));
+  const f = frame(W, H, m, [Math.floor(Math.min(...xs)), Math.ceil(Math.max(...xs))], [Math.floor(Math.min(...ys) / 20) * 20 - 10, Math.ceil(Math.max(...ys) / 20) * 20 + 10],
+    { xlabel: "离木星最高点的小时数", ylabel: "+X 端方向（度）" });
+  let s = f.s + `<path d="${D.sky.curve.map((c, i) => (i ? "L" : "M") + f.x(c[0]) + " " + f.y(c[1])).join("")}" style="fill:none;stroke:var(--fg);stroke-width:1.4"/>`;
+  for (const p of D.photos) {
+    const c = p.t < 28.5 ? "var(--b4)" : "var(--b1)";
+    s += ebar(f.x(p.H), f.y(p.rel - p.final_err), f.y(p.rel + p.final_err), c);
+    s += p.has_gravity ? `<circle cx="${f.x(p.H)}" cy="${f.y(p.rel)}" r="3.6" style="fill:${c}"/>` : `<path d="M${f.x(p.H) - 4} ${f.y(p.rel) - 4}l8 8m0 -8l-8 8" style="stroke:${c};stroke-width:1.6"/>`;
+  }
+  s += `<circle cx="${W - 150}" cy="${m.t + 10}" r="4" style="fill:var(--b4)"/><text x="${W - 140}" y="${m.t + 14}">12 月</text><circle cx="${W - 90}" cy="${m.t + 10}" r="4" style="fill:var(--b1)"/><text x="${W - 80}" y="${m.t + 14}">1 月</text>`;
+  $("sky").innerHTML = s;
+
+  const res = D.photos.map(p => { let d = ((p.A - p.B) % 180 + 270) % 180 - 90; return d; });
+  const sig = D.sky.fit.scatter_per_photo_deg, lim = Math.max(12, Math.ceil(Math.max(...res.map(Math.abs)) / 5) * 5 + 3);
+  const g = frame(W, H, m, [-1, D.photos.length], [-lim, lim], { xlabel: "照片（按时间）", ylabel: "A − B（度）", nx: 6 });
+  let t = g.s + `<rect x="${m.l}" width="${W - m.l - m.r}" y="${g.y(sig)}" height="${g.y(-sig) - g.y(sig)}" style="fill:var(--accent);opacity:0.12"/>`;
+  D.photos.forEach((p, i) => {
+    const e = Math.hypot(p.A_err, p.B_err), c = p.t < 28.5 ? "var(--b4)" : "var(--b1)";
+    t += ebar(g.x(i), g.y(res[i] - e), g.y(res[i] + e), c) + `<circle cx="${g.x(i)}" cy="${g.y(res[i])}" r="3.2" style="fill:${c}"/>`;
+  });
+  $("ab").innerHTML = t;
+
+  const fit = D.sky.fit, site = D.sky.site;
+  const rows = [
+    ["木星最高的时刻（12 月 3 日）", `${fit.jupiter_highest_at_on_2023_12_03} ± ${fmt(fit.jupiter_highest_err_min, 1)} 分钟`, `± ${sci(site.highest_time_shift_min)} 分钟`],
+    ["木星赤纬", `${fmt(fit.jupiter_declination_deg, 2)}° ± ${fmt(fit.jupiter_declination_err_deg, 2)}°`, `± ${sci(site.declination_shift_deg)}°`],
+    ["木星每天比恒星多早", `${fmt(-fit.jupiter_drift_min_per_day, 2)} ± ${fmt(fit.jupiter_drift_err, 2)} 分钟`, "—"],
+    ["方法 B 单张误差", `${fmt(fit.scatter_per_photo_deg, 1)}°`, "—"],
+    ["A 与 B 的差异（均方根）", `${fmt(D.sky.A_vs_B.rms_deg, 1)}°，超出 3σ 的照片 ${D.sky.A_vs_B.photos_disagree_over_3sigma.length} 张`, "—"],
+    ["方法 C 检验 B 的两端判断", `${D.sky.C.agree_with_B_on_ends} / ${D.sky.C.pairs} 对一致`, "—"],
+    ["最终方向（中位）", `± ${fmt(D.sky.final.median_err_photo_deg, 2)}°`, `最大 ± ${sci(site.max_err_site_deg)}°`],
+  ];
+  for (const c of D.sky.clock) rows.push([`时间核对：${c.photo}`, `相机时间 ${c.camera_time.slice(11, 16)} 差 ${c.A_minus_B_camera_time_deg}°；文件名 ${c.file_name_time.slice(11, 16)} 差 ${c.A_minus_B_file_name_time_deg}°`, "—"]);
+  $("sky-table").innerHTML = `<thead><tr><th>结果</th><th>数值 ± 照片误差</th><th>地点误差（30 米）</th></tr></thead><tbody>` +
+    rows.map(r => `<tr><td>${r[0]}</td><td class="mono">${r[1]}</td><td class="mono">${r[2]}</td></tr>`).join("") + "</tbody>";
+}
+
+/* ---------- step 3: motion ---------- */
+const RANGES = [["全部", [-0.5, 40.5]], ["12 月 3–16 日", [0.5, 14.5]], ["12 月 16–31 日", [13.5, 29.5]], ["1 月 1–11 日", [28.5, 40.5]], ["1 月 8 日夜", [36.65, 37.1]], ["1 月 9 日夜", [37.65, 38.1]]];
+let range = 0;
+const shown = new Set();
+function motion() {
+  const W = 960, H = 420, m = { l: 50, r: 14, t: 12, b: 42 }, [a, b] = RANGES[range][1];
+  const ymax = Math.ceil((Math.max(...D.bodies.map(x => x.reach_rj)) + 3) / 5) * 5;
+  const short = b - a < 1;
+  const f = frame(W, H, m, [a, b], [-ymax, ymax], { xlabel: short ? "时间（小时，当地）" : "日期", ylabel: "X（木星半径）", nx: short ? 8 : 10,
+    xfmt: short ? (v) => { const h = (v % 1) * 24; return String(Math.floor(h + 1e-6) % 24).padStart(2, "0") + ":" + String(Math.round((h % 1) * 60) % 60).padStart(2, "0"); }
+                : (v) => { const d = new Date(2023, 11, 3 + Math.floor(v)); return `${d.getMonth() + 1}/${d.getDate()}`; },
+    xticks: short ? niceTicks(a, b, 8) : niceTicks(a, b, 10).filter(v => Number.isInteger(v)) });
+  let s = f.s + `<rect x="${m.l}" width="${W - m.l - m.r}" y="${f.y(2)}" height="${f.y(-2) - f.y(2)}" style="fill:var(--muted);opacity:0.15"/>`;
+  const N = 900;
+  let mods = "";
+  D.bodies.forEach((bd, k) => {
+    if (!shown.has(k)) return;
+    let up = "", dn = "", ln = "";
+    for (let i = 0; i <= N; i++) {
+      const t = a + (b - a) * i / N, mm = model(bd, t);
+      up += (i ? "L" : "M") + f.x(t) + " " + f.y(mm.x + mm.s); ln += (i ? "L" : "M") + f.x(t) + " " + f.y(mm.x);
+    }
+    for (let i = N; i >= 0; i--) { const t = a + (b - a) * i / N, mm = model(bd, t); dn += "L" + f.x(t) + " " + f.y(mm.x - mm.s); }
+    const c = css(BODY_VAR[k % 6]);
+    mods += `<path d="${up}${dn}Z" style="fill:${c};opacity:0.22"/><path d="${ln}" style="fill:none;stroke:${c};stroke-width:1.2"/>`;
+  });
+  s += `<g clip-path="url(#mclip)">${mods}</g>`;
+  for (const p of D.photos) {
+    if (p.t < a || p.t > b) continue;
+    for (const d of p.dots) {
+      if (!d.band) continue;
+      const k = d.body ? bodyIdx[d.body.split("+")[0]] : null;
+      if (k != null && !shown.has(k)) continue;
+      const Xc = d.X / p.scale_fix, e = dotErr(p, Xc), c = k != null ? css(BODY_VAR[k % 6]) : css("--none");
+      s += ebar(f.x(p.t), f.y(Xc - e), f.y(Xc + e), c);
+      s += k != null ? `<circle cx="${f.x(p.t)}" cy="${f.y(Xc)}" r="3.2" style="fill:${c}"/>` : `<path d="M${f.x(p.t) - 3.5} ${f.y(Xc) - 3.5}l7 7m0 -7l-7 7" style="stroke:${c};stroke-width:1.4"/>`;
+    }
+  }
+  $("motion").innerHTML = `<defs><clipPath id="mclip"><rect x="${m.l}" y="${m.t}" width="${W - m.l - m.r}" height="${H - m.t - m.b}"/></clipPath></defs>` + s;
+  $("m-range").innerHTML = RANGES.map((r, i) => `<button type="button" data-r="${i}" aria-pressed="${i === range}">${r[0]}</button>`).join("");
+  $("m-legend").innerHTML = D.bodies.map((bd, k) => `<span><button type="button" data-b="${k}" aria-pressed="${shown.has(k)}"><span class="swatch" style="background:${css(BODY_VAR[k % 6])}"></span> ${bd.name}</button></span>`).join("");
+}
+function folded() {
+  $("folded").innerHTML = D.bodies.map((b, k) => `<div class="figure"><h3>${b.name}：P = ${fmt(b.period_d, 4)} 天</h3><svg class="chart" id="fold${k}" viewBox="0 0 300 220"></svg><div class="caption">按周期折叠：同一相位的光点应落在同一条正弦线上。</div></div>`).join("");
+  D.bodies.forEach((b, k) => {
+    const W = 300, H = 220, m = { l: 36, r: 8, t: 10, b: 30 }, y = Math.ceil(b.reach_rj * 1.25);
+    const f = frame(W, H, m, [0, 1], [-y, y], { xticks: [0, 0.25, 0.5, 0.75, 1], ny: 4, xlabel: "周期中的位置" });
+    let s = f.s, d = "";
+    for (let i = 0; i <= 120; i++) d += (i ? "L" : "M") + f.x(i / 120) + " " + f.y(b.reach_rj * Math.sin(2 * Math.PI * i / 120));
+    const c = css(BODY_VAR[k % 6]);
+    s += `<path d="${d}" style="fill:none;stroke:${c};stroke-width:1.3"/>`;
+    for (const p of D.photos) for (const dt of p.dots) {
+      if (!dt.body || !dt.body.split("+").includes(b.name)) continue;
+      const Xc = dt.X / p.scale_fix, e = dotErr(p, Xc), ph = ((b.freq_per_day * p.t + b.phase_rad / (2 * Math.PI)) % 1 + 1) % 1;
+      s += ebar(f.x(ph), f.y(Xc - e), f.y(Xc + e), c, 0.9) + `<circle cx="${f.x(ph)}" cy="${f.y(Xc)}" r="2.6" style="fill:${c}"/>`;
+    }
+    $("fold" + k).innerHTML = s;
+  });
+}
+function bodiesTable() {
+  const rows = D.bodies.map((b, k) => {
+    const rv = (b.rival_periods || []).filter(r => Math.abs(r.period_d - b.period_d) > 0.01)[0];
+    const tilt = b.drift_across_line;
+    return `<tr><td><span class="swatch" style="background:${css(BODY_VAR[k % 6])}"></span> ${b.name}</td>
+      <td class="n">${fmt(b.period_d, 4)}</td><td class="n">± ${fmt(b.period_err_photo_d, 4)}</td><td class="n">± ${sci(b.period_err_site_d)}</td>
+      <td class="n">${fmt(b.reach_rj, 2)} ± ${fmt(b.reach_err_photo_rj, 2)}</td><td class="n">${b.dots}</td>
+      <td>${rv ? `${fmt(rv.period_d, 3)} 天（得分 ${rv.score}，本周期 ${b.rival_periods[0].score}）` : "—"}</td>
+      <td>${tilt ? `${fmt(tilt.B_rj, 2)} ± ${fmt(tilt.B_err_rj, 2)} Rj` : "—"}</td></tr>`;
+  }).join("");
+  $("bodies").innerHTML = `<thead><tr><th>天体</th><th class="n">周期（天）</th><th class="n">照片误差</th><th class="n">地点误差</th><th class="n">最远距离（Rj）</th><th class="n">光点数</th><th>最接近的对手周期</th><th>横向摆动</th></tr></thead><tbody>${rows}</tbody>`;
+  const M = D.motion;
+  $("m-notes").textContent = `一共 ${M.dots.bright_in_band} 个光点，${M.dots.given_to_a_body} 个归给了某个天体。拟合残差中位约 ${fmt(M.residual_robust_rj, 2)} Rj。` +
+    `“对手周期”是多转或少转一圈每天之类、看起来差不多的周期，得分越接近越难区分；1 月 8、9 日一晚多张照片把它们分开。` +
+    `“横向摆动”是光点在摆动的同时离线的距离按 cos 变化的幅度：不为零说明它们走的是从侧面看的圆，而不是直线。距离单位是第 1 步定的 Rj（过曝的木星量出来偏大）。`;
+}
+
+/* ---------- boot ---------- */
+async function start() {
+  try { D = await (await fetch("data.json")).json(); }
+  catch (e) { $("facts").innerHTML = `<li>数据载入失败：${e.message}。请通过本地服务器打开（python3 -m http.server -d demo）。</li>`; return; }
+  D.bodies.forEach((b, k) => { bodyIdx[b.name] = k; shown.add(k); });
+  facts(); showPhoto(D.photos.findIndex(p => p.id === "2024-01-09T1823") >= 0 ? D.photos.findIndex(p => p.id === "2024-01-09T1823") : 0);
+  ruler(); sky(); motion(); folded(); bodiesTable();
+  $("prev").onclick = () => showPhoto(cur - 1);
+  $("next").onclick = () => showPhoto(cur + 1);
+  $("timeline").addEventListener("click", (e) => { const i = e.target.dataset?.i; if (i != null) showPhoto(+i); });
+  $("timeline").addEventListener("keydown", (e) => { const i = e.target.dataset?.i; if (i != null && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); showPhoto(+i); } });
+  document.addEventListener("keydown", (e) => { if (e.target.closest && e.target.closest("button, input")) return; if (e.key === "ArrowLeft") showPhoto(cur - 1); if (e.key === "ArrowRight") showPhoto(cur + 1); });
+  $("m-range").addEventListener("click", (e) => { const r = e.target.closest("button")?.dataset.r; if (r != null) { range = +r; motion(); } });
+  $("m-legend").addEventListener("click", (e) => { const k = e.target.closest("button")?.dataset.b; if (k != null) { shown.has(+k) ? shown.delete(+k) : shown.add(+k); motion(); } });
+}
+start();
+</script>

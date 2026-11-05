@@ -1,110 +1,228 @@
-# jupiter-study
+# jupiter-study: what if I were Galileo?
 
 **English** · [中文](README.zh-CN.md)
 
-Analysis of Jupiter's Galilean moons from 58 phone photos taken through a telescope eyepiece
-(2023-12-03 to 2024-01-11, 31 nights, Riverside, CA). Every photo's moons are identified, converted to
-coordinates in Jupiter radii (Rj), compared with the NASA JPL Horizons ephemeris, and shown in an
-interactive bilingual web demo (photo viewer + 3D model + charts).
+All I have are 58 phone photos of Jupiter taken through a telescope eyepiece
+(2023-12-03 to 2024-01-11, Riverside, California). Pretend I am the first
+person to look at Jupiter through a telescope, in 1610: no NASA data, no idea
+that the dots next to Jupiter are moons, no idea that they move back and forth
+periodically. Work everything out from the photos, one step at a time.
 
-**Live demo:** <https://claude.ai/artifact/Ns4TTLjMFeWVSMh17i4Xvv> (add `#en` or `#zh` to the link to pick the language; the page also has a language button).
+**Allowed**: the photos; what the camera wrote into them (time, zoom, iPhone
+gravity sensor); the observing site given by the photographer
+(`data/observer.json`: 33.976683° N, 117.310320° W, known to within 30 m).
+**Not used**: any ephemeris, orbit, moon name, size of or distance to Jupiter.
 
-## Results
+Every result carries two separate error bars: the **photo error** (from
+measuring pixels) and the **site error** (from not knowing the camera position
+better than 30 m).
 
-| Quantity | From the photos | True value |
+## Progress
+
+| Step | What | Status |
 |---|---|---|
-| Io period | 1.768 ± 0.001 d | 1.769 d |
-| Europa period | 3.551 ± 0.002 d | 3.551 d |
-| Ganymede period | 7.149 ± 0.006 d | 7.155 d |
-| Callisto period | 16.70 ± 0.03 d | 16.69 d |
-| Kepler's third law slope, log a / log P | 0.671 | 2/3 |
-| Jupiter's mass (glare-corrected) | 1.80 × 10²⁷ kg | 1.90 × 10²⁷ kg |
+| 1 | Put every photo on the same scale | ✅ |
+| 2 | Same orientation: line horizontal, same end on the same side in all photos | ✅ |
+| 3 | Which dots are the same body, how they swing, how long they take | ✅ |
+| — | Interactive demo page (`demo/`) | ✅ |
 
-- 186 moon positions identified (219 were predicted visible; most of the rest sit too close to Jupiter's glare).
-- Angles between moons: a single photo measures them to about ±3.6°. That confirms the four moons are nearly coplanar, but it cannot resolve the < 0.5° differences between their orbits.
-- Photo times: the file names, read as Pacific Standard Time, fit the ephemeris best with a shift of only +5 minutes.
-- Every photo is mirrored, and within a night the image turns by "parallactic angle + altitude". Both point to an **alt-azimuth mount with a star diagonal**. From the photo orientation alone the site was estimated at 32–41° N, 114–121° W; the real site (33.98° N, 117.31° W) falls inside that range.
+**Main result**: four bodies swing back and forth next to Jupiter, with periods
 
-## Galileo mode: no ephemeris
+| Body | Period (days) | Photo error | Site error | Reach (Rj) |
+|---|---|---|---|---|
+| I | 1.7687 | ± 0.0005 | ± 2e-12 | 4.96 ± 0.07 |
+| II | 3.5513 | ± 0.0012 | ± 3e-11 | 7.92 ± 0.11 |
+| III | 7.1511 | ± 0.0032 | ± 1e-10 | 12.61 ± 0.16 |
+| IV | 16.673 | ± 0.013 | ± 5e-10 | 22.15 ± 0.27 |
 
-What if you were the first to see these dots, as Galileo was in January 1610, and did not know they were moons?
-`scripts/07_galileo.py` repeats the analysis using only the photos and their times. The ephemeris is used only at the end, to grade the result.
+## Checking the dots
 
-1. **They belong to Jupiter**: keep only dots on one line through Jupiter (203 of 536 candidate dots).
-2. **Ruler**: Jupiter's disk, as Galileo measured in Jupiter diameters.
-3. **Count them**: distances pile up at each body's greatest elongation. Four peaks (4.5 / 7.4 / 11.7 / 19.1 Rj) mean four bodies, numbered I–IV from the inside out.
-4. **Periods**: sine fits from the outermost ring inward, then a search in which each ring keeps the period that best explains all dots. Once-a-night photos make a period and its "one extra turn per day" aliases look alike. The nights with 8 photos (8 and 9 January) tell them apart.
-5. **Kepler's third law**: slope 0.661 (theory 2/3).
+The detector (`scripts/detect.py`) finds 848 candidate bright points in the 58
+photos, most of them glare ripples, noise or ground lights. Which bright points
+are the dots of the small bodies next to Jupiter was confirmed photo by photo
+and recorded in `data/visual_check.json` (pixel coordinates only): 205 dots,
+5 of them missed by the detector but visible in the photo (mostly right at
+Jupiter's edge, or crowded next to a shake double), centred from the photo's
+pixels. Steps 1–3 use only these 205 confirmed dots.
 
-Two versions:
-- **Standard (east known):** every Galileo sketch marks east and west. Our photographer did not record it, so that one fact per photo is borrowed from the calibration.
-- **Challenge (east unknown):** each night's east/west orientation is searched together with the orbits. It was right on 98% of nights.
+## Step 1: same scale
 
-| Ring | Standard | Challenge | True |
+**Problem**: every photo has a different magnification. Jupiter is 20 px in
+radius in one photo and 130 px in another.
+
+**The ruler is Jupiter itself** (Galileo also measured in Jupiter diameters).
+Every distance is in Jupiter radii (Rj). Jupiter and the dots are in the same
+photo, so whatever changes the magnification changes both together. Jupiter is
+overexposed and the white blob grows with exposure, so its edge is the radius
+where the ring-averaged brightness falls fastest.
+
+**Checking the ruler with no outside data**: photos from the same night, taken
+within 90 minutes, show almost the same pattern of dots. Lining up the two
+patterns gives the true scale ratio of the two photos. Over 19 such pairs:
+
+| Ruler | Difference from the dot patterns (rms) |
+|---|---|
+| Jupiter edge (steepest drop, used) | **7.6%** |
+| Phone zoom (EXIF) | 8.9% |
+| Jupiter white blob | 9.2% |
+
+![ruler check](output/step1/ruler_check.png)
+
+**Findings**:
+- The phone zoom is not reliable: on Jan 9 the zoom stayed at 5x all night,
+  yet the real scale changed by about ±10% between neighbouring photos.
+- The Jupiter edge alone is good to about ±5.2% per photo; the 27 photos linked
+  through their dots on the same night are averaged, bringing them to 2.2–5.2%.
+- Step 3 measures the real single-photo scale error the other way round (each
+  body always swings to the same distance): about ±5.9%, in line with this.
+  The Dec 17 photo (the only one from an iPhone 14 Pro) was off the most: a
+  bigger glare made Jupiter about 40% too big; step 3 corrects it.
+- Site error: the scale is (dot offset angle) / (Jupiter radius angle), both
+  seen from the same spot at the same moment; moving the camera 30 m changes
+  the ratio by less than 5e-10.
+
+**Not known**: because Jupiter is overexposed, the steepest-drop edge may be
+larger than the real edge by one fixed factor, the same for all photos. It
+does not affect comparing photos or the periods, but it cannot be pinned down
+without outside data.
+
+![same scale](output/step1/same_scale.jpg)
+
+## Step 2: same orientation
+
+**Problem**: the phone was turned differently for each photo, and the sky
+itself turns during the night (Jupiter rises and sets, the sky turns relative
+to the horizon), so the line of dots points a different way in every photo.
+The line also has two ends, which must be matched up.
+
+**Galileo's first finding: the dots always lie on one straight line.** Three
+independent methods find it and are compared:
+
+| Method | How | Strength | Limit |
 |---|---|---|---|
-| I | 1.768 d | 1.768 d | 1.769 d (Io) |
-| II | 3.550 d | 3.550 d | 3.551 d (Europa) |
-| III | 7.144 d | 7.145 d | 7.155 d (Ganymede) |
-| IV | 16.678 d | 16.678 d | 16.689 d (Callisto) |
+| A Dots | in each photo, the line through Jupiter closest to the dots | precise angle (median ±0.8°) | cannot tell the two ends apart |
+| B Gravity + turning sky | the iPhone recorded which way was down; measured from there, the line turns the same way every night, so one fitted curve predicts its direction in every photo, **including which end is which** | puts every photo on the same end | ±3.9° per photo |
+| C Same-night pairs | photos up to 3 h apart matched through their dot patterns | direct, reliable | used to check B |
 
-Of the dots on the line, 146 went to the right moon, 12 to the wrong one, and 23 noise dots were taken for moons.
+![turning sky](output/step2/field_rotation.png)
+
+**What B found**: the phone stayed almost upright (within about 10°), yet the
+line turns by over 100° in a night, and every night of December and January
+falls on the same curve. Fitting it gives, from the photos alone:
+
+- Jupiter was highest at **21:20 ± 2 min** on Dec 3, declination **+13.8° ± 0.7°**, and came back 0.56 ± 0.11 min per day earlier than the stars (its own motion among them)
+- the sense of the turning says the view is **not mirrored**; with the altitude term, it looks like a reflector with the eyepiece sticking out sideways
+- the Jan 10 photo named 18:11 has camera time 20:11. With the camera time the prediction is 4° off; with the file-name time, 55°. **The camera time is right**
+
+**Cross-checks**: A vs B rms 4.8°, none beyond 3 sigma; C checks B: **36/36**
+pairs agree; every photo's +X end is known with a margin of at least 4 sigma;
+the gravity axes are checked too (flipping them makes the fit clearly worse).
+
+**Final direction**: the most likely angle given A's dots and B's prediction;
+a far dot fixes the angle much better than a near one, so dots are weighted by
+distance. B picks the +X end. Median error ±0.8°.
+
+**A band, not a line**: once turned, every confirmed dot lies within ±2.6 Rj of
+the line (rms 0.43 Rj), and the outer bodies stray farther (step 3): the orbits
+are not seen exactly edge-on.
+
+**Which end is +X**: +X is the same end of the sky in every photo. Whether it
+is east or west depends on whether the telescope shows the sky upright or
+upside down, which the photos do not show.
+
+| Source | Size | Why |
+|---|---|---|
+| Photo `err_photo_deg` | median ±0.8° | angle from A and B combined |
+| Site `err_site_deg` | at most 5e-6° | B uses the latitude; refitting with it moved by 30 m changes the predicted angle by at most 0.0002°, the declination by 0.0004°, the transit time by 0.0001 min |
+
+![notebook](output/step2/notebook.png)
+
+## Step 3: how they move
+
+**Counting bodies**: something swinging back and forth spends most of its time
+near its farthest point, so distances pile up. They pile up near 4.4, 7.5,
+11.6 and 19.1 Rj: **four bodies**.
+
+![pile-ups](output/step3/piles.png)
+
+**Outside in, one at a time**: only the outermost body reaches the outermost
+pile-up, so look for it first. Try every period from 0.5 to 50 days, every
+start and reach; score photo by photo: +1 if a dot sits where the guess puts
+the body, −1 if the guess puts it in plain view (inside the photo, outside
+Jupiter's glare) and nothing is there. "Should be there but isn't" is evidence
+too. Take the best, hand it its dots, go one body in. A body counts only if its
+best score is clearly above what a period picked at random reaches (99th
+percentile of all periods tried, plus 3).
+
+**All four together**: each dot goes to the body predicted nearest to it,
+then every swing X = A sin(2π t / P + φ) is fitted together with one scale
+correction per photo (first searched from 0.5 to 1.6 for the one that lines
+the dots up best with the predictions). **All** 205 dots go to a body; the
+median residual is 0.08 Rj.
+
+![motion](output/step3/motion.png)
+
+![folded](output/step3/folded.png)
+
+**Checks**:
+- **Aliases**: most photos were taken at about the same hour, so P and "one
+  turn more or less per day" look alike. Each body lists its closest rival
+  periods (`bodies.json`); e.g. I at 1.769 d scores 45, its rival 2.301 d only
+  23.5. The nights with many photos (Jan 8 and 9) tell them apart.
+- **Circles, not lines**: as they swing, the dots also drift across the line in
+  step with cos(phase) (I −0.26 ± 0.04, II −0.38 ± 0.03, III −0.54 ± 0.05,
+  IV −0.66 ± 0.07 Rj), in proportion to their reach: they go round circles seen
+  slightly from the side, all four the same way round.
+
+**Errors**:
+- Photo: the larger of the fit covariance (scaled by the actual scatter) and a
+  bootstrap over nights (200 refits, each on 31 nights drawn at random).
+- Site: step 2's site error turns each photo by a tiny angle, which moves X by
+  Y × angle. That change is far below the fit's numerical precision, so it is
+  applied 10,000 times larger and the result scaled back.
+
+## Demo page
+
+`demo/` is an interactive page: the original and the marked-up version of
+every photo, the three rulers, the turning-sky curve, the motion with error
+bars and bands, and the period table. To view it locally:
+
+```bash
+python3 -m http.server -d demo 8000
+```
+
+then open http://localhost:8000/view.html . `demo/data.json` and the images
+are made by `scripts/make_demo.py`.
 
 ## Layout
 
 ```
-data/manifest.csv          Drive file IDs, original names, sizes
-data/raw/                  original photos (HEIC/JPEG; file name = local time)
-data/photos.csv            download log and parsed capture times
-data/observer.json         observing site
-data/detections.json       Jupiter and candidate dots per photo
-data/ephemeris_*.json      JPL Horizons ephemeris (photo times + hourly)
-data/positions.csv         each identified moon: pixels, self-calibrated Rj, ephemeris-aligned Rj, ephemeris
-data/photo_fits.json       per-photo scale, rotation, mirror flip, glare factor
-data/results.json          period fits, Kepler, angles, time check, field rotation
-scripts/01_download.py ... 06_analysis.py   pipeline (run 07 before 06)
-scripts/07_galileo.py      Galileo mode: finds the moons without any moon ephemeris
-data/galileo.json          Galileo-mode results
-tools/annotate.html        small tool for manual corrections (bilingual)
-web/                       interactive demo (index.html + js/ + data.json + img/), Chinese/English
+data/raw/                 the 58 original photos (file name = local time)
+data/observer.json        observing site
+data/visual_check.json    dots confirmed photo by photo (pixel coordinates)
+scripts/common.py         photo list, EXIF, gravity sensor, decoding
+scripts/detect.py         find Jupiter and candidate dots
+scripts/step1_scale.py    step 1
+scripts/step2_orient.py   step 2
+scripts/field_rotation.py step 2 method B: the turning-sky model
+scripts/step3_motion.py   step 3
+scripts/make_demo.py      data and images for the demo page
+output/step1/             scale.csv, pairs.csv, detections.json, ruler_check.png, same_scale.jpg
+output/step2/             orientation.csv, positions.csv, links.csv, summary.json, field_rotation.png, notebook.png, strips.jpg
+output/step3/             bodies.json, assignments.csv, photo_scale.csv, summary.json, motion.png, folded.png, piles.png
+demo/                     demo page (index.html for claude.ai, view.html for a local server)
 ```
 
-## Running
+## Run
 
 ```bash
-pip install -r requirements.txt
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+for s in step1_scale step2_orient step3_motion make_demo; do .venv/bin/python scripts/$s.py; done
 ```
 
-```bash
-for s in 01_download 02_decode 03_detect 04_ephemeris 05_calibrate 07_galileo 06_analysis; do python3 scripts/$s.py; done
-```
+About 12 minutes in all (Raspberry Pi 5). The first run decodes the photos into
+`cache/` (about 650 MB, not in git).
 
-Step 3 (detection) takes 3–4 minutes; step 4 needs access to `ssd.jpl.nasa.gov`.
-
-View the demo through a local web server (browsers block reading data.json from a file):
-
-```bash
-python3 -m http.server -d web 8000
-```
-
-Then open http://localhost:8000 (or http://localhost:8000/#en for English).
-
-## Observing site
-
-`data/observer.json` holds the site given by the photographer: 33° 58' 36.1" N, 117° 18' 37.2" W
-(elevation ≈ 320 m, estimated). To change it, edit `lat_deg`, `lon_deg` (west is negative) and `elevation_m`,
-then re-run steps 4–6. The site barely changes the moons' positions relative to Jupiter (< 0.001 Rj), but it sets
-Jupiter's altitude and airmass weights and the image-rotation check.
-
-## Manual corrections
-
-From the repository root run `python3 -m http.server 8000`, open http://localhost:8000/tools/annotate.html,
-click on the photo to place a moon, download `annotations.json` into `data/`, then re-run steps 5–6.
-
-## Method
-
-1. **Find the dots**: Jupiter is the brightest saturated blob; its disk edge is where the radial brightness falls fastest. Moons are local peaks after removing the glare; long streaks (diffraction spikes) are rejected.
-2. **Identify the moons**: the ephemeris pattern is scaled and rotated (with one mirror setting for all photos) onto the photo to match the most dots.
-3. **Two coordinate sets**:
-   - self-calibrated (`X_self`): Jupiter's disk radius is the ruler and the moon line gives the direction. It does not use the ephemeris scale and feeds the periods and Kepler's law;
-   - ephemeris-aligned (`X_fit`): the best ephemeris match, used for residuals and the demo overlays.
-4. **Glare factor**: the overexposed Jupiter appears 17% larger than its true disk on average. This affects radii and mass only, not periods or the Kepler slope.
+The previous version (analysis using NASA ephemerides) is in the git history
+(commit `4d0c22b`).
