@@ -195,6 +195,33 @@ svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
 .chart-tip b { font-weight: 600; }
 .chart-tip .mono { font-size: 12px; }
 .loading { color: var(--ink-3); font-size: 14px; }
+/* Galileo mode */
+.g-step { display: grid; gap: 8px; min-width: 0; align-content: start; }
+.g-rule { border-left-color: var(--accent); }
+.sketch {
+  max-height: 460px; overflow-y: auto; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface);
+  font-family: var(--f-mono); font-size: 12px;
+}
+.g-row {
+  display: grid; grid-template-columns: 104px minmax(0, 1fr); align-items: center; gap: 8px; width: 100%;
+  border: 0; border-top: 1px solid transparent; background: transparent; padding: 2px 10px; cursor: pointer; text-align: left;
+}
+.g-row:hover { background: var(--surface-2); }
+.g-row.on { background: var(--surface-2); box-shadow: inset 3px 0 0 var(--accent); }
+.g-row.newnight { border-top-color: var(--line); }
+.g-head { position: sticky; top: 0; z-index: 1; background: var(--surface); cursor: default; color: var(--ink-3); border-bottom: 1px solid var(--line); }
+.g-head:hover { background: var(--surface); }
+.g-time { color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.g-track { position: relative; height: 18px; }
+.g-track::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; border-top: 1px dotted var(--line); }
+.g-jup, .g-dot, .g-star, .g-tick, .g-lab { position: absolute; top: 50%; transform: translate(-50%, -50%); }
+.g-jup { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--ink); background: var(--bg); }
+.g-dot { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 0 1.5px var(--surface); }
+.g-dot.junk { background: transparent !important; box-shadow: none; border: 1.5px solid var(--ink-3); width: 7px; height: 7px; }
+.g-star { font-weight: 600; color: var(--ink); font-size: 15px; line-height: 1; }
+.g-tick { width: 1px; height: 8px; background: var(--ink-3); opacity: 0.6; }
+.g-lab { font-size: 11px; color: var(--ink-3); top: 50%; }
+@media (max-width: 560px) { .g-row { grid-template-columns: 74px minmax(0, 1fr); padding: 2px 6px; } .g-time { font-size: 10px; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -323,6 +350,64 @@ svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
       <div class="figure">
         <p id="incl-text"></p>
         <p class="small muted" data-i18n="i.bg"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="sec-galileo">
+    <div class="eyebrow" data-i18n="g.eyebrow"></div>
+    <h2 data-i18n="g.h"></h2>
+    <p class="muted" data-i18n="g.intro"></p>
+    <div class="toolbar">
+      <div class="seg" role="group" data-i18n-attr="aria-label:g.ver.group" id="g-version">
+        <button type="button" data-v="standard" aria-pressed="true" data-i18n="g.ver.std"></button>
+        <button type="button" data-v="challenge" aria-pressed="false" data-i18n="g.ver.ch"></button>
+      </div>
+    </div>
+    <p class="note g-rule" id="g-rule"></p>
+
+    <div class="g-step">
+      <h3 data-i18n="g.s1.h"></h3>
+      <p id="g-s1"></p>
+    </div>
+
+    <div class="g-step">
+      <h3 data-i18n="g.s2.h"></h3>
+      <p class="small muted" data-i18n="g.s2.p"></p>
+      <div class="toolbar">
+        <div class="seg" role="group" data-i18n-attr="aria-label:g.sk.group" id="g-color">
+          <button type="button" data-c="raw" aria-pressed="true" data-i18n="g.sk.raw"></button>
+          <button type="button" data-c="blind" aria-pressed="false" data-i18n="g.sk.blind"></button>
+          <button type="button" data-c="truth" aria-pressed="false" data-i18n="g.sk.truth"></button>
+        </div>
+        <span class="key" id="g-key"></span>
+      </div>
+      <div class="sketch" id="g-sketch"></div>
+    </div>
+
+    <div class="cols">
+      <figure class="figure g-step" style="margin:0">
+        <h3 data-i18n="g.s3.h"></h3>
+        <div id="g-hist"></div>
+        <figcaption id="g-s3"></figcaption>
+      </figure>
+      <div class="figure g-step">
+        <h3 data-i18n="g.s4.h"></h3>
+        <div class="multiples" id="g-pgram"></div>
+        <p class="small muted" data-i18n="g.s4.p"></p>
+      </div>
+    </div>
+
+    <div class="cols">
+      <div class="figure g-step">
+        <h3 data-i18n="g.s5.h"></h3>
+        <div class="tablewrap"><table id="g-table"></table></div>
+        <p class="small muted" id="g-grade"></p>
+      </div>
+      <div class="figure g-step">
+        <h3 data-i18n="g.s6.h"></h3>
+        <p class="small muted" id="g-kepler"></p>
+        <p class="small muted" data-i18n="g.history"></p>
       </div>
     </div>
   </section>

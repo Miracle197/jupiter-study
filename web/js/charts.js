@@ -101,6 +101,11 @@
         });
         el("path", { d, fill: "none", stroke: s.color, "stroke-width": s.width || 2, "stroke-dasharray": s.type === "dashed" ? "5 4" : "none",
           "stroke-linejoin": "round", "stroke-linecap": "round", opacity: s.opacity || 1, class: "series-line" }, body);
+      } else if (s.type === "bars") {
+        s.data.forEach(([x0, x1, y]) => {
+          const a = sx(x0) + 1, b = sx(x1) - 1, top = sy(Math.max(0, y)), base = sy(0);
+          if (b > a && base > top) el("rect", { x: a, y: top, width: b - a, height: base - top, rx: 2, fill: s.color, opacity: s.opacity || 1 }, body);
+        });
       } else if (s.type === "text") {
         s.data.forEach(([x, y, label]) => {
           el("text", { x: sx(x) + (s.dx || 8), y: sy(y) + (s.dy || 4), class: "ref-label" }, svg).textContent = label;
