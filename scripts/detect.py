@@ -24,14 +24,22 @@ def find_jupiter(g, sat_level=250):
     return float(cx), float(cy), r_sat
 
 
-def radial_profile(g, cx, cy, rmax, step=0.5):
-    """Mean brightness in thin rings around (cx, cy)."""
+def radial_profile(g, cx, cy, rmax, step=0.5, across=None, half_width_deg=40):
+    """Mean brightness in thin rings around (cx, cy).
+
+    across: a direction (dx, dy); if given, only the two sectors at right
+    angles to it are used (for a shaken photo, the disk is not stretched there).
+    """
     y0, y1 = max(0, int(cy - rmax)), min(g.shape[0], int(cy + rmax) + 1)
     x0, x1 = max(0, int(cx - rmax)), min(g.shape[1], int(cx + rmax) + 1)
     yy, xx = np.mgrid[y0:y1, x0:x1]
     k = (np.hypot(yy - cy, xx - cx) / step).astype(int)
-    n = np.bincount(k.ravel())
-    s = np.bincount(k.ravel(), g[y0:y1, x0:x1].ravel())
+    w = np.ones(k.shape)
+    if across is not None:
+        ang = np.arctan2(yy - cy, xx - cx) - np.arctan2(across[1], across[0])
+        w = (np.abs(np.cos(ang)) < np.sin(np.radians(half_width_deg))).astype(float)
+    n = np.bincount(k.ravel(), w.ravel())
+    s = np.bincount(k.ravel(), (w * g[y0:y1, x0:x1]).ravel())
     r = (np.arange(len(n)) + 0.5) * step
     keep = (r < rmax) & (n > 0)
     return r[keep], (s / np.maximum(n, 1))[keep]
@@ -91,3 +99,47 @@ def find_dots(g, jx, jy, r_sat, max_dots=20):
         if all(np.hypot(c["x"] - m["x"], c["y"] - m["y"]) > 0.35 * r_sat for m in merged):
             merged.append(c)
     return merged[:max_dots], float(noise)
+
+
+# ---------- shaken photos: two overlapping Jupiters ----------
+def _union_iou(mask, yy, xx, c1, v, r):
+    m = ((xx - c1[0]) ** 2 + (yy - c1[1]) ** 2 < r * r) | ((xx - c1[0] - v[0]) ** 2 + (yy - c1[1] - v[1]) ** 2 < r * r)
+    inter = (m & mask).sum()
+    return inter / max((m | mask).sum(), 1)
+
+
+def split_double(g, cx, cy, r_sat, sat_level=250):
+    """Is the saturated blob two equal disks (the phone moved during the exposure)?
+
+    Fits one disk and two equal overlapping disks to the saturated pixels.
+    Returns None for a single disk, else {"c1", "c2", "r", "iou1", "iou2"}.
+    """
+    from scipy.optimize import minimize
+    R = int(3 * r_sat)
+    y0, x0 = max(0, int(cy) - R), max(0, int(cx) - R)
+    sub = g[y0:int(cy) + R, x0:int(cx) + R]
+    lab, _ = ndi.label(sub >= min(sat_level, 0.98 * g.max()))
+    core = lab == lab[int(cy) - y0, int(cx) - x0]
+    f = max(1, int(r_sat / 40))                       # work on a coarser grid for speed
+    mask = core[::f, ::f]
+    yy, xx = np.mgrid[0:mask.shape[0], 0:mask.shape[1]] * f
+    ys, xs = np.nonzero(core)
+    c0 = np.array([xs.mean(), ys.mean()])
+    cov = np.cov(np.vstack([xs, ys]))
+    ev, evec = np.linalg.eigh(cov)
+    r1 = np.sqrt(core.sum() / np.pi)
+    iou1 = _union_iou(mask, yy, xx, c0, np.zeros(2), r1)
+    d = 2 * np.sqrt(max(ev[1] - ev[0], 0))            # separation from the stretch of the blob
+    if d < 0.15 * r1:
+        return None
+    v0 = evec[:, 1] * d
+    r0 = 2 * np.sqrt(ev[0])
+    p0 = np.array([*(c0 - v0 / 2), *v0, r0])
+    res = minimize(lambda p: -_union_iou(mask, yy, xx, p[0:2], p[2:4], p[4]), p0, method="Nelder-Mead",
+                   options={"xatol": 0.5, "fatol": 1e-4, "maxiter": 600})
+    c1, v, r = res.x[0:2], res.x[2:4], res.x[4]
+    iou2 = -res.fun
+    if iou2 - iou1 < 0.02 or np.hypot(*v) < 0.15 * r:
+        return None
+    return {"c1": (float(c1[0] + x0), float(c1[1] + y0)), "c2": (float(c1[0] + v[0] + x0), float(c1[1] + v[1] + y0)),
+            "r": float(r), "iou1": float(iou1), "iou2": float(iou2)}

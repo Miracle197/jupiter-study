@@ -5,20 +5,20 @@
  "method_B_turning_sky": {
   "photos_with_gravity": 57,
   "photos_used_in_fit": 57,
-  "scatter_per_photo_deg": 3.9194478769068577,
+  "scatter_per_photo_deg": 3.9178834713152604,
   "mirror_sense_s": -1,
   "altitude_term_k": -1,
   "jupiter_highest_at_on_2023_12_03": "21:20.6",
-  "jupiter_highest_err_min": 1.865445129201255,
-  "jupiter_declination_deg": 13.795941661394885,
-  "jupiter_declination_err_deg": 0.7092251161330108,
-  "jupiter_drift_min_per_day": -0.5573598128749644,
-  "jupiter_drift_err": 0.10757808651736768,
+  "jupiter_highest_err_min": 1.8650048880829506,
+  "jupiter_declination_deg": 13.791366880286954,
+  "jupiter_declination_err_deg": 0.709135377341747,
+  "jupiter_drift_min_per_day": -0.55727824813494,
+  "jupiter_drift_err": 0.1075498250768346,
   "candidates": [
    {
     "s": -1,
     "k": -1,
-    "rms_deg": 3.79,
+    "rms_deg": 3.78,
     "above_horizon": true
    },
    {
@@ -36,7 +36,7 @@
    {
     "s": 1,
     "k": 1,
-    "rms_deg": 3.79,
+    "rms_deg": 3.78,
     "above_horizon": false
    },
    {
@@ -48,13 +48,13 @@
    {
     "s": -1,
     "k": 1,
-    "rms_deg": 13.18,
+    "rms_deg": 13.17,
     "above_horizon": false
    }
   ]
  },
  "A_vs_B": {
-  "rms_deg": 4.792933640036767,
+  "rms_deg": 4.79187825799762,
   "photos_disagree_over_3sigma": []
  },
  "method_C_same_night_pairs": {
@@ -62,36 +62,36 @@
   "agree_with_B_on_ends": 36
  },
  "final": {
-  "median_err_photo_deg": 0.8319194050997138,
+  "median_err_photo_deg": 0.8872051587391061,
   "photos_where_final_differs_from_A_over_3deg": {
    "2023-12-05T1933": 8.2,
    "2023-12-05T2105": 8.1,
    "2023-12-12T2104": 10.1,
    "2024-01-02T2245": -3.1
   },
-  "plusX_margin_min_sigma": 3.9918790091383887,
+  "plusX_margin_min_sigma": 3.9919432836604662,
   "photos_plusX_margin_below_3sigma": []
  },
  "site_30m": {
-  "max_err_site_deg": 5.360002762777513e-06,
-  "max_B_shift_deg": 0.00018044708714626267,
-  "declination_shift_deg": 0.0003631131227965767,
-  "highest_time_shift_min": 8.967440214391331e-05
+  "max_err_site_deg": 5.337603081074565e-06,
+  "max_B_shift_deg": 0.00018097601543587416,
+  "declination_shift_deg": 0.00037255959995263765,
+  "highest_time_shift_min": 8.204425011371086e-05
  },
  "clock_checks": [
   {
    "photo": "2024-01-10T1811",
    "camera_time": "2024-01-10T20:11:25",
    "file_name_time": "2024-01-10T18:11",
-   "A_minus_B_camera_time_deg": -4.3,
+   "A_minus_B_camera_time_deg": -4.4,
    "A_minus_B_file_name_time_deg": -54.9
   }
  ],
  "dots": {
-  "band_half_width_rj": 2.5709999999999997,
+  "band_half_width_rj": 2.69,
   "strong_in_band": 205,
   "strong_outside_band": 0,
-  "band_rms_rj": 0.43058018147950894,
+  "band_rms_rj": 0.44741135107769753,
   "max_abs_X_rj_in_band": 25.444,
   "outside_band": []
  }

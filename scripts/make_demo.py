@@ -3,9 +3,10 @@
 Output (demo/):
   data.json            numbers for every chart and every photo
   view.html            the page with its own head, for viewing through a local server
-  img/<photo>.jpg      the original photo, small
   src/<photo>.jpg      the original photo around Jupiter (not turned), with confirmed dots in data.json
-  strip/<photo>.jpg    the photo turned so the line is horizontal, cut to a strip
+  native/<photo>.jpg   step 1: the same window of sensor pixels around Jupiter in every photo (sizes differ)
+  norm/<photo>.jpg     step 1: every photo scaled so Jupiter has the same size
+  jup/<photo>.jpg      step 1: close-up of Jupiter, to show where its edge was measured
 The page itself is demo/index.html.
 """
 import csv
@@ -22,8 +23,10 @@ import field_rotation
 from common import OUT, RAW, ROOT, ImageOps, photo_list
 
 DEMO = ROOT / "demo"
-STRIP_HALF_X, STRIP_HALF_Y, STRIP_PX_PER_RJ = 26, 3.5, 20
 SRC_HALF_RJ, SRC_PX = 28, 720          # source-photo cut-out: +-28 Rj around Jupiter, shown 720 px wide
+NATIVE_WINDOW = 2400                   # step 1 "as taken": the same sensor-pixel window around Jupiter in every photo
+NORM_HALF_RJ, NORM_PX = 34, 360        # step 1 "same Jupiter": +-34 Rj (room to apply the step 3 correction)
+JUP_HALF_RJ, JUP_PX = 4, 360           # step 1 close-up of Jupiter's edge
 T_REF = datetime(2023, 12, 3)
 
 
@@ -39,9 +42,8 @@ def num(v):
 
 
 def main():
-    (DEMO / "img").mkdir(parents=True, exist_ok=True)
-    (DEMO / "strip").mkdir(parents=True, exist_ok=True)
-    (DEMO / "src").mkdir(parents=True, exist_ok=True)
+    for sub in ("src", "native", "norm", "jup"):
+        (DEMO / sub).mkdir(parents=True, exist_ok=True)
     recs = {r["stem"]: r for r in photo_list()}
     det = json.load(open(OUT / "step1" / "detections.json"))
     scale = {r["photo"]: r for r in rows(OUT / "step1" / "scale.csv")}
@@ -104,6 +106,10 @@ def main():
             "H": round(float(H[i]), 4), "rel": round(float(y[i]), 3), "has_gravity": bool(has[i]),
             "dots": dots[s],
             "src": src_box(det[s], float(sc["rj_px"])),
+            "w": r["w"], "h": r["h"],
+            "r_edge": round(det[s]["jupiter"]["r_edge"], 1), "r_blob": round(det[s]["jupiter"]["r_sat"], 1),
+            "double": det[s]["jupiter"].get("double"),
+            "native_window": round(NATIVE_WINDOW * min(r["w"], r["h"]) / 3024, 1),
             "pdots": [{"x": round(c["x"], 1), "y": round(c["y"], 1), "found_by": c.get("found_by", "detector")}
                       for c in det[s]["dots"] if c.get("confirmed")],
         })
@@ -120,10 +126,13 @@ def main():
         "sky": {"curve": [[round(a, 3), round(b, 3)] for a, b in zip(hh, curve)],
                 "fit": s2["method_B_turning_sky"], "A_vs_B": s2["A_vs_B"],
                 "C": s2["method_C_same_night_pairs"], "final": s2["final"], "site": s2["site_30m"],
-                "clock": s2["clock_checks"], "band": s2["dots"]},
+                "clock": s2["clock_checks"], "band": s2["dots"],
+                # the curve = c + s * (tilt of the sky) + k * (Jupiter's altitude), for the page to draw its two parts
+                "model": {"lat_deg": float(np.degrees(lat)), "dec_deg": float(dec), "c_deg": float(c),
+                          "s": int(sol["s"]), "k": int(sol["k"])}},
         "bodies": bodies,
         "motion": {k: v for k, v in s3.items() if k != "bodies"},
-        "strip": {"half_x": STRIP_HALF_X, "half_y": STRIP_HALF_Y, "px_per_rj": STRIP_PX_PER_RJ},
+        "step1": {"native_window_px": NATIVE_WINDOW, "norm_half_rj": NORM_HALF_RJ, "jup_half_rj": JUP_HALF_RJ},
     }
     json.dump(data, open(DEMO / "data.json", "w"), ensure_ascii=False, separators=(",", ":"))
     # index.html is written for claude.ai, which adds the page head; view.html is the same page for a local server
@@ -143,23 +152,34 @@ def src_box(det, rj):
 
 def make_images(rec, det, rj, angle):
     im = ImageOps.exif_transpose(Image.open(RAW / rec["file"])).convert("RGB")
-    small = im.copy()
-    small.thumbnail((420, 420))
-    small.save(DEMO / "img" / f"{rec['stem']}.jpg", quality=80)
     b = src_box(det, rj)
-    cut = im.crop((int(round(b["x0"])), int(round(b["y0"])), int(round(b["x0"] + b["size"])), int(round(b["y0"] + b["size"]))))
-    cut = cut.resize((SRC_PX, SRC_PX), Image.LANCZOS).point(lambda v: int(255 * (v / 255) ** 0.7))
-    cut.save(DEMO / "src" / f"{rec['stem']}.jpg", quality=80)
+    square(im, b["x0"] + b["size"] / 2, b["y0"] + b["size"] / 2, b["size"] / 2, SRC_PX, 0.7).save(
+        DEMO / "src" / f"{rec['stem']}.jpg", quality=80)
     j = det["jupiter"]
-    R = int(np.hypot(STRIP_HALF_X, STRIP_HALF_Y) * rj) + 2
-    crop = im.crop((int(j["x"]) - R, int(j["y"]) - R, int(j["x"]) + R, int(j["y"]) + R))
-    crop = crop.rotate(-angle, resample=Image.BICUBIC)
-    cc = crop.size[0] / 2
-    crop = crop.crop((int(cc - STRIP_HALF_X * rj), int(cc - STRIP_HALF_Y * rj),
-                      int(cc + STRIP_HALF_X * rj), int(cc + STRIP_HALF_Y * rj)))
-    W, Hh = 2 * STRIP_HALF_X * STRIP_PX_PER_RJ, int(2 * STRIP_HALF_Y * STRIP_PX_PER_RJ)
-    crop = crop.resize((W, Hh), Image.LANCZOS).point(lambda v: int(255 * (v / 255) ** 0.6))
-    crop.save(DEMO / "strip" / f"{rec['stem']}.jpg", quality=78)
+    # step 1 pictures: as taken (same sensor window), same Jupiter size, and a close-up of the edge
+    win = NATIVE_WINDOW * min(rec["w"], rec["h"]) / 3024
+    square(im, j["x"], j["y"], win / 2, 300, 0.7).save(DEMO / "native" / f"{rec['stem']}.jpg", quality=78)
+    square(im, j["x"], j["y"], NORM_HALF_RJ * rj, NORM_PX, 0.7).save(DEMO / "norm" / f"{rec['stem']}.jpg", quality=78)
+    square(im, j["x"], j["y"], JUP_HALF_RJ * rj, JUP_PX, 1.0).save(DEMO / "jup" / f"{rec['stem']}.jpg", quality=85)
+
+
+def square(im, cx, cy, half, px, gamma):
+    """Square cut-out centred on (cx, cy), half-width in photo pixels, resized to px.
+
+    Only the part inside the photo is cut and shrunk; it is then placed on a
+    black square. (Cutting the full square first can make a huge image when
+    the square reaches far outside a zoomed-in photo.)
+    """
+    x0, y0, x1, y1 = cx - half, cy - half, cx + half, cy + half
+    bx0, by0 = max(0, int(round(x0))), max(0, int(round(y0)))
+    bx1, by1 = min(im.width, int(round(x1))), min(im.height, int(round(y1)))
+    k = px / (2 * half)
+    out = Image.new("RGB", (px, px), (0, 0, 0))
+    if bx1 > bx0 and by1 > by0:
+        part = im.crop((bx0, by0, bx1, by1))
+        w, h = max(1, round((bx1 - bx0) * k)), max(1, round((by1 - by0) * k))
+        out.paste(part.resize((w, h), Image.LANCZOS), (round((bx0 - x0) * k), round((by0 - y0) * k)))
+    return out if gamma == 1.0 else out.point(lambda v: int(255 * (v / 255) ** gamma))
 
 
 if __name__ == "__main__":

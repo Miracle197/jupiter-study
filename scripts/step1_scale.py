@@ -40,7 +40,7 @@ from scipy import ndimage as ndi
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent))
 from common import (OUT, RAW, ImageOps, gray, local_time, night_of, photo_list, relative_magnification,
                     save_json, usable, visual_check)
-from detect import find_dots, find_jupiter, radial_profile
+from detect import find_dots, find_jupiter, radial_profile, split_double
 
 OUT1 = OUT / "step1"
 MIN_SNR = 40          # dots used for matching: clearly real, not glare ripples
@@ -50,9 +50,9 @@ SITE_RADIUS_M = 30.0
 
 
 # ---------- 1. Jupiter and dots ----------
-def disk_edge(g, jx, jy, r_sat):
+def disk_edge(g, jx, jy, r_sat, across=None):
     """Radius where the ring-averaged brightness drops fastest."""
-    r, p = radial_profile(g, jx, jy, 4 * r_sat)
+    r, p = radial_profile(g, jx, jy, 4 * r_sat, across=across)
     p = ndi.gaussian_filter1d(p, 2)
     grad = np.gradient(p, r)
     sel = (r > 0.8 * r_sat) & (r < 2.5 * r_sat)
@@ -83,11 +83,20 @@ def measure_all(recs):
         jx, jy, r_sat = find_jupiter(g)
         dots, noise = find_dots(g, jx, jy, r_sat)
         dots = apply_visual_check(dots, None if vc is None else vc.get(rec["stem"], []), r_sat)
-        det[rec["stem"]] = {"w": rec["w"], "h": rec["h"],
-                            "jupiter": {"x": jx, "y": jy, "r_sat": r_sat,
-                                        "r_edge": disk_edge(g, jx, jy, r_sat)},
-                            "noise": noise, "dots": dots}
-        print(f"  {rec['stem']:18s} Jupiter r_edge={det[rec['stem']]['jupiter']['r_edge']:6.1f}px  "
+        jup = {"x": jx, "y": jy, "r_sat": r_sat, "r_edge": disk_edge(g, jx, jy, r_sat), "double": None}
+        sd = split_double(g, jx, jy, r_sat)
+        if sd:
+            # the phone moved during the exposure: two equal Jupiters overlap. Measure one disk:
+            # its radius from the two-disk fit, its edge only at right angles to the shift.
+            # Its centre is the middle of the two disks: the dots are shaken the same way and each
+            # dot's position is the centre of its own shaken light, so both are measured alike.
+            v = (sd["c2"][0] - sd["c1"][0], sd["c2"][1] - sd["c1"][1])
+            mid = ((sd["c1"][0] + sd["c2"][0]) / 2, (sd["c1"][1] + sd["c2"][1]) / 2)
+            jup.update(x=mid[0], y=mid[1], r_sat=sd["r"], r_edge=disk_edge(g, mid[0], mid[1], sd["r"], across=v),
+                       double={"shift_px": [round(v[0], 1), round(v[1], 1)],
+                               "blob_r_as_one_disk": round(r_sat, 1), "fit_overlap": [round(sd["iou1"], 3), round(sd["iou2"], 3)]})
+        det[rec["stem"]] = {"w": rec["w"], "h": rec["h"], "jupiter": jup, "noise": noise, "dots": dots}
+        print(f"  {rec['stem']:18s} Jupiter r_edge={jup['r_edge']:6.1f}px{'  (double image)' if jup['double'] else ''}  "
               f"dots used={sum(usable(d, MIN_SNR) for d in dots)} of {len(dots)} found")
     return det
 

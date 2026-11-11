@@ -90,6 +90,46 @@ td.n, th.n { text-align: right }
 .site { color: #8b94a8 }
 @media (prefers-reduced-motion: no-preference) { .strip svg .pred { transition: opacity .2s } }
 .loading { color: var(--muted) }
+.part { font-size: 17px; display: flex; align-items: center; gap: 8px; margin-top: 6px }
+.num { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: var(--fg); color: var(--bg); font-size: 14px; flex: none }
+.key { width: 22px; height: 3px; display: inline-block }
+.drow { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; max-width: 760px }
+.drow2 { display: grid; grid-template-columns: repeat(2, minmax(0, 190px)); gap: 12px }
+.pics > div { margin-top: 10px }
+@media (max-width: 760px) { .drow { grid-template-columns: repeat(2, minmax(0, 1fr)) } }
+.dstack { display: flex; flex-direction: column; gap: 6px; max-width: 620px }
+.dall { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px }
+@media (max-width: 760px) { .dall { grid-template-columns: 1fr } }
+.dfig { margin: 0; display: flex; flex-direction: column; gap: 4px; min-width: 0 }
+.dfig figcaption { font-size: 13px; color: var(--muted) }
+.dfig figcaption b { color: var(--fg); font-weight: 500 }
+.dbox { position: relative; aspect-ratio: 1 / 1; overflow: hidden; background: #000; border-radius: 4px }
+.dbox.wide { aspect-ratio: 5 / 2 }
+.dinner { position: absolute; left: 50%; top: 50%; width: 100%; aspect-ratio: 1 / 1; transform-origin: 50% 50% }
+.dinner img, .dinner svg, .dbox > svg { position: absolute; inset: 0; width: 100%; height: 100% }
+.dbox svg text { font-family: var(--body) }
+details summary { cursor: pointer; color: var(--accent); font-size: 14px; font-weight: 500 }
+.note2 { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 14px; font-size: 14px }
+
+.wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px }
+.tile { display: flex; flex-direction: column; gap: 3px; cursor: pointer; border: 0; padding: 0; background: none; text-align: left; font: inherit; color: var(--muted) }
+.tile .pic { position: relative; aspect-ratio: 1 / 1; overflow: hidden; border-radius: 3px; background: #000; outline: 2px solid transparent; outline-offset: 1px }
+.tile[aria-pressed="true"] .pic { outline-color: var(--jupiter) }
+.tile img { position: absolute; inset: 0; width: 100%; height: 100%; transform-origin: 50% 50% }
+@media (prefers-reduced-motion: no-preference) { .tile img { transition: transform .35s ease } }
+.tile svg { position: absolute; inset: 0; width: 100%; height: 100% }
+.tile small { font-family: var(--mono); font-size: 10.5px; line-height: 1.3 }
+.s1d { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 20px; align-items: start }
+@media (max-width: 720px) { .s1d { grid-template-columns: 1fr } }
+.jup { position: relative; width: 100%; aspect-ratio: 1 / 1; background: #000; border-radius: 4px; overflow: hidden }
+.jup img, .jup svg { position: absolute; inset: 0; width: 100%; height: 100% }
+.title1 { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px }
+.kv2 { display: grid; grid-template-columns: 1fr; gap: 8px; font-size: 14px }
+.kv2 div { display: flex; flex-direction: column }
+.kv2 small { color: var(--muted); font-size: 11.5px; letter-spacing: 0.04em }
+.kv2 span { font-family: var(--mono); font-variant-numeric: tabular-nums }
+.kv2 .note { font-family: var(--body); color: var(--muted); font-size: 12.5px }
+
 </style>
 
 <div class="wrap">
@@ -121,52 +161,159 @@ td.n, th.n { text-align: right }
   <section aria-labelledby="s1-h">
     <div class="eyebrow">第 1 步 · 比例</div>
     <h2 id="s1-h">用木星当尺子</h2>
-    <p>每张照片的放大倍数都不一样：木星的半径从 20 像素到 130 像素都有。所有距离都换算成“木星半径”（Rj）。
-      过曝的木星取亮度下降最快的那一圈当边缘。同一晚相隔不久的两张照片，光点排列几乎不变，对齐它们就能得到两张照片真实的比例，用来检验各种尺子。</p>
+    <p>每张照片的放大倍数都不一样：同样大小的一块像素里，木星有时只占一小点，有时很大。所有距离都换算成“木星半径”（Rj），
+      先按木星在照片里的像素大小把每张照片缩放到一样大。过曝的木星取亮度下降最快的那一圈当边缘。
+      第 4 步找出卫星的轨道以后，“同一个天体每次都摆到同样远”又能反过来校准每张照片的比例，就是这里的比例修正。</p>
     <div class="figure">
-      <svg class="chart" id="ruler" viewBox="0 0 960 380"></svg>
+      <details id="wall-box">
+        <summary>展开 58 张照片：原始像素 / 按木星统一 / 加上比例修正，对比看（点一下展开，再点收起）</summary>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
+          <div class="btns" id="wall-mode"></div>
+          <div class="wall" id="wall"></div>
+          <div class="caption" id="wall-cap"></div>
+        </div>
+      </details>
+    </div>
+    <div class="figure s1d">
+      <div class="jup"><img id="jup-img" alt="木星特写：测量边缘的位置"><svg id="jup-over" viewBox="0 0 360 360"></svg></div>
+      <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+        <div class="title1"><h3 id="s1d-name">—</h3><div class="btns"><button id="s1prev" type="button">← 上一张</button><button id="s1next" type="button">下一张 →</button></div></div>
+        <div class="legend" id="jup-legend"></div>
+        <div class="kv2" id="s1d-kv"></div>
+      </div>
+    </div>
+    <div class="figure">
+      <h3>为什么用木星边缘：三把尺子在每张照片上量偏了多少</h3>
+      <div class="caption" id="ruler-sel"></div>
+      <svg class="chart" id="ruler" viewBox="0 0 960 470"></svg>
       <div class="legend" id="ruler-legend"></div>
       <div class="caption" id="ruler-cap"></div>
     </div>
   </section>
 
-  <section aria-labelledby="s2-h">
-    <div class="eyebrow">第 2 步 · 方向</div>
-    <h2 id="s2-h">天空在照片里转动</h2>
-    <p>手机几乎一直竖直拿着（重力传感器记录了每张照片哪边朝下），光点连成的线却一晚上转了 100° 以上，而且每一晚都落在同一条曲线上。
-      转的是天空：木星升起又落下，天空相对地平线转动。拟合这条曲线，就能给每张照片定方向、分清线的两头。</p>
+  <section aria-labelledby="orb-h">
+    <div class="eyebrow">第 2 步 · 环绕</div>
+    <h2 id="orb-h">它们是在绕着木星转吗？</h2>
+    <p>把照片统一比例、转正（光点连成的线水平，天上的同一头都朝右；怎么转正见第 3 步）以后，能看到光点在动。
+      可是它们是什么？是远处的星，还是在一条线上来回晃？下面三条证据只用照片，不需要知道周期。</p>
     <div class="cols">
       <div class="figure">
-        <h3>方法 B：所有照片落在一条曲线上</h3>
-        <svg class="chart" id="sky" viewBox="0 0 560 360"></svg>
-        <div class="caption">横轴：离木星升到最高点的小时数（拟合得出）。纵轴：+X 端相对手机“上方”的角度。误差棒为最终方向的照片误差。</div>
+        <h3>① 它们一直跟着木星</h3>
+        <svg class="chart" id="orb1" viewBox="0 0 560 330"></svg>
+        <div class="caption" id="orb1-cap"></div>
       </div>
       <div class="figure">
-        <h3>方法 A 与 B 逐张比对</h3>
-        <svg class="chart" id="ab" viewBox="0 0 560 360"></svg>
-        <div class="caption">A：光点连线（只看这一张）。B：曲线预测（拟合时不含这一张）。阴影为 B 的 ±1σ。</div>
+        <h3>② 两边摆得一样远</h3>
+        <svg class="chart" id="orb2" viewBox="0 0 560 330"></svg>
+        <div class="caption">所有光点在线上位置的分布。来回摆动的东西在最远点附近停留得最久，所以那里堆起来。左右两边的堆积几乎对称：每个光点往两边都摆到同样远，然后折返。</div>
+      </div>
+      <div class="figure">
+        <h3>③ 去和回走在线的两侧</h3>
+        <svg class="chart" id="orb4" viewBox="0 0 560 330"></svg>
+        <div class="legend" id="orb4-legend"></div>
+        <div class="caption" id="orb4-cap"></div>
       </div>
     </div>
-    <div class="scroll"><table id="sky-table"></table></div>
+    <p class="note" style="background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:12px 14px">
+      结论：它们跟着木星，在木星两侧对称地来回，往返时分走线的两侧。这正是从侧面、略斜着看一个绕木星的圆周运动的样子：
+      在木星前面经过时偏向一侧，绕到后面再回来时偏向另一侧。四颗绕的方向相同。接下来就可以问：各自绕一圈要多久？</p>
+  </section>
+
+  <section aria-labelledby="s2-h">
+    <div class="eyebrow">第 3 步 · 方向</div>
+    <h2 id="s2-h">把每张照片转正</h2>
+    <p>每张照片里，小光点都排在一条穿过木星的直线上。要把 58 张照片放在一起比，得把每张照片转一转，让这条线变成水平，
+      而且<b>天上的同一头在每张照片里都朝右</b>。下面用 1 月 9 日晚上的 5 张照片一步步说明。</p>
+    <div class="legend">
+      <span><span class="key" style="background:#3fd17a"></span>光点连成的线</span>
+      <span><span class="key" style="background:#5aa9ff"></span>最外面那颗光点（方便你跟踪它）</span>
+      <span><span class="key" style="background:#c9ced9"></span>手机记下的“地面”方向</span>
+      <span><span class="key" style="background:#ff9d2e"></span>按规律预测的“右端”</span>
+    </div>
+
+    <h3 class="part"><span class="num">1</span>原始照片：一晚上，线在转</h3>
+    <p>白色箭头是手机重力传感器记下的“地面”方向：5 张照片里它都朝下，说明手机一直差不多竖着拿。
+      可是绿线却在转：先是斜的，然后几乎竖直，之后又斜向另一边。转的不是手机，是天空：木星从东边升起、经过南方、往西落下，天空相对地面也跟着转。</p>
+    <details class="pics"><summary>展开看这 5 张照片</summary><div class="drow" id="d1"></div></details>
+
+    <h3 class="part"><span class="num">2</span>把线转平：有两种转法</h3>
+    <p>线的角度很好量：找一条穿过木星、离所有光点最近的直线就行（误差不到 1°）。把照片转这个角度，线就平了。
+      但转 180° 线也一样是平的，只是左右颠倒。下面是 21:30 那张的两种转法：蓝圈一个在右、一个在左。<b>单看这一张，分不出哪种是对的。</b></p>
+    <details class="pics"><summary>展开看两种转法</summary><div class="drow2" id="d2"></div></details>
+
+    <h3 class="part"><span class="num">3</span>分清两头：天空每晚都一样地转</h3>
+    <p>线相对“地面”怎么斜，只跟“木星升到最高之前或之后几个小时”有关，每晚都一样。所以知道照片是几点拍的，
+      就能预测这一刻线朝哪个方向，<b>连哪一头朝哪边都能预测</b>（橙色箭头）。橙色箭头指向绿线的哪一头，哪一头就是右端。</p>
+    <details class="pics"><summary>展开看橙色箭头怎么定右端</summary><div class="drow" id="d3"></div></details>
+    <div class="figure">
+      <h3>这个规律从哪来：58 张照片落在同一条曲线上</h3>
+      <svg class="chart" id="sky" viewBox="0 0 960 380"></svg>
+      <div class="caption">每个点是一张照片：横轴是它离木星升到最高的时刻差几个小时，纵轴是它的右端指向哪个角度（0° 是照片里水平朝右，90° 朝上，手机的轻微歪斜已经扣掉）。
+        12 月和 1 月不同晚上拍的照片都落在同一条曲线上：这条曲线就是规律。带标签的 5 个点是上面那 5 张。</div>
+    </div>
+    <div class="figure">
+      <h3>拆开看：这条曲线是两件事加起来</h3>
+      <p class="caption" style="font-size:14px">
+        <b>一、天空本身会倾斜</b>（肉眼看也是这样）。卫星排成的线大致沿着木星在天上走的路线。面朝南看一整晚：木星刚从东南方升起时，路线斜着往上，线也是斜的；
+        升到正南方最高时，路线水平；往西南落下时，斜向另一边。一晚上这个倾斜从约 −60° 变到 +60°，越接近最高点变得越快。<br>
+        <b>二、望远镜的摆法</b>。目镜朝侧面伸出时，镜筒抬高去对准木星，看到的像会跟着转，转多少就等于镜筒抬起多少（木星的高度：刚升起时低，最高时约 70°，快落下时只剩十几度）。
+        这一项是从照片推断的：去掉它，曲线和照片最好也要差 8.7°，而且要求木星在地平线以下；加上它，平均只差 3.8°。<br>
+        <b>合起来</b>：右端的角度 = 常数 − 天空的倾斜 − 木星的高度。最高点之前，倾斜增大、木星升高，两者都让角度往下转，所以曲线降得快；
+        最高点之后，倾斜还在增大，但木星开始降低、往回拉，约 2 小时后往回拉的一方占上风，曲线到底回升。所以最低点不在木星最高的时刻，而在它之后约 2 小时。</p>
+      <svg class="chart" id="skyparts" viewBox="0 0 960 360"></svg>
+      <div class="legend" id="skyparts-legend"></div>
+      <div class="caption">验算：用 1 月 9 日那几张照片，把照片里右端的角度加上天空倾斜和木星高度，应该得到同一个常数。</div>
+      <div class="scroll"><table id="skycheck"></table></div>
+    </div>
+
+    <h3 class="part"><span class="num">4</span>结果：转正，右端朝右</h3>
+    <p>按第 3 部分定好的右端把每张照片转正。现在 5 张照片里，蓝圈都在左边差不多的位置，其他光点也排得整整齐齐，可以一张张比较它们怎么移动了。</p>
+    <details class="pics"><summary>展开看这 5 张转正后的样子</summary><div class="dstack" id="d4"></div></details>
+    <details class="pics" id="d4more"><summary>展开全部 58 张转正后的照片</summary><div class="dall" id="d4all"></div></details>
+
+    <h3 class="part"><span class="num">5</span>检验和误差</h3>
+    <div class="cols">
+      <div class="figure">
+        <h3>照片里量出的线 和 规律预测，差多少</h3>
+        <svg class="chart" id="ab" viewBox="0 0 560 330"></svg>
+        <div class="caption">每张照片：照片里光点连成的线的角度，减去按规律预测的角度（预测这一张时，规律是用其他 57 张找出来的）。阴影是规律本身的误差。都差得不多，没有一张超出误差的 3 倍。
+          差得最多的“×”是 12 月 12 日那张：它是唯一没有拍摄信息的照片，不知道当时手机歪了多少，只能假设是竖直的，所以预测误差有 ±20°（误差棒很长），实际差的 −19° 在这个范围内。</div>
+      </div>
+      <div class="figure" style="gap:10px">
+        <h3>另一种检验：同一晚的照片互相对照</h3>
+        <p class="caption" style="font-size:14px">同一晚相隔不久的两张照片，光点排列几乎没变，把它们对齐就能直接看出两头怎么对应，不需要规律。
+          这样的照片有 <b id="pairs-n">—</b> 对，和橙色箭头的判断 <b id="pairs-ok">—</b>。</p>
+        <div class="scroll"><table id="sky-table"></table></div>
+      </div>
+    </div>
+    <div class="note2">
+      <b>顺便的发现</b>（只靠照片）：<span id="sky-bonus"></span>
+    </div>
   </section>
 
   <section aria-labelledby="s3-h">
-    <div class="eyebrow">第 3 步 · 运动规律</div>
-    <h2 id="s3-h">四个来回摆动的天体</h2>
+    <div class="eyebrow">第 4 步 · 周期</div>
+    <h2 id="s3-h">四个天体各绕一圈要多久</h2>
     <p>来回摆动的东西在最远点附近停留得最久，所以光点离木星的距离在几个地方堆积，每个堆积对应一个天体。
       从最外面的开始，逐个试遍所有周期；预测有光点而照片里没有，也算证据。每个天体的位置都按 X = A sin(2π t / P + φ) 拟合，同时为每张照片拟合一个比例修正。</p>
     <div class="figure">
       <div class="btns" id="m-range"></div>
       <svg class="chart" id="motion" viewBox="0 0 960 420"></svg>
       <div class="legend" id="m-legend"></div>
-      <div class="caption">点：照片里的光点，误差棒为照片误差（比例已按第 3 步修正）；× 为没有归给任何天体的光点。线和阴影：拟合的摆动及 ±1σ。灰带：木星光晕，看不到光点。</div>
+      <div class="caption">点：照片里的光点，误差棒为照片误差（比例已按第 4 步修正）；× 为没有归给任何天体的光点。线和阴影：拟合的摆动及 ±1σ。灰带：木星光晕，看不到光点。</div>
     </div>
     <div class="cols" id="folded"></div>
+    <div class="figure">
+      <h3>回头检验：去和回走在线的两侧</h3>
+      <svg class="chart" id="orbfull" viewBox="0 0 960 360"></svg>
+      <div class="legend"><span><span class="swatch" style="background:#e8762b"></span>正在往右走</span><span><span class="swatch" style="background:#2b7be8"></span>正在往左走</span><span>细线：拟合的扁圆</span></div>
+      <div class="caption" id="orbfull-cap"></div>
+    </div>
     <div class="scroll"><table id="bodies"></table></div>
     <p class="caption" id="m-notes"></p>
   </section>
 
-  <footer class="caption">数据由 <span class="mono">scripts/make_demo.py</span> 从第 1–3 步的结果生成；第 2 步方向与第 3 步周期只来自照片、EXIF、手机重力传感器和拍摄地点。</footer>
+  <footer class="caption">数据由 <span class="mono">scripts/make_demo.py</span> 从第 1–3 步的结果生成；第 3 步方向与第 4 步周期只来自照片、EXIF、手机重力传感器和拍摄地点。</footer>
 </div>
 
 <script>
@@ -216,7 +363,7 @@ const dateLabel = (iso) => { const d = new Date(iso); return `${d.getMonth() + 1
 /* ---------- header facts ---------- */
 function facts() {
   const li = D.bodies.map((b, i) => `<li><span class="swatch" style="background:${css(BODY_VAR[i % 6])}"></span><span>${b.name}</span><span class="num">P = ${fmt(b.period_d, 3)} ± ${fmt(b.period_err_photo_d, 3)} 天</span></li>`);
-  $("facts").innerHTML = li.join("") + `<li class="caption">（± 为照片误差；地点误差见第 3 步表格）</li>`;
+  $("facts").innerHTML = li.join("") + `<li class="caption">（± 为照片误差；地点误差见第 4 步表格）</li>`;
 }
 
 /* ---------- observation explorer ---------- */
@@ -253,71 +400,359 @@ function showPhoto(i) {
   const kv = [
     ["拍摄时间（相机时钟）", p.time.replace("T", " ") + (p.camera ? ` · ${p.camera}` : "")],
     ["确认的光点", `${p.pdots.length} 个` + (nEye ? `（其中 ${nEye} 个是核对时补上的）` : "")],
-    ["比例修正（第 3 步）", `× ${fmt(p.scale_fix, 3)}` + (p.scale_fitted ? "" : "（未单独拟合）") +
-      `<br><span class="site">第 1 步：1 Rj = ${fmt(p.rj_px, 1)} px；修正后 1 Rj = ${fmt(p.rj_px * p.scale_fix, 1)} px</span>`],
   ];
   $("obs-kv").innerHTML = kv.map(([k, v]) => `<div><small>${k}</small><span>${v}</span></div>`).join("");
   timeline();
 }
 
-/* ---------- step 1: rulers ---------- */
-function ruler() {
-  const W = 960, H = 380, m = { l: 56, r: 20, t: 14, b: 44 };
-  const f = frame(W, H, m, [0.3, 2.2], [0.3, 2.2], { xlog: true, ylog: true, xticks: [0.3, 0.5, 0.7, 1, 1.5, 2], yticks: [0.3, 0.5, 0.7, 1, 1.5, 2],
-    xlabel: "两张照片的真实比例（光点图案对齐得到）", ylabel: "尺子给出的比例" });
-  let s = f.s + `<line x1="${f.x(0.3)}" y1="${f.y(0.3)}" x2="${f.x(2.2)}" y2="${f.y(2.2)}" style="stroke:var(--muted);stroke-dasharray:4 4"/>`;
-  const series = [["edge", "木星边缘（采用）", "--accent"], ["blob", "木星白色亮斑", "--jupiter"], ["zoom", "手机变焦（EXIF）", "--b1"]];
-  const leg = [];
-  for (const [k, lab, c] of series) {
-    const pts = D.ruler.filter(r => r[k]);
-    const rms = 100 * Math.sqrt(pts.reduce((a, r) => a + Math.log(r.dots / r[k]) ** 2, 0) / pts.length);
-    for (const r of pts) s += k === "zoom" ? `<path d="M${f.x(r.dots)} ${f.y(r[k]) - 5}l4.5 8h-9z" style="fill:${css(c)}"/>` : `<circle cx="${f.x(r.dots)}" cy="${f.y(r[k])}" r="${k === "edge" ? 4.5 : 3.5}" style="fill:${css(c)};opacity:${k === "edge" ? 1 : .75}"/>`;
-    leg.push(`<span><span class="swatch" style="background:${css(c)}"></span>${lab}：差 ${fmt(rms, 1)}%</span>`);
+/* ---------- step 1: same Jupiter size ---------- */
+let RDEV = null;
+const sgnPct = (v) => v == null ? "—" : `${v >= 0 ? "+" : "−"}${fmt(Math.abs(v), 0)}%`;
+function rulerSummary(i) {
+  const r = RDEV, p = D.photos[i];
+  return `手机变焦 ${sgnPct(r.zoom[i])} · 白色亮斑 ${sgnPct(r.blob2[i])}` + (p.double ? `（当成一个圆 ${sgnPct(r.blob1[i])}）` : "") + ` · 木星边缘 ${sgnPct(r.edge[i])}`;
+}
+const MODES = [["native", "原始像素"], ["norm", "按木星统一（第 1 步）"], ["fixed", "加上比例修正（第 4 步）"]];
+let wallMode = "norm", s1cur = 0;
+const SHOW_RJ = 26;
+function wall() {
+  $("wall-mode").innerHTML = MODES.map(([k, l]) => `<button type="button" data-m="${k}" aria-pressed="${k === wallMode}">${l}</button>`).join("");
+  const z = D.step1.norm_half_rj / SHOW_RJ;
+  let rings = "";
+  // distance rings in Jupiter diameters (1 diameter = 2 Rj), as Galileo measured
+  for (const dia of [2, 4, 6, 8, 10, 12]) rings += `<circle cx="50" cy="50" r="${2 * dia / SHOW_RJ * 50}" style="fill:none;stroke:${dia % 4 ? "#3d4a6b" : "#5a6c99"};stroke-width:0.6"/>`;
+  $("wall").innerHTML = D.photos.map((p, i) => {
+    const img = wallMode === "native" ? `native/${p.id}.jpg` : `norm/${p.id}.jpg`;
+    const k = wallMode === "native" ? 1 : wallMode === "norm" ? z : z / p.scale_fix;
+    const lab = wallMode === "native" ? `木星 ${fmt(p.rj_px, 0)} px` : wallMode === "norm" ? `1 Rj = ${fmt(p.rj_px, 0)} px` : `× ${fmt(p.scale_fix, 2)}`;
+    return `<button type="button" class="tile" data-i="${i}" aria-pressed="${i === s1cur}"><span class="pic"><img src="${img}" alt="" loading="lazy" style="transform:scale(${k.toFixed(4)})">` +
+      (wallMode === "native" ? "" : `<svg viewBox="0 0 100 100">${rings}</svg>`) + `</span><small>${dateLabel(p.time)}<br>${lab}</small></button>`;
+  }).join("");
+  const cap = {
+    native: `每格是照片里同样大小的一块像素（以 3024 像素宽的照片计 ${D.step1.native_window_px} × ${D.step1.native_window_px} 像素），木星在正中。手机变焦和目镜位置不同，木星大小差了 6 倍多。`,
+    norm: `每张照片按测出的木星半径缩放，木星一样大。同心圆是距离刻度，单位是木星直径（伽利略用的单位，1 个直径 = 2 Rj）：从里到外离木星 2、4、6、8、10、12 个直径，较亮的是 4、8、12。光点都落在 13 个直径以内。`,
+    fixed: `再乘上第 4 步的比例修正（同心圆刻度不动，照片跟着缩放）：同一个天体每次都摆到同样远，由此反推每张照片的真实比例。单张照片的修正幅度约 ±${fmt(100 * scaleScatter(), 1)}%，最大的是 12 月 17 日（iPhone 14 Pro，×${fmt(Math.min(...D.photos.map(p => p.scale_fix)), 2)}）。`,
+  };
+  $("wall-cap").textContent = cap[wallMode];
+}
+function s1detail(i) {
+  s1cur = i;
+  const p = D.photos[i], half = D.step1.jup_half_rj, u = 180 / half;          // pixels per step-1 Rj in the 360 px close-up
+  $("jup-img").src = `jup/${p.id}.jpg`;
+  const rEdge = u * p.r_edge / p.rj_px, rBlob = u * p.r_blob / p.rj_px, rFix = u * p.scale_fix;
+  let ghost = "";
+  if (p.double) {                     // shaken photo: draw both disks; the centre is the real image when known
+    const k = u / p.rj_px, [vx, vy] = p.double.shift_px;
+    const offs = [[vx / 2, vy / 2], [-vx / 2, -vy / 2]];
+    for (const [dx, dy] of offs) ghost += `<circle cx="${180 + dx * k}" cy="${180 + dy * k}" r="${rBlob}" style="fill:none;stroke:#e06cff;stroke-width:1.4;stroke-dasharray:3 3"/>`;
   }
+  $("jup-over").innerHTML = ghost +
+    `<circle cx="180" cy="180" r="${rBlob}" style="fill:none;stroke:var(--b2);stroke-width:1.6;stroke-dasharray:5 4"/>` +
+    `<circle cx="180" cy="180" r="${rEdge}" style="fill:none;stroke:#7fb0ff;stroke-width:1.6"/>` +
+    `<circle cx="180" cy="180" r="${rFix}" style="fill:none;stroke:var(--b3);stroke-width:1.6;stroke-dasharray:2 3"/>`;
+  $("jup-legend").innerHTML =
+    `<span><svg width="22" height="10"><line x1="0" x2="22" y1="5" y2="5" style="stroke:var(--b2);stroke-width:2;stroke-dasharray:5 4"/></svg>白色亮斑的边</span>` +
+    `<span><svg width="22" height="10"><line x1="0" x2="22" y1="5" y2="5" style="stroke:#7fb0ff;stroke-width:2"/></svg>亮度下降最快处（采用的木星边缘）</span>` +
+    `<span><svg width="22" height="10"><line x1="0" x2="22" y1="5" y2="5" style="stroke:var(--b3);stroke-width:2;stroke-dasharray:2 3"/></svg>加上第 4 步修正后的 1 Rj</span>` +
+    (p.double ? `<span><svg width="22" height="10"><line x1="0" x2="22" y1="5" y2="5" style="stroke:#e06cff;stroke-width:2;stroke-dasharray:3 3"/></svg>手抖重影：两个木星圆盘</span>` : "");
+  $("s1d-name").textContent = `${dateLabel(p.time)} · 第 ${i + 1} / ${D.photos.length} 张`;
+  const kv = [
+    ["相机 · 等效焦距（含手机变焦）", `${p.camera || "无记录"} · ${p.zoom35 ? p.zoom35 + " mm" : "无记录"}`],
+    ["木星白色亮斑半径", `${fmt(p.r_blob, 1)} px` + (p.double ? `<span class="note">这张手抖了，曝光时有两个木星错开 ${fmt(Math.hypot(...p.double.shift_px), 0)} px 叠在一起。` +
+      `当成一个圆量是 ${fmt(p.double.blob_r_as_one_disk, 1)} px；拆成两个一样大的圆盘后，单个是 ${fmt(p.r_blob, 1)} px。` +
+      `中心取两个圆盘的中点（卫星光点也被同样抖成了两个，它们的位置也是按合在一起的中心量的，两者一致）。` +
+      `木星边缘只在和错开方向垂直的两侧测量。</span>` : "")],
+    ["木星边缘半径（亮度下降最快处）", `${fmt(p.r_edge, 1)} px`],
+    ["第 1 步采用的 1 Rj", `${fmt(p.rj_px, 1)} px ± ${fmt(p.scale_err_pct, 1)}% 照片 <span class="site">± ${p.scale_site_pct}% 地点</span>` +
+      (p.linked > 1 ? `<span class="note">同一晚 ${p.linked} 张照片用光点图案互相校对后一起平均</span>` : `<span class="note">这一晚没有可以互相校对的照片，只用本张的木星边缘</span>`)],
+    ["第 4 步比例修正", `× ${fmt(p.scale_fix, 3)}` + `<span class="note">同一个天体每次都摆到同样远，由此反推这张照片的比例；单张照片的修正幅度约 ±${fmt(100 * scaleScatter(), 1)}%</span>`],
+    ["修正后的 1 Rj", `${fmt(p.rj_px * p.scale_fix, 1)} px`],
+    ["三把尺子在这张照片上偏了多少", (RDEV ? rulerSummary(i) : "—") + `<span class="note">和下面的误差图是同一组数：0 是所有照片的中位数</span>`],
+  ];
+  $("s1d-kv").innerHTML = kv.map(([k, v]) => `<div><small>${k}</small><span>${v}</span></div>`).join("");
+  document.querySelectorAll("#wall .tile").forEach(t => t.setAttribute("aria-pressed", String(+t.dataset.i === i)));
+  if (RDEV) ruler();
+}
+
+/* ---------- step 1: rulers ---------- */
+// The reference for every photo is its scale after the step 3 correction (each body always swings
+// to the same distance). Each ruler's reading is compared with it; the median is taken as 0, so only
+// how much a ruler wanders from photo to photo shows, not one common offset.
+function ruler() {
+  const W = 960, H = 470, m = { l: 132, r: 16, t: 10, b: 34 }, gap = 16;
+  const ph = D.photos, n = ph.length, rowH = (H - m.t - m.b - 2 * gap) / 3;
+  const truth = ph.map(p => p.rj_px * p.scale_fix);
+  // ratio of a ruler's reading to the reference, photo by photo; 0 % = the median photo
+  const ratio = (vals) => vals.map((v, i) => v == null ? null : v / truth[i]);
+  const median = (q) => { const ok = q.filter(v => v != null).sort((a, b) => a - b); return ok[Math.floor(ok.length / 2)]; };
+  const pct = (q, med) => q.map(v => v == null ? null : 100 * (v / med - 1));
+  const dev = (vals) => { const q = ratio(vals); return pct(q, median(q)); };
+  const zoom = dev(ph.map(p => p.zoom35 ? p.zoom35 * Math.min(p.w, p.h) / 3024 : null));
+  const one = ph.map(p => p.double ? p.double.blob_r_as_one_disk : p.r_blob);
+  // the blob as one disk and as two disks share one 0 point (the two-disk median), so before and after compare
+  const q2 = ratio(ph.map(p => p.r_blob)), m2 = median(q2);
+  const blob2 = pct(q2, m2), blob1 = pct(ratio(one), m2);
+  const edge = dev(ph.map(p => p.r_edge));
+  RDEV = { zoom, blob1, blob2, edge };
+  const rms = (a, sel) => { const v = a.filter((x, i) => x != null && sel(i)); return Math.sqrt(v.reduce((s, x) => s + x * x, 0) / v.length); };
+  const isD = (i) => !!ph[i].double;
+  const rows = [
+    ["手机变焦（EXIF）", zoom, null],
+    ["白色亮斑", blob2, blob1],
+    ["木星边缘（采用）", edge, null],
+  ];
+  const yr = [-40, 70], x = lin(-0.5, n - 0.5, m.l, W - m.r), colW = (W - m.l - m.r) / n;
+  let s = `<rect x="${x(s1cur) - colW / 2}" y="${m.t - 4}" width="${colW}" height="${H - m.t - m.b + 8}" style="fill:var(--jupiter);opacity:0.18"/>`;
+  rows.forEach(([label, vals, before], r) => {
+    const top = m.t + r * (rowH + gap), y = lin(yr[0], yr[1], top + rowH, top);
+    s += `<rect x="${m.l}" y="${y(10)}" width="${W - m.l - m.r}" height="${y(-10) - y(10)}" style="fill:var(--accent);opacity:0.08"/>`;
+    for (const v of [-40, -20, 0, 20, 40, 60]) s += `<line class="grid" x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}"/>` + `<text x="${m.l - 6}" y="${y(v) + 4}" text-anchor="end">${v > 0 ? "+" : ""}${v}%</text>`;
+    s += `<line class="axis" x1="${m.l}" x2="${W - m.r}" y1="${y(0)}" y2="${y(0)}"/>`;
+    const fs = (sel) => fmt(rms(vals, sel), 1);
+    s += `<text x="8" y="${top + 16}" style="fill:var(--fg);font-family:var(--body);font-size:13px;font-weight:500">${label}</text>`;
+    s += `<text x="8" y="${top + 34}">无重影 ±${fs(i => !isD(i))}%</text><text x="8" y="${top + 50}" style="fill:#c04fd8">有重影 ±${fs(isD)}%</text>`;
+    if (before) s += `<text x="8" y="${top + 66}">（当成一个圆 ±${fmt(rms(before, isD), 1)}%）</text>`;
+    vals.forEach((v, i) => {
+      if (v == null) return;
+      const cx = x(i), c = isD(i) ? "#c04fd8" : "var(--accent)", clip = (u) => Math.max(yr[0], Math.min(yr[1], u));
+      if (before && isD(i)) {
+        s += `<line x1="${cx}" x2="${cx}" y1="${y(clip(before[i]))}" y2="${y(clip(v))}" style="stroke:#c04fd8;stroke-width:1.2"/>`;
+        s += `<circle cx="${cx}" cy="${y(clip(before[i]))}" r="4" style="fill:var(--surface);stroke:#c04fd8;stroke-width:1.4"/>`;
+      }
+      s += `<circle cx="${cx}" cy="${y(clip(v))}" r="${isD(i) ? 4 : 3.2}" style="fill:${c}"/>`;
+      if (i === s1cur) s += `<circle cx="${cx}" cy="${y(clip(v))}" r="7.5" style="fill:none;stroke:var(--jupiter);stroke-width:1.8"/>`;
+    });
+  });
+  s += `<text x="${(m.l + W - m.r) / 2}" y="${H - 8}" text-anchor="middle">照片（按时间，12 月 3 日 → 1 月 11 日）· 点任意一列查看那张照片</text>`;
+  for (let i = 0; i < n; i++) s += `<rect data-i="${i}" x="${x(i) - colW / 2}" y="${m.t}" width="${colW}" height="${H - m.t - m.b}" style="fill:transparent;cursor:pointer"><title>${dateLabel(ph[i].time)}</title></rect>`;
   $("ruler").innerHTML = s;
-  $("ruler-legend").innerHTML = leg.join("");
-  $("ruler-cap").textContent = `${D.ruler.length} 对同一晚的照片。离虚线越近越准。木星边缘单张照片的误差约 ±${fmt(100 * D.ruler_summary.sig_disk_single_photo, 1)}%；` +
-    `第 3 步用卫星的最远距离重新测得单张照片比例的实际偏差约 ±${fmt(100 * scaleScatter(), 1)}%，图里的误差棒用的是这个值。拍摄地点 30 米的误差对比例的影响小于 10^-9。`;
+  $("ruler-sel").innerHTML = `<b>选中：${dateLabel(ph[s1cur].time)}</b>（第 ${s1cur + 1} 张${ph[s1cur].double ? "，有手抖重影" : ""}）· ${rulerSummary(s1cur)}`;
+  $("ruler-legend").innerHTML = `<span><span class="swatch" style="background:var(--accent)"></span>没有重影的照片</span>` +
+    `<span><span class="swatch" style="background:#c04fd8"></span>有手抖重影的照片（${ph.filter(p => p.double).length} 张）</span>` +
+    `<span><svg width="30" height="12"><circle cx="5" cy="6" r="4" style="fill:var(--surface);stroke:#c04fd8;stroke-width:1.4"/><line x1="9" x2="21" y1="6" y2="6" style="stroke:#c04fd8;stroke-width:1.2"/><circle cx="25" cy="6" r="4" style="fill:#c04fd8"/></svg>白色亮斑：当成一个圆 → 拆成两个圆盘</span>`;
+  $("ruler-cap").textContent = `纵轴：这把尺子在这张照片上把木星量大（+）或量小（−）了百分之几。标准答案是第 4 步修正后的比例（同一个天体每次都摆到同样远）；` +
+    `过曝让所有照片的木星都大了同一个比例，这个共同的偏差扣掉了：所有照片的中位数记为 0，只看照片之间的差别。阴影是 ±10%。` +
+    `手抖时两个木星错开叠在一起，白色亮斑被拉长，当成一个圆量会明显偏大；拆成两个一样大的圆盘以后小了很多。手机变焦不受手抖影响，但它不反映目镜和对焦的变化。` +
+    `木星边缘在没有重影的照片上最稳，所以采用它。偏得最高的那个点是 12 月 17 日（另一部手机拍的，光晕更大）。`;
 }
 
 /* ---------- step 2: turning sky ---------- */
+const DIR_IDS = ["2024-01-09T1715", "2024-01-09T1925", "2024-01-09T2130", "2024-01-09T2331", "2024-01-10T0033"];
+const DK = 720 / 56;                                         // px per Rj in the 720 px source cut-outs (+-28 Rj)
+const drad = (d) => d * Math.PI / 180;
+const DP = (vx, vy) => [360 + DK * vx, 360 - DK * vy];      // photo's own y-up frame -> cut-out pixels
+function dOverlay(p, opts) {
+  let s = "";
+  const A = drad(p.A), F = drad(p.final);
+  const [x1, y1] = DP(-26 * Math.cos(A), -26 * Math.sin(A)), [x2, y2] = DP(26 * Math.cos(A), 26 * Math.sin(A));
+  s += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="stroke:#3fd17a;stroke-width:4;stroke-dasharray:14 10;opacity:.9"/>`;
+  for (const d of p.dots) {
+    if (d.body !== "IV") continue;
+    const [x, y] = DP(d.X * Math.cos(F) - d.Y * Math.sin(F), d.X * Math.sin(F) + d.Y * Math.cos(F));
+    s += `<circle cx="${x}" cy="${y}" r="26" style="fill:none;stroke:#5aa9ff;stroke-width:6"/>`;
+  }
+  if (opts && opts.pred) {
+    const B = drad(p.B), [bx, by] = DP(21 * Math.cos(B), 21 * Math.sin(B)), [ex, ey] = DP(26 * Math.cos(F), 26 * Math.sin(F));
+    s += `<line x1="360" y1="360" x2="${bx}" y2="${by}" style="stroke:#ff9d2e;stroke-width:9" marker-end="url(#dah)"/>`;
+    s += `<circle cx="${ex}" cy="${ey}" r="16" style="fill:#ff9d2e"/><text x="${ex}" y="${ey - 26}" text-anchor="middle" style="fill:#ff9d2e;font-size:40px;font-weight:500">右端</text>`;
+  }
+  return `<svg viewBox="0 0 720 720"><defs><marker id="dah" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3.2" markerHeight="3.2" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:#ff9d2e"/></marker></defs>${s}</svg>`;
+}
+function dDown(p) {
+  if (p.gravity_down == null) return "";
+  const D_ = drad(p.gravity_down), dx = Math.cos(D_), dy = -Math.sin(D_), x0 = 90, y0 = 70;
+  return `<svg viewBox="0 0 720 720"><defs><marker id="ddh" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3" markerHeight="3" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:#fff"/></marker></defs>
+    <line x1="${x0}" y1="${y0}" x2="${x0 + 90 * dx}" y2="${y0 + 90 * dy}" style="stroke:#fff;stroke-width:8" marker-end="url(#ddh)"/>
+    <text x="${x0 + 26}" y="${y0 + 135}" style="fill:#fff;font-size:38px">地面</text></svg>`;
+}
+function dBox(p, rot, inner, outer = "", wide = false) {
+  return `<div class="dbox${wide ? " wide" : ""}"><div class="dinner" style="transform:translate(-50%,-50%) rotate(${rot}deg)">` +
+    `<img src="src/${p.id}.jpg" alt="" loading="lazy">${inner}</div>${outer}</div>`;
+}
+const hm = (iso) => iso.slice(11, 16);
+function direction() {
+  const ph = Object.fromEntries(D.photos.map(p => [p.id, p])), sel = DIR_IDS.map(id => ph[id]).filter(Boolean);
+  $("d1").innerHTML = sel.map(p => `<figure class="dfig">${dBox(p, 0, dOverlay(p), dDown(p))}<figcaption><b>${hm(p.time)}</b> 拍摄</figcaption></figure>`).join("");
+  const q = ph["2024-01-09T2130"];
+  if (q) $("d2").innerHTML = `<figure class="dfig">${dBox(q, q.A, dOverlay(q))}<figcaption><b>转法甲</b>：蓝圈在右</figcaption></figure>` +
+    `<figure class="dfig">${dBox(q, q.A + 180, dOverlay(q))}<figcaption><b>转法乙</b>：蓝圈在左</figcaption></figure>`;
+  $("d3").innerHTML = sel.map(p => `<figure class="dfig">${dBox(p, 0, dOverlay(p, { pred: true }))}<figcaption><b>${hm(p.time)}</b>：橙色箭头指向的那头 = 右端</figcaption></figure>`).join("");
+  $("d4").innerHTML = sel.map(p => `<figure class="dfig">${dBox(p, p.final, dOverlay(p), "", true)}<figcaption><b>${hm(p.time)}</b> 转正后（右端朝右）</figcaption></figure>`).join("");
+  $("d4more").addEventListener("toggle", () => {
+    if (!$("d4more").open || $("d4all").innerHTML) return;
+    $("d4all").innerHTML = D.photos.map(p => `<figure class="dfig">${dBox(p, p.final, "", "", true)}<figcaption><b>${dateLabel(p.time)}</b></figcaption></figure>`).join("");
+  });
+  sky();
+  skyParts();
+}
+function skyParts() {
+  const M = D.sky.model, W = 960, H = 360, m = { l: 56, r: 16, t: 14, b: 44 };
+  const lat = drad(M.lat_deg), dec = drad(M.dec_deg);
+  const xs = D.sky.curve.map(c => c[0]), h0 = Math.floor(Math.min(...xs)), h1 = Math.ceil(Math.max(...xs));
+  const parts = (hr) => { const Hr = drad(hr * 15);
+    const q = Math.atan2(Math.sin(Hr), Math.tan(lat) * Math.cos(dec) - Math.sin(dec) * Math.cos(Hr)) * 180 / Math.PI;
+    const alt = Math.asin(Math.sin(lat) * Math.sin(dec) + Math.cos(lat) * Math.cos(dec) * Math.cos(Hr)) * 180 / Math.PI;
+    return { sky: M.s * q, tel: M.k * alt, total: M.c_deg + M.s * q + M.k * alt }; };
+  const grid = []; for (let i = 0; i <= 200; i++) { const hr = h0 + (h1 - h0) * i / 200; grid.push([hr, parts(hr)]); }
+  const vals = grid.flatMap(([, v]) => [v.sky, v.tel, v.total]);
+  const f = frame(W, H, m, [h0, h1], [Math.floor(Math.min(...vals) / 20) * 20 - 10, Math.ceil(Math.max(...vals) / 20) * 20 + 10],
+    { xlabel: "离木星升到最高的时刻（小时）", ylabel: "转动的角度（度）" });
+  const line = (key, col, w, dash) => `<path d="${grid.map(([hr, v], i) => (i ? "L" : "M") + f.x(hr) + " " + f.y(v[key])).join("")}" style="fill:none;stroke:${col};stroke-width:${w}${dash ? ";stroke-dasharray:" + dash : ""}"/>`;
+  let s = f.s + `<line x1="${f.x(0)}" x2="${f.x(0)}" y1="${m.t}" y2="${H - m.b}" style="stroke:var(--muted);stroke-dasharray:4 4"/><text x="${f.x(0) + 6}" y="${m.t + 12}">木星最高</text>`;
+  s += line("sky", "var(--b4)", 2, "6 4") + line("tel", "var(--b3)", 2, "6 4") + line("total", "var(--fg)", 2.2);
+  for (const p of D.photos) s += `<circle cx="${f.x(p.H)}" cy="${f.y(p.rel)}" r="2.6" style="fill:var(--fg);opacity:.35"/>`;
+  $("skyparts").innerHTML = s;
+  $("skyparts-legend").innerHTML = `<span><svg width="26" height="8"><line x1="0" x2="26" y1="4" y2="4" style="stroke:var(--b4);stroke-width:2;stroke-dasharray:6 4"/></svg>一、天空的倾斜带来的转动</span>` +
+    `<span><svg width="26" height="8"><line x1="0" x2="26" y1="4" y2="4" style="stroke:var(--b3);stroke-width:2;stroke-dasharray:6 4"/></svg>二、镜筒抬高带来的转动（= −木星高度）</span>` +
+    `<span><svg width="26" height="8"><line x1="0" x2="26" y1="4" y2="4" style="stroke:var(--fg);stroke-width:2.2"/></svg>合起来（加上常数 ${fmt(M.c_deg, 0)}°）= 规律曲线</span>` +
+    `<span><span class="swatch" style="background:var(--fg);opacity:.4"></span>58 张照片</span>`;
+  const sign = (v) => `${v >= 0 ? "+" : "−"}${fmt(Math.abs(v), 0)}°`;
+  const rows = DIR_IDS.map(id => D.photos.find(p => p.id === id)).filter(Boolean).map(p => {
+    const k = p.rel - M.s * p.par - M.k * p.alt;
+    return `<tr><td>${hm(p.time)}</td><td class="n">${p.H < 0 ? "前" : "后"} ${fmt(Math.abs(p.H), 1)} 小时</td><td class="n">${sign(p.par)}</td><td class="n">${fmt(p.alt, 0)}°</td><td class="n">${sign(p.rel)}</td><td class="n"><b>${sign(k)}</b></td></tr>`;
+  });
+  $("skycheck").innerHTML = `<thead><tr><th>1 月 9 日</th><th class="n">离最高点</th><th class="n">天空倾斜</th><th class="n">木星高度</th><th class="n">照片里右端的角度</th><th class="n">算出的常数</th></tr></thead><tbody>${rows.join("")}</tbody>`;
+}
 function sky() {
-  const W = 560, H = 360, m = { l: 50, r: 14, t: 12, b: 42 };
+  // the rule: every photo's right-end direction against hours from Jupiter's highest point
+  const W = 960, H = 380, m = { l: 56, r: 16, t: 14, b: 44 };
   const xs = D.sky.curve.map(c => c[0]), ys = D.photos.map(p => p.rel).concat(D.sky.curve.map(c => c[1]));
   const f = frame(W, H, m, [Math.floor(Math.min(...xs)), Math.ceil(Math.max(...xs))], [Math.floor(Math.min(...ys) / 20) * 20 - 10, Math.ceil(Math.max(...ys) / 20) * 20 + 10],
-    { xlabel: "离木星最高点的小时数", ylabel: "+X 端方向（度）" });
-  let s = f.s + `<path d="${D.sky.curve.map((c, i) => (i ? "L" : "M") + f.x(c[0]) + " " + f.y(c[1])).join("")}" style="fill:none;stroke:var(--fg);stroke-width:1.4"/>`;
+    { xlabel: "离木星升到最高的时刻（小时；负数 = 之前，正数 = 之后）", ylabel: "右端指向的角度（度）" });
+  let s = f.s + `<line x1="${f.x(0)}" x2="${f.x(0)}" y1="${m.t}" y2="${H - m.b}" style="stroke:var(--muted);stroke-dasharray:4 4"/>` +
+    `<text x="${f.x(0) + 6}" y="${m.t + 12}">木星最高</text>`;
+  s += `<path d="${D.sky.curve.map((c, i) => (i ? "L" : "M") + f.x(c[0]) + " " + f.y(c[1])).join("")}" style="fill:none;stroke:var(--fg);stroke-width:1.6"/>`;
   for (const p of D.photos) {
     const c = p.t < 28.5 ? "var(--b4)" : "var(--b1)";
     s += ebar(f.x(p.H), f.y(p.rel - p.final_err), f.y(p.rel + p.final_err), c);
-    s += p.has_gravity ? `<circle cx="${f.x(p.H)}" cy="${f.y(p.rel)}" r="3.6" style="fill:${c}"/>` : `<path d="M${f.x(p.H) - 4} ${f.y(p.rel) - 4}l8 8m0 -8l-8 8" style="stroke:${c};stroke-width:1.6"/>`;
+    s += `<circle cx="${f.x(p.H)}" cy="${f.y(p.rel)}" r="3.6" style="fill:${c}"/>`;
   }
-  s += `<circle cx="${W - 150}" cy="${m.t + 10}" r="4" style="fill:var(--b4)"/><text x="${W - 140}" y="${m.t + 14}">12 月</text><circle cx="${W - 90}" cy="${m.t + 10}" r="4" style="fill:var(--b1)"/><text x="${W - 80}" y="${m.t + 14}">1 月</text>`;
+  for (const id of DIR_IDS) {
+    const p = D.photos.find(q => q.id === id);
+    if (!p) continue;
+    s += `<circle cx="${f.x(p.H)}" cy="${f.y(p.rel)}" r="8" style="fill:none;stroke:#ff9d2e;stroke-width:2"/>` +
+      `<text x="${f.x(p.H) + 10}" y="${f.y(p.rel) - 8}" style="fill:#d97a10">1月9日 ${hm(p.time)}</text>`;
+  }
+  s += `<circle cx="${W - 170}" cy="${m.t + 10}" r="4" style="fill:var(--b4)"/><text x="${W - 160}" y="${m.t + 14}">12 月拍的</text>` +
+    `<circle cx="${W - 90}" cy="${m.t + 10}" r="4" style="fill:var(--b1)"/><text x="${W - 80}" y="${m.t + 14}">1 月拍的</text>`;
   $("sky").innerHTML = s;
 
-  const res = D.photos.map(p => { let d = ((p.A - p.B) % 180 + 270) % 180 - 90; return d; });
+  const W2 = 560, H2 = 330, m2 = { l: 48, r: 12, t: 12, b: 40 };
+  const res = D.photos.map(p => ((p.A - p.B) % 180 + 270) % 180 - 90);
   const sig = D.sky.fit.scatter_per_photo_deg, lim = Math.max(12, Math.ceil(Math.max(...res.map(Math.abs)) / 5) * 5 + 3);
-  const g = frame(W, H, m, [-1, D.photos.length], [-lim, lim], { xlabel: "照片（按时间）", ylabel: "A − B（度）", nx: 6 });
-  let t = g.s + `<rect x="${m.l}" width="${W - m.l - m.r}" y="${g.y(sig)}" height="${g.y(-sig) - g.y(sig)}" style="fill:var(--accent);opacity:0.12"/>`;
+  const g = frame(W2, H2, m2, [-1, D.photos.length], [-lim, lim], { xlabel: "照片（按时间）", ylabel: "相差（度）", nx: 6 });
+  let t = g.s + `<rect x="${m2.l}" width="${W2 - m2.l - m2.r}" y="${g.y(sig)}" height="${g.y(-sig) - g.y(sig)}" style="fill:var(--accent);opacity:0.12"/>`;
   D.photos.forEach((p, i) => {
     const e = Math.hypot(p.A_err, p.B_err), c = p.t < 28.5 ? "var(--b4)" : "var(--b1)";
-    t += ebar(g.x(i), g.y(res[i] - e), g.y(res[i] + e), c) + `<circle cx="${g.x(i)}" cy="${g.y(res[i])}" r="3.2" style="fill:${c}"/>`;
+    t += ebar(g.x(i), g.y(res[i] - e), g.y(res[i] + e), c) + (p.has_gravity
+      ? `<circle cx="${g.x(i)}" cy="${g.y(res[i])}" r="3.2" style="fill:${c}"/>`
+      : `<path d="M${g.x(i) - 5} ${g.y(res[i]) - 5}l10 10m0 -10l-10 10" style="stroke:${c};stroke-width:2"/><text x="${g.x(i) + 8}" y="${g.y(res[i]) + 4}">没有重力记录</text>`);
   });
   $("ab").innerHTML = t;
 
   const fit = D.sky.fit, site = D.sky.site;
+  $("pairs-n").textContent = D.sky.C.pairs;
+  $("pairs-ok").textContent = D.sky.C.agree_with_B_on_ends === D.sky.C.pairs ? "全部一致" : `${D.sky.C.agree_with_B_on_ends} 对一致`;
   const rows = [
-    ["木星最高的时刻（12 月 3 日）", `${fit.jupiter_highest_at_on_2023_12_03} ± ${fmt(fit.jupiter_highest_err_min, 1)} 分钟`, `± ${sci(site.highest_time_shift_min)} 分钟`],
-    ["木星赤纬", `${fmt(fit.jupiter_declination_deg, 2)}° ± ${fmt(fit.jupiter_declination_err_deg, 2)}°`, `± ${sci(site.declination_shift_deg)}°`],
-    ["木星每天比恒星多早", `${fmt(-fit.jupiter_drift_min_per_day, 2)} ± ${fmt(fit.jupiter_drift_err, 2)} 分钟`, "—"],
-    ["方法 B 单张误差", `${fmt(fit.scatter_per_photo_deg, 1)}°`, "—"],
-    ["A 与 B 的差异（均方根）", `${fmt(D.sky.A_vs_B.rms_deg, 1)}°，超出 3σ 的照片 ${D.sky.A_vs_B.photos_disagree_over_3sigma.length} 张`, "—"],
-    ["方法 C 检验 B 的两端判断", `${D.sky.C.agree_with_B_on_ends} / ${D.sky.C.pairs} 对一致`, "—"],
-    ["最终方向（中位）", `± ${fmt(D.sky.final.median_err_photo_deg, 2)}°`, `最大 ± ${sci(site.max_err_site_deg)}°`],
+    ["每张照片转正的角度（中位）", `± ${fmt(D.sky.final.median_err_photo_deg, 2)}°`, `± ${sci(site.max_err_site_deg)}°（最大）`],
+    ["只看光点量线的角度（中位）", `± ${fmt(D.photos.map(p => p.A_err).sort((a, b) => a - b)[Math.floor(D.photos.length / 2)], 2)}°`, "不受影响"],
+    ["按规律预测的方向（单张）", `± ${fmt(fit.scatter_per_photo_deg, 1)}°`, `± ${sci(site.max_B_shift_deg)}°（最大）`],
+    ["两者相差（均方根）", `${fmt(D.sky.A_vs_B.rms_deg, 1)}°`, "—"],
   ];
-  for (const c of D.sky.clock) rows.push([`时间核对：${c.photo}`, `相机时间 ${c.camera_time.slice(11, 16)} 差 ${c.A_minus_B_camera_time_deg}°；文件名 ${c.file_name_time.slice(11, 16)} 差 ${c.A_minus_B_file_name_time_deg}°`, "—"]);
-  $("sky-table").innerHTML = `<thead><tr><th>结果</th><th>数值 ± 照片误差</th><th>地点误差（30 米）</th></tr></thead><tbody>` +
+  $("sky-table").innerHTML = `<thead><tr><th>误差</th><th>照片误差</th><th>地点误差（30 米）</th></tr></thead><tbody>` +
     rows.map(r => `<tr><td>${r[0]}</td><td class="mono">${r[1]}</td><td class="mono">${r[2]}</td></tr>`).join("") + "</tbody>";
+  const clock = D.sky.clock[0];
+  $("sky-bonus").innerHTML =
+    `拟合这条规律时，顺便算出了木星每天几点升到最高：12 月 3 日是 <b>${fit.jupiter_highest_at_on_2023_12_03}</b>（± ${fmt(fit.jupiter_highest_err_min, 0)} 分钟），之后每天提前约 4.5 分钟；` +
+    `还有木星在天上的“纬度”（赤纬）<b>+${fmt(fit.jupiter_declination_deg, 1)}°</b>（± ${fmt(fit.jupiter_declination_err_deg, 1)}°），它决定木星在南方天空能升多高。` +
+    (clock ? `另外，1 月 10 日有一张照片文件名写 ${hm(clock.file_name_time)}，相机却记的是 ${hm(clock.camera_time)}：按相机时间，照片和规律只差 ${Math.abs(clock.A_minus_B_camera_time_deg)}°；` +
+      `按文件名差 ${Math.abs(clock.A_minus_B_file_name_time_deg)}°，所以<b>相机时间是对的</b>。` : "");
+}
+
+/* ---------- step 3: going around Jupiter ---------- */
+function tracks() {
+  // Each body's dots grouped by night. Within one night a dot moves only a little between photos, so it
+  // can be followed photo to photo, and it cannot turn back in a few hours. A night gives a direction only
+  // if its photos span at least an hour and the dot moved more than the measuring error (0.3 Rj).
+  const out = {};
+  for (const b of D.bodies) {
+    const pts = [], nights = {};
+    D.photos.forEach(p => p.dots.forEach(d => { if (d.body === b.name) { const X = d.X / p.scale_fix;
+      // crowded: another dot within 1.5 Rj in the same photo, so it could be mixed up with it
+      const crowded = p.dots.some(o => o !== d && o.band && Math.abs(o.X / p.scale_fix - X) < 1.5);
+      const q = { t: p.t, X, Y: d.Y, eX: D.motion.residual_robust_rj, crowded, night: p.night, dir: 0 };
+      pts.push(q); (nights[p.night] = nights[p.night] || []).push(q); } }));
+    pts.sort((a, c) => a.t - c.t);
+    const runs = [];
+    for (const all of Object.values(nights)) {
+      const qs = all.filter(q => !q.crowded).sort((a, c) => a.t - c.t);
+      if (qs.length < 2) continue;                            // all crowded, or a single photo that night
+      const span = qs[qs.length - 1].t - qs[0].t;
+      if (span < 1 / 24) continue;
+      const mt = qs.reduce((s, q) => s + q.t, 0) / qs.length, mx = qs.reduce((s, q) => s + q.X, 0) / qs.length;
+      const slope = qs.reduce((s, q) => s + (q.t - mt) * (q.X - mx), 0) / qs.reduce((s, q) => s + (q.t - mt) ** 2, 0);
+      if (Math.abs(slope * span) < 0.3) continue;
+      for (const q of qs) q.dir = Math.sign(slope);
+      runs.push(qs);
+    }
+    out[b.name] = pts;
+    out[b.name].runs = runs;
+  }
+  return out;
+}
+function orbit() {
+  const T = tracks(), W = 560, H = 330, m = { l: 48, r: 12, t: 12, b: 40 };
+  // 1: positions over 40 days
+  const reach = Math.max(...D.bodies.map(b => b.reach_rj));
+  let f = frame(W, H, m, [-0.5, 40.5], [-30, 30], { xlabel: "日期", ylabel: "离木星（Rj，沿线）", xticks: [0, 10, 20, 30, 40],
+    xfmt: (v) => { const d = new Date(2023, 11, 3 + v); return `${d.getMonth() + 1}/${d.getDate()}`; } });
+  let s = f.s + `<line x1="${m.l}" x2="${W - m.r}" y1="${f.y(reach)}" y2="${f.y(reach)}" style="stroke:var(--muted);stroke-dasharray:4 4"/>` +
+    `<line x1="${m.l}" x2="${W - m.r}" y1="${f.y(-reach)}" y2="${f.y(-reach)}" style="stroke:var(--muted);stroke-dasharray:4 4"/>`;
+  for (const p of D.photos) for (const d of p.dots) if (d.band) s += `<circle cx="${f.x(p.t)}" cy="${f.y(d.X / p.scale_fix)}" r="2.6" style="fill:var(--accent);opacity:.75"/>`;
+  s += `<circle cx="${f.x(0)}" cy="${f.y(0)}" r="0"/>`;
+  $("orb1").innerHTML = s;
+  const drift = Math.abs(D.sky.fit.jupiter_drift_min_per_day), deg = drift * 39 * 15 / 60;
+  $("orb1-cap").textContent = `40 天里所有光点离木星的位置。它们从没跑出 ±${fmt(reach, 0)} Rj（虚线）。第 3 步（方向）里测出木星自己每天在星空里移动一点（每天比恒星多变 ${fmt(drift, 2)} 分钟），40 天累计约 ${fmt(deg, 0)}°，` +
+    `比望远镜的整个视野（大约半度）大得多。如果这些光点是远处的星，早就被木星甩出画面了；它们却一直围在木星两侧，是跟着木星走的。`;
+  // 2: signed distribution
+  const xs = []; D.photos.forEach(p => p.dots.forEach(d => { if (d.band) xs.push(d.X / p.scale_fix); }));
+  const bins = []; for (let v = -26; v <= 26; v += 0.25) { let k = 0; for (const x of xs) k += Math.exp(-0.5 * ((x - v) / 0.6) ** 2); bins.push([v, k]); }
+  const kmax = Math.max(...bins.map(b => b[1]));
+  f = frame(W, H, m, [-26, 26], [0, kmax * 1.1], { xlabel: "沿线位置（Rj，0 = 木星）", ylabel: "光点多少", yticks: [] });
+  s = f.s + `<path d="M${bins.map(b => f.x(b[0]) + " " + f.y(b[1])).join("L")}L${f.x(26)} ${f.y(0)}L${f.x(-26)} ${f.y(0)}Z" style="fill:var(--accent);opacity:.25"/>` +
+    `<path d="M${bins.map(b => f.x(b[0]) + " " + f.y(b[1])).join("L")}" style="fill:none;stroke:var(--accent);stroke-width:1.5"/>`;
+  D.bodies.forEach((b, k) => { for (const sg of [-1, 1]) s += `<line x1="${f.x(sg * b.reach_rj)}" x2="${f.x(sg * b.reach_rj)}" y1="${m.t}" y2="${H - m.b}" style="stroke:${css(BODY_VAR[k % 6])};stroke-dasharray:3 3"/>`; });
+  s += `<rect x="${f.x(-2)}" y="${m.t}" width="${f.x(2) - f.x(-2)}" height="${H - m.t - m.b}" style="fill:var(--muted);opacity:.15"/>`;
+  $("orb2").innerHTML = s;
+  // 4: same-night tracks only; across-the-line drift exaggerated
+  const rows = D.bodies.length, rowH = (H - m.t - m.b) / rows;
+  s = `<defs>` + [["trR", "#e8762b"], ["trL", "#2b7be8"]].map(([id, c]) =>
+    `<marker id="${id}" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:${c}"/></marker>`).join("") + `</defs>`;
+  const x = lin(-24, 24, m.l, W - m.r);
+  D.bodies.forEach((b, k) => {
+    const top = m.t + k * rowH, y = lin(-1.6, 1.6, top + rowH, top), c = css(BODY_VAR[k % 6]);
+    s += `<line class="grid" x1="${m.l}" x2="${W - m.r}" y1="${y(0)}" y2="${y(0)}"/><text x="${m.l - 8}" y="${y(0) + 4}" text-anchor="end" style="fill:${c}">${b.name}</text>`;
+    for (const q of T[b.name]) if (!q.dir) s += `<circle cx="${x(q.X)}" cy="${y(Math.max(-1.55, Math.min(1.55, q.Y)))}" r="2" style="fill:var(--none);opacity:.45"/>`;
+    for (const run of T[b.name].runs) {
+      const col = run[0].dir > 0 ? "#e8762b" : "#2b7be8";
+      s += `<path d="M${run.map(q => x(q.X) + " " + y(Math.max(-1.55, Math.min(1.55, q.Y)))).join("L")}" style="fill:none;stroke:${col};stroke-width:1.3" marker-end="url(#${run[0].dir > 0 ? "trR" : "trL"})"/>`;
+      for (const q of run) s += `<circle cx="${x(q.X)}" cy="${y(Math.max(-1.55, Math.min(1.55, q.Y)))}" r="2.8" style="fill:${col}"/>`;
+    }
+  });
+  for (const v of [-20, -10, 0, 10, 20]) s += `<text x="${x(v)}" y="${H - m.b + 16}" text-anchor="middle">${v}</text>`;
+  const exag = (rowH / 3.2) / ((W - m.l - m.r) / 48);       // vertical px per Rj over horizontal px per Rj
+  s += `<text x="${(m.l + W - m.r) / 2}" y="${H - 6}" text-anchor="middle">沿线位置（Rj）；纵向（离线）放大约 ${fmt(exag, 0)} 倍</text>`;
+  $("orb4").innerHTML = s;
+  $("orb4-legend").innerHTML = `<span><span class="swatch" style="background:#e8762b"></span>这一晚在往右走</span><span><span class="swatch" style="background:#2b7be8"></span>这一晚在往左走</span>` +
+    `<span><span class="swatch" style="background:var(--none)"></span>当晚只有一张照片或几乎没动，看不出方向</span>`;
+  const stat = (b) => { const q = T[b.name], up = q.filter(p => p.dir > 0), dn = q.filter(p => p.dir < 0);
+    const mY = (a) => a.length ? `${a.reduce((s, p) => s + p.Y, 0) / a.length >= 0 ? "+" : "−"}${fmt(Math.abs(a.reduce((s, p) => s + p.Y, 0) / a.length), 2)}（${a.length} 个点）` : "没有";
+    return `${b.name}：往右 ${mY(up)}，往左 ${mY(dn)}`; };
+  $("orb4-cap").textContent = `怎么看出往哪边走：同一晚连续拍的几张照片里，同一个光点每张只挪一点点，旁边又没有别的光点，所以能一张张认出是它（折线就是这样连起来的）。` +
+    `看它这一晚是往右挪还是往左挪（至少隔 1 小时、挪动超过测量误差），就知道方向；再看它偏在线的上方还是下方。隔天的照片认不出谁是谁，不用。` +
+    `平均离线距离（Rj）：${D.bodies.map(stat).join("；")}。II 和 III 都是往右走偏下、往左走偏上，方向符合，但其中一个方向只有两三个点；I 点太少，看不出差别；IV 在这几晚恰好都往同一边走，看不到返回。` +
+    `所以只靠同一晚的照片，这条证据只是初步的。` +
+    `完整的检验要等第 4 步找出周期、知道每一刻往哪边走以后再做。`;
 }
 
 /* ---------- step 3: motion ---------- */
@@ -379,6 +814,32 @@ function folded() {
     $("fold" + k).innerHTML = s;
   });
 }
+function orbitFull() {
+  // with the periods known, every dot's direction follows from its phase: X = A sin(phase) moves toward +X while cos(phase) > 0
+  const W = 960, H = 360, m = { l: 48, r: 14, t: 10, b: 40 }, rows = D.bodies.length, rowH = (H - m.t - m.b) / rows;
+  const x = lin(-24, 24, m.l, W - m.r);
+  let s = "";
+  D.bodies.forEach((b, k) => {
+    const top = m.t + k * rowH, y = lin(-1.6, 1.6, top + rowH, top), c = css(BODY_VAR[k % 6]), tl = b.drift_across_line;
+    s += `<line class="grid" x1="${m.l}" x2="${W - m.r}" y1="${y(0)}" y2="${y(0)}"/><text x="${m.l - 8}" y="${y(0) + 4}" text-anchor="end" style="fill:${c}">${b.name}</text>`;
+    if (tl) { let d = ""; for (let i = 0; i <= 160; i++) { const ph = 2 * Math.PI * i / 160; d += (i ? "L" : "M") + x(b.reach_rj * Math.sin(ph)) + " " + y(tl.B_rj * Math.cos(ph) + tl.offset_rj); }
+      s += `<path d="${d}Z" style="fill:none;stroke:${c};stroke-width:1.2"/>`; }
+    D.photos.forEach(p => p.dots.forEach(d => {
+      if (!d.body || !d.body.split("+").includes(b.name) || d.body.includes("+")) return;
+      const ph = 2 * Math.PI * b.freq_per_day * p.t + b.phase_rad, col = Math.cos(ph) > 0 ? "#e8762b" : "#2b7be8";
+      s += `<circle cx="${x(d.X / p.scale_fix)}" cy="${y(Math.max(-1.55, Math.min(1.55, d.Y)))}" r="2.8" style="fill:${col}"/>`;
+    }));
+  });
+  for (const v of [-20, -10, 0, 10, 20]) s += `<text x="${x(v)}" y="${H - m.b + 16}" text-anchor="middle">${v}</text>`;
+  const exag = (rowH / 3.2) / ((W - m.l - m.r) / 48);
+  s += `<text x="${(m.l + W - m.r) / 2}" y="${H - 6}" text-anchor="middle">沿线位置（Rj）；纵向（离线）放大约 ${fmt(exag, 0)} 倍</text>`;
+  $("orbfull").innerHTML = s;
+  const parts = D.bodies.filter(b => b.drift_across_line).map(b => { const t = b.drift_across_line;
+    return `${b.name} ${fmt(t.B_rj, 2)} ± ${fmt(t.B_err_rj, 2)}（${fmt(Math.abs(t.B_rj / t.B_err_rj), 0)} 倍误差）`; });
+  $("orbfull-cap").textContent = `周期找出来以后，每一刻每个天体往哪边走都知道了，可以用全部照片检验第 2 步的第三条证据。` +
+    `四颗都是往右走（橙）偏在线下方、往左走（蓝）偏在线上方，点都落在一个很扁的圈上。扁圈的半高（离线距离随往返变化的幅度，Rj）：${parts.join("；")}。` +
+    `四个都是负数：绕的方向相同。两个天体重叠成一个光点的不画。`;
+}
 function bodiesTable() {
   const rows = D.bodies.map((b, k) => {
     const rv = (b.rival_periods || []).filter(r => Math.abs(r.period_d - b.period_d) > 0.01)[0];
@@ -398,11 +859,23 @@ function bodiesTable() {
 
 /* ---------- boot ---------- */
 async function start() {
-  try { D = await (await fetch("data.json")).json(); }
+  try { D = await (await fetch("data.json", { cache: "no-store" })).json(); }      // always the latest numbers
   catch (e) { $("facts").innerHTML = `<li>数据载入失败：${e.message}。请通过本地服务器打开（python3 -m http.server -d demo）。</li>`; return; }
   D.bodies.forEach((b, k) => { bodyIdx[b.name] = k; shown.add(k); });
   facts(); showPhoto(D.photos.findIndex(p => p.id === "2024-01-09T1823") >= 0 ? D.photos.findIndex(p => p.id === "2024-01-09T1823") : 0);
-  ruler(); sky(); motion(); folded(); bodiesTable();
+  s1cur = Math.max(0, D.photos.findIndex(p => p.id === "2023-12-17T2236"));
+  // buttons first, then each chart on its own: one chart failing must not stop the rest of the page
+  const safe = (f) => { try { f(); } catch (e) { console.error(f.name, e); } };
+  bind();
+  for (const f of [ruler, wall, () => s1detail(s1cur), direction, orbit, motion, folded, orbitFull, bodiesTable]) safe(f);
+}
+function bind() {
+  $("ruler").addEventListener("click", (e) => { const i = e.target.dataset?.i; if (i != null) s1detail(+i); });
+  $("wall-mode").addEventListener("click", (e) => { const m = e.target.closest("button")?.dataset.m; if (m) { wallMode = m; wall(); } });
+  $("wall").addEventListener("click", (e) => { const t = e.target.closest(".tile"); if (t) s1detail(+t.dataset.i); });
+  const n = D.photos.length;
+  $("s1prev").onclick = () => s1detail((s1cur - 1 + n) % n);
+  $("s1next").onclick = () => s1detail((s1cur + 1) % n);
   $("prev").onclick = () => showPhoto(cur - 1);
   $("next").onclick = () => showPhoto(cur + 1);
   $("timeline").addEventListener("click", (e) => { const i = e.target.dataset?.i; if (i != null) showPhoto(+i); });

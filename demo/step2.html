@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 3 步图解</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600&family=Noto+Sans+SC:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column; four numbered parts, each a row of real photos with drawn guides. */
+:root { --bg: #eef0f4; --surface: #fff; --fg: #1b2130; --muted: #5a6376; --rule: #d5d9e2;
+  --line: #3fd17a; --pred: #ff9d2e; --moon: #5aa9ff; --down: #ffffff;
+  --display: "Noto Serif SC", serif; --body: "Noto Sans SC", system-ui, sans-serif }
+@media (prefers-color-scheme: dark) { :root { --bg: #0e121a; --surface: #151b26; --fg: #e4e8f0; --muted: #9aa3b5; --rule: #2a3242; color-scheme: dark } }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font: 15px/1.75 var(--body); margin: 0; padding: 32px max(16px, env(safe-area-inset-left)) 48px }
+.wrap { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px }
+h1, h2 { font-family: var(--display); margin: 0; line-height: 1.3 }
+h1 { font-size: 30px } h2 { font-size: 21px }
+p { margin: 0; max-width: 70ch }
+section { display: flex; flex-direction: column; gap: 14px }
+.num { display: inline-block; width: 28px; height: 28px; line-height: 28px; text-align: center; border-radius: 50%; background: var(--fg); color: var(--bg); font-size: 15px; margin-right: 8px }
+.row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px }
+.row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 260px)); gap: 16px }
+@media (max-width: 760px) { .row { grid-template-columns: repeat(2, minmax(0, 1fr)) } }
+figure { margin: 0; display: flex; flex-direction: column; gap: 4px; min-width: 0 }
+figcaption { font-size: 13px; color: var(--muted) }
+figcaption b { color: var(--fg); font-weight: 500 }
+.box { position: relative; aspect-ratio: 1 / 1; overflow: hidden; background: #000; border-radius: 4px }
+.box.wide { aspect-ratio: 5 / 2 }
+.inner { position: absolute; left: 50%; top: 50%; width: 100%; aspect-ratio: 1 / 1; transform-origin: 50% 50% }
+.box.wide .inner { width: 100% }
+.inner img, .inner svg { position: absolute; inset: 0; width: 100%; height: 100% }
+.box > svg { position: absolute; inset: 0; width: 100%; height: 100% }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--muted) }
+.legend span { display: inline-flex; align-items: center; gap: 6px }
+.key { width: 22px; height: 3px; display: inline-block }
+.note { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 14px; font-size: 14px }
+svg text { font-family: var(--body) }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:10px">
+    <h1>第 3 步图解（方向）：怎么把每张照片转正</h1>
+    <p>用 1 月 9 日晚上拍的 5 张照片说明。每张照片里，那几个小光点都排在一条穿过木星的直线上。
+      目标是把每张照片转一转，让这条线变成水平，而且<b>天上的同一头在每张照片里都朝右</b>。</p>
+    <div class="legend">
+      <span><span class="key" style="background:var(--line)"></span>光点连成的线</span>
+      <span><span class="key" style="background:var(--moon)"></span>最外面那颗光点（方便你跟踪它）</span>
+      <span><span class="key" style="background:var(--down)"></span>手机记下的“地面”方向</span>
+      <span><span class="key" style="background:var(--pred)"></span>按时间预测的“右端”方向</span>
+    </div>
+  </header>
+
+  <section>
+    <h2><span class="num">1</span>原始照片：一晚上，线在转</h2>
+    <p>白色箭头是手机重力传感器记下的“地面”方向：5 张照片里它都朝下，说明手机一直差不多竖着拿。
+      可是绿色的线却在转：先是斜的，然后几乎竖直，之后又斜向另一边。转的不是手机，是天空：
+      木星从东边升起、经过南方、往西落下，天空相对地面也跟着转。</p>
+    <div class="row" id="r1"></div>
+  </section>
+
+  <section>
+    <h2><span class="num">2</span>把线转平：有两种转法</h2>
+    <p>线的角度很好量：找一条穿过木星、离所有光点最近的直线就行。把照片转这个角度，线就平了。
+      但转 180° 线也一样是平的，只是左右颠倒。下面是 21:30 那张的两种转法，最外面那颗（蓝圈）一个在左、一个在右。
+      <b>单看这一张照片，分不出哪种是对的。</b></p>
+    <div class="row2" id="r2"></div>
+  </section>
+
+  <section>
+    <h2><span class="num">3</span>分清两头：天空每晚都一样地转</h2>
+    <p>12 月和 1 月所有晚上，线相对“地面”的倾斜都按同一个规律变（第 1 部分看到的那种转法每晚都重复）。
+      所以只要知道照片是几点拍的，就能预测这一刻线大概朝哪个方向，<b>连哪一头朝哪边都能预测</b>，就是橙色箭头。
+      橙色箭头指向绿线的哪一头，哪一头就是“右端”。</p>
+    <div class="row" id="r3"></div>
+    <div class="note">这个规律是用全部 58 张照片一起找出来的（第 3 步的那条曲线）。检验：同一晚相隔不久的两张照片，
+      对齐光点图案也能直接看出两头怎么对应。这样的照片有 36 对，和橙色箭头的判断<b>全部一致</b>。</div>
+  </section>
+
+  <section>
+    <h2><span class="num">4</span>结果：转正，右端朝右</h2>
+    <p>按第 3 部分定好的右端把每张照片转正。现在 5 张照片里，最外面那颗（蓝圈）都在左边同样的位置附近，
+      其他光点也排得整整齐齐，可以一张张比较它们怎么移动了。全部 58 张照片都是这样处理的。</p>
+    <div style="display:flex;flex-direction:column;gap:8px" id="r4"></div>
+  </section>
+</div>
+
+<script>
+const IDS = ["2024-01-09T1715", "2024-01-09T1925", "2024-01-09T2130", "2024-01-09T2331", "2024-01-10T0033"];
+const K = 720 / 56;                       // pixels per Rj in the 720 px source cut-outs (+-28 Rj)
+const rad = (d) => d * Math.PI / 180;
+const tlabel = (iso) => iso.slice(11, 16);
+// screen position (y down) of a point given in the photo's own y-up angle frame
+const P = (vx, vy) => [360 + K * vx, 360 - K * vy];
+
+function overlay(p, opts) {
+  let s = "";
+  const A = rad(p.A), F = rad(p.final);
+  if (opts.line) {
+    const [x1, y1] = P(-26 * Math.cos(A), -26 * Math.sin(A)), [x2, y2] = P(26 * Math.cos(A), 26 * Math.sin(A));
+    s += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="stroke:var(--line);stroke-width:4;stroke-dasharray:14 10;opacity:.9"/>`;
+  }
+  for (const d of p.dots) {                // dots: X along the +X end, Y across, in the final frame
+    if (d.body !== "IV") continue;
+    const vx = d.X * Math.cos(F) - d.Y * Math.sin(F), vy = d.X * Math.sin(F) + d.Y * Math.cos(F);
+    const [x, y] = P(vx, vy);
+    s += `<circle cx="${x}" cy="${y}" r="26" style="fill:none;stroke:var(--moon);stroke-width:6"/>`;
+  }
+  if (opts.pred) {
+    const B = rad(p.B), [x2, y2] = P(21 * Math.cos(B), 21 * Math.sin(B));
+    s += `<line x1="360" y1="360" x2="${x2}" y2="${y2}" style="stroke:var(--pred);stroke-width:9" marker-end="url(#ah)"/>`;
+    const [ex, ey] = P(26 * Math.cos(F), 26 * Math.sin(F));
+    s += `<circle cx="${ex}" cy="${ey}" r="16" style="fill:var(--pred)"/><text x="${ex}" y="${ey - 26}" text-anchor="middle" style="fill:var(--pred);font-size:40px;font-weight:500">右端</text>`;
+  }
+  return `<svg viewBox="0 0 720 720"><defs><marker id="ah" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3.2" markerHeight="3.2" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--pred)"/></marker></defs>${s}</svg>`;
+}
+function down(p) {                         // white arrow: where the ground was, from the phone's gravity sensor
+  const D = rad(p.gravity_down), dx = Math.cos(D), dy = -Math.sin(D), x0 = 90, y0 = 70;
+  return `<svg viewBox="0 0 720 720"><defs><marker id="dh" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3" markerHeight="3" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:#fff"/></marker></defs>
+    <line x1="${x0}" y1="${y0}" x2="${x0 + 90 * dx}" y2="${y0 + 90 * dy}" style="stroke:#fff;stroke-width:8" marker-end="url(#dh)"/>
+    <text x="${x0 + 26}" y="${y0 + 135}" style="fill:#fff;font-size:38px">地面</text></svg>`;
+}
+function box(p, rot, inner, outer = "", wide = false) {
+  return `<div class="box${wide ? " wide" : ""}"><div class="inner" style="transform:translate(-50%,-50%) rotate(${rot}deg)">` +
+    `<img src="src/${p.id}.jpg" alt="">${inner}</div>${outer}</div>`;
+}
+
+fetch("data.json").then(r => r.json()).then(D => {
+  const ph = Object.fromEntries(D.photos.map(p => [p.id, p]));
+  const sel = IDS.map(id => ph[id]);
+  document.getElementById("r1").innerHTML = sel.map(p =>
+    `<figure>${box(p, 0, overlay(p, { line: true }), down(p))}<figcaption><b>${tlabel(p.time)}</b> 拍摄</figcaption></figure>`).join("");
+  const q = ph["2024-01-09T2130"];
+  document.getElementById("r2").innerHTML =
+    `<figure>${box(q, q.A, overlay(q, { line: true }))}<figcaption><b>转法甲</b>：蓝圈在右</figcaption></figure>` +
+    `<figure>${box(q, q.A + 180, overlay(q, { line: true }))}<figcaption><b>转法乙</b>：蓝圈在左</figcaption></figure>`;
+  document.getElementById("r3").innerHTML = sel.map(p =>
+    `<figure>${box(p, 0, overlay(p, { line: true, pred: true }))}<figcaption><b>${tlabel(p.time)}</b>：橙色箭头指向的那头 = 右端</figcaption></figure>`).join("");
+  document.getElementById("r4").innerHTML = sel.map(p =>
+    `<figure>${box(p, p.final, overlay(p, { line: true }), "", true)}<figcaption><b>${tlabel(p.time)}</b> 转正后（右端朝右）</figcaption></figure>`).join("");
+});
+</script>
+</body>
+</html>

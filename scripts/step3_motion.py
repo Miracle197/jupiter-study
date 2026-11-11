@@ -221,13 +221,16 @@ def assign(bodies, t, dots, view, scales=None):
                     pairs.append((dist[m], k, m))
         pairs.sort()
         taken_b, taken_d = set(), {}
-        for dist, k, m in pairs:
-            if dist > 3 or k in taken_b:
-                continue
-            if m in taken_d and abs(pred[taken_d[m][0]] - pred[k]) > 0.8:
-                continue
-            taken_b.add(k)
-            taken_d.setdefault(m, []).append(k)
+        # first every body takes a dot of its own; only a body left without one may then
+        # share a dot, when it is predicted right next to the body holding it (merged images)
+        for share in (False, True):
+            for dist, k, m in pairs:
+                if dist > 3 or k in taken_b:
+                    continue
+                if m in taken_d and (not share or abs(pred[taken_d[m][0]] - pred[k]) > 0.8):
+                    continue
+                taken_b.add(k)
+                taken_d.setdefault(m, []).append(k)
         for m, ks in taken_d.items():
             out[i][m] = ks
     return out
