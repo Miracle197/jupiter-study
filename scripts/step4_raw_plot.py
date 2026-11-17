@@ -62,6 +62,8 @@ def plot(rows, out):
 if __name__ == "__main__":
     rows = load()
     plot(rows, OUT / "raw_dots.png")
-    data = {"dots": [{"t": r[1].isoformat(timespec="minutes"), "X": r[2], "err": r[3]} for r in rows]}
-    (ROOT / "demo" / "step4_data.json").write_text(json.dumps(data, ensure_ascii=False))
+    p = ROOT / "demo" / "step4_data.json"
+    data = json.loads(p.read_text()) if p.exists() else {}          # keep what the other step 4 scripts wrote
+    data["dots"] = [{"t": r[1].isoformat(timespec="minutes"), "X": r[2], "err": r[3]} for r in rows]
+    p.write_text(json.dumps(data, ensure_ascii=False))
     print(len(rows), "dots,", len({r[0] for r in rows}), "photos ->", OUT / "raw_dots.png", file=sys.stderr)

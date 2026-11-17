@@ -162,7 +162,10 @@ details summary { cursor: pointer; color: var(--accent); font-size: 14px; font-w
     <div class="eyebrow">第 1 步 · 比例</div>
     <h2 id="s1-h">用木星当尺子</h2>
     <p>每张照片的放大倍数都不一样：同样大小的一块像素里，木星有时只占一小点，有时很大。所有距离都换算成“木星半径”（Rj），
-      先按木星在照片里的像素大小把每张照片缩放到一样大。过曝的木星取亮度下降最快的那一圈当边缘。
+      先按木星在照片里的像素大小把每张照片缩放到一样大。过曝的木星取亮度下降最快的地方当边缘：从木星中心向外打 360 条射线，
+      每条线上找一个边缘点，再用一个圆去贴这些点（被衍射芒刺、光斑带偏的个别射线不算数），圆心就是木星的中心。
+      还有一个修正：曝光越强，过曝的白色越往外漫，边缘也跟着变大。曝光有多强，同一张照片里就看得出来：卫星光点的总光量除以木星的面积，就是木星表面每个像素有多亮（手抖把光点拉长也不影响总光量）；
+      同一晚成对照片的光点图案告诉我们“卫星亮一点，木星边缘大多少”，用这个关系把每张照片拉回到同样的曝光。
       第 4 步找出卫星的轨道以后，“同一个天体每次都摆到同样远”又能反过来校准每张照片的比例，就是这里的比例修正。</p>
     <div class="figure">
       <details id="wall-box">
@@ -183,9 +186,9 @@ details summary { cursor: pointer; color: var(--accent); font-size: 14px; font-w
       </div>
     </div>
     <div class="figure">
-      <h3>为什么用木星边缘：三把尺子在每张照片上量偏了多少</h3>
+      <h3>为什么用木星边缘加曝光修正：几把尺子在每张照片上量偏了多少</h3>
       <div class="caption" id="ruler-sel"></div>
-      <svg class="chart" id="ruler" viewBox="0 0 960 470"></svg>
+      <svg class="chart" id="ruler" viewBox="0 0 960 600"></svg>
       <div class="legend" id="ruler-legend"></div>
       <div class="caption" id="ruler-cap"></div>
     </div>
@@ -313,7 +316,7 @@ details summary { cursor: pointer; color: var(--accent); font-size: 14px; font-w
     </div>
     <div class="figure">
       <h3>③ 先认最外面那颗：把空档“折叠”补上</h3>
-      <p>①的图里，离木星 16 Rj 以外的光点（|X| 在 15.4 和 17.0 之间有一道空隙）只有一颗天体走得到，先只看它。
+      <p>①的图里，离木星 16 Rj 以外的光点（|X| 在 <span id="fold-gap">15.7 和 17.3</span> 之间有一道空隙）只有一颗天体走得到，先只看它。
         问题是：照片几乎每晚同一时刻拍，中间还空了好几天，它摆到最远的那一刻很可能根本没拍到，点都落在峰的两侧。</p>
       <p><b>折叠</b>：先猜一个周期 P，把每个点放到“它在一圈里走到了哪儿”的位置上（拍摄时间 ÷ P 的小数部分）。不同圈的点会互相填补空档。
         猜对了，点连成一条完整的来回摆动，峰也显出来；猜错了，一团乱。另外两条证据一起算分：
@@ -428,7 +431,8 @@ let RDEV = null;
 const sgnPct = (v) => v == null ? "—" : `${v >= 0 ? "+" : "−"}${fmt(Math.abs(v), 0)}%`;
 function rulerSummary(i) {
   const r = RDEV, p = D.photos[i];
-  return `手机变焦 ${sgnPct(r.zoom[i])} · 白色亮斑 ${sgnPct(r.blob2[i])}` + (p.double ? `（当成一个圆 ${sgnPct(r.blob1[i])}）` : "") + ` · 木星边缘 ${sgnPct(r.edge[i])}`;
+  return `手机变焦 ${sgnPct(r.zoom[i])} · 白色亮斑 ${sgnPct(r.blob2[i])}` + (p.double ? `（当成一个圆 ${sgnPct(r.blob1[i])}）` : "") +
+    ` · 木星边缘 ${sgnPct(r.edge[i])} · 边缘加曝光修正 ${sgnPct(r.fixed[i])}`;
 }
 const MODES = [["native", "原始像素"], ["norm", "按木星统一（第 1 步）"], ["fixed", "加上比例修正（第 4 步）"]];
 let wallMode = "norm", s1cur = 0;
@@ -457,7 +461,7 @@ function s1detail(i) {
   s1cur = i;
   const p = D.photos[i], half = D.step1.jup_half_rj, u = 180 / half;          // pixels per step-1 Rj in the 360 px close-up
   $("jup-img").src = `jup/${p.id}.jpg`;
-  const rEdge = u * p.r_edge / p.rj_px, rBlob = u * p.r_blob / p.rj_px, rFix = u * p.scale_fix;
+  const rEdge = u * p.r_edge / p.rj_px, rBlob = u * p.r_blob / p.rj_px, rFix = u * p.scale_fix, rRuler = u * p.r_ruler / p.rj_px;
   let ghost = "";
   if (p.double) {                     // shaken photo: draw both disks; the centre is the real image when known
     const k = u / p.rj_px, [vx, vy] = p.double.shift_px;
@@ -467,10 +471,12 @@ function s1detail(i) {
   $("jup-over").innerHTML = ghost +
     `<circle cx="180" cy="180" r="${rBlob}" style="fill:none;stroke:var(--b2);stroke-width:1.6;stroke-dasharray:5 4"/>` +
     `<circle cx="180" cy="180" r="${rEdge}" style="fill:none;stroke:#7fb0ff;stroke-width:1.6"/>` +
+    (Math.abs(rRuler - rEdge) > 0.4 ? `<circle cx="180" cy="180" r="${rRuler}" style="fill:none;stroke:#7fb0ff;stroke-width:1.2;stroke-dasharray:1 3"/>` : "") +
     `<circle cx="180" cy="180" r="${rFix}" style="fill:none;stroke:var(--b3);stroke-width:1.6;stroke-dasharray:2 3"/>`;
   $("jup-legend").innerHTML =
     `<span><svg width="22" height="10"><line x1="0" x2="22" y1="5" y2="5" style="stroke:var(--b2);stroke-width:2;stroke-dasharray:5 4"/></svg>白色亮斑的边</span>` +
-    `<span><svg width="22" height="10"><line x1="0" x2="22" y1="5" y2="5" style="stroke:#7fb0ff;stroke-width:2"/></svg>亮度下降最快处（采用的木星边缘）</span>` +
+    `<span><svg width="22" height="10"><line x1="0" x2="22" y1="5" y2="5" style="stroke:#7fb0ff;stroke-width:2"/></svg>亮度下降最快处（360 条射线贴出的圆）</span>` +
+    `<span><svg width="22" height="10"><line x1="0" x2="22" y1="5" y2="5" style="stroke:#7fb0ff;stroke-width:2;stroke-dasharray:1 3"/></svg>拉回到同样曝光以后</span>` +
     `<span><svg width="22" height="10"><line x1="0" x2="22" y1="5" y2="5" style="stroke:var(--b3);stroke-width:2;stroke-dasharray:2 3"/></svg>加上第 4 步修正后的 1 Rj</span>` +
     (p.double ? `<span><svg width="22" height="10"><line x1="0" x2="22" y1="5" y2="5" style="stroke:#e06cff;stroke-width:2;stroke-dasharray:3 3"/></svg>手抖重影：两个木星圆盘</span>` : "");
   $("s1d-name").textContent = `${dateLabel(p.time)} · 第 ${i + 1} / ${D.photos.length} 张`;
@@ -478,14 +484,19 @@ function s1detail(i) {
     ["相机 · 等效焦距（含手机变焦）", `${p.camera || "无记录"} · ${p.zoom35 ? p.zoom35 + " mm" : "无记录"}`],
     ["木星白色亮斑半径", `${fmt(p.r_blob, 1)} px` + (p.double ? `<span class="note">这张手抖了，曝光时有两个木星错开 ${fmt(Math.hypot(...p.double.shift_px), 0)} px 叠在一起。` +
       `当成一个圆量是 ${fmt(p.double.blob_r_as_one_disk, 1)} px；拆成两个一样大的圆盘后，单个是 ${fmt(p.r_blob, 1)} px。` +
-      `中心取两个圆盘的中点（卫星光点也被同样抖成了两个，它们的位置也是按合在一起的中心量的，两者一致）。` +
-      `木星边缘只在和错开方向垂直的两侧测量。</span>` : "")],
-    ["木星边缘半径（亮度下降最快处）", `${fmt(p.r_edge, 1)} px`],
+      `木星边缘仍用一整圈射线贴圆来量：贴出的圆心落在两个圆盘的中点，卫星光点也被同样抖成了两个，它们的位置也是按合在一起的中心量的，两者一致。` +
+      `（试过只量和错开方向垂直的两侧，和同一晚的光点图案对得反而更差。）</span>` : "")],
+    ["木星边缘半径（亮度下降最快处）", `${fmt(p.r_edge, 1)} px ± ${fmt(p.edge_err, 1)} px` +
+      `<span class="note">360 个边缘点离贴出的圆平均差多少，换算成半径的测量误差（${fmt(100 * p.edge_err / p.r_edge, 1)}%）。` +
+      `比照片之间曝光不同带来的差别小得多。</span>`],
+    ["卫星光点亮度 ÷ 木星面积 → 曝光修正", p.dot_brightness == null ? "这张照片没有离木星够远的光点，不修正" :
+      `${fmt(p.dot_brightness / D.ruler_summary.exposure_rule.ref_brightness, 2)} 倍中位数 → 边缘 × ${fmt(p.exposure_factor, 3)} = ${fmt(p.r_ruler, 1)} px` +
+      `<span class="note">光点的总光量（去掉手机存图时的伽马、扣掉背景）除以木星面积。这个数每大 e 倍（约 2.7 倍），木星边缘大约大 ${fmt(100 * D.ruler_summary.exposure_rule.beta, 1)}% ± ${fmt(100 * D.ruler_summary.exposure_rule.beta_err, 1)}%（由同一晚 ${D.ruler_summary.exposure_rule.pairs_used} 对照片定出）。</span>`],
     ["第 1 步采用的 1 Rj", `${fmt(p.rj_px, 1)} px ± ${fmt(p.scale_err_pct, 1)}% 照片` +
       (p.linked > 1 ? `<span class="note">同一晚 ${p.linked} 张照片用光点图案互相校对后一起平均</span>` : `<span class="note">这一晚没有可以互相校对的照片，只用本张的木星边缘</span>`)],
     ["第 4 步比例修正", `× ${fmt(p.scale_fix, 3)}` + `<span class="note">同一个天体每次都摆到同样远，由此反推这张照片的比例；单张照片的修正幅度约 ±${fmt(100 * scaleScatter(), 1)}%</span>`],
     ["修正后的 1 Rj", `${fmt(p.rj_px * p.scale_fix, 1)} px`],
-    ["三把尺子在这张照片上偏了多少", (RDEV ? rulerSummary(i) : "—") + `<span class="note">和下面的误差图是同一组数：0 是所有照片的中位数</span>`],
+    ["几把尺子在这张照片上偏了多少", (RDEV ? rulerSummary(i) : "—") + `<span class="note">和下面的误差图是同一组数：0 是所有照片的中位数</span>`],
   ];
   $("s1d-kv").innerHTML = kv.map(([k, v]) => `<div><small>${k}</small><span>${v}</span></div>`).join("");
   document.querySelectorAll("#wall .tile").forEach(t => t.setAttribute("aria-pressed", String(+t.dataset.i === i)));
@@ -497,8 +508,8 @@ function s1detail(i) {
 // to the same distance). Each ruler's reading is compared with it; the median is taken as 0, so only
 // how much a ruler wanders from photo to photo shows, not one common offset.
 function ruler() {
-  const W = 960, H = 470, m = { l: 132, r: 16, t: 10, b: 34 }, gap = 16;
-  const ph = D.photos, n = ph.length, rowH = (H - m.t - m.b - 2 * gap) / 3;
+  const W = 960, H = 600, m = { l: 132, r: 16, t: 10, b: 34 }, gap = 16;
+  const ph = D.photos, n = ph.length, NR = 4, rowH = (H - m.t - m.b - (NR - 1) * gap) / NR;
   const truth = ph.map(p => p.rj_px * p.scale_fix);
   // ratio of a ruler's reading to the reference, photo by photo; 0 % = the median photo
   const ratio = (vals) => vals.map((v, i) => v == null ? null : v / truth[i]);
@@ -511,13 +522,15 @@ function ruler() {
   const q2 = ratio(ph.map(p => p.r_blob)), m2 = median(q2);
   const blob2 = pct(q2, m2), blob1 = pct(ratio(one), m2);
   const edge = dev(ph.map(p => p.r_edge));
-  RDEV = { zoom, blob1, blob2, edge };
+  const fixed = dev(ph.map(p => p.r_ruler));
+  RDEV = { zoom, blob1, blob2, edge, fixed };
   const rms = (a, sel) => { const v = a.filter((x, i) => x != null && sel(i)); return Math.sqrt(v.reduce((s, x) => s + x * x, 0) / v.length); };
   const isD = (i) => !!ph[i].double;
   const rows = [
     ["手机变焦（EXIF）", zoom, null],
     ["白色亮斑", blob2, blob1],
-    ["木星边缘（采用）", edge, null],
+    ["木星边缘", edge, null],
+    ["边缘+曝光（采用）", fixed, null],
   ];
   const yr = [-40, 70], x = lin(-0.5, n - 0.5, m.l, W - m.r), colW = (W - m.l - m.r) / n;
   let s = `<rect x="${x(s1cur) - colW / 2}" y="${m.t - 4}" width="${colW}" height="${H - m.t - m.b + 8}" style="fill:var(--jupiter);opacity:0.18"/>`;
@@ -551,7 +564,8 @@ function ruler() {
   $("ruler-cap").textContent = `纵轴：这把尺子在这张照片上把木星量大（+）或量小（−）了百分之几。标准答案是第 4 步修正后的比例（同一个天体每次都摆到同样远）；` +
     `过曝让所有照片的木星都大了同一个比例，这个共同的偏差扣掉了：所有照片的中位数记为 0，只看照片之间的差别。阴影是 ±10%。` +
     `手抖时两个木星错开叠在一起，白色亮斑被拉长，当成一个圆量会明显偏大；拆成两个一样大的圆盘以后小了很多。手机变焦不受手抖影响，但它不反映目镜和对焦的变化。` +
-    `木星边缘在没有重影的照片上最稳，所以采用它。偏得最高的那个点是 12 月 17 日（另一部手机拍的，光晕更大）。`;
+    `木星边缘比手机变焦和白色亮斑都稳；再按卫星亮度拉回到同样的曝光，照片之间的差别又小了一截，所以采用最后一行。` +
+    `偏得最高的那个点是 12 月 17 日（另一部手机拍的，光晕更大）；最低的是 12 月 26 日（曝光最短的一张，过曝最轻，木星看起来最小）。`;
 }
 
 /* ---------- step 2: turning sky ---------- */
@@ -929,6 +943,7 @@ function tracks4() {
 let foldP = null;
 function fold4() {
   const F = R4.fold, b = F.best, W = 560, H = 330, m = { l: 46, r: 12, t: 14, b: 40 };
+  if (F.gap_rj) $("fold-gap").textContent = `${fmt(F.gap_rj[0], 1)} 和 ${fmt(F.gap_rj[1], 1)}`;
   const trials = [[b.period_d, "最好的周期"], ...F.rivals.slice(1, 4).map(r => [r.period_d, "对手"]), [b.period_d * 1.15, "随便猜"], [b.period_d * 0.8, "随便猜"]];
   if (foldP == null) foldP = trials[trials.length - 1][0];
   $("fold-p").innerHTML = trials.map(([P, lab]) => `<button type="button" data-p="${P}" class="${Math.abs(P - foldP) < 1e-6 ? "on" : ""}">P = ${fmt(P, P < 2 ? 3 : 2)} 天（${lab}）</button>`).join("");

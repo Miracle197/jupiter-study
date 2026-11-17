@@ -108,6 +108,9 @@ def main():
             "src": src_box(det[s], float(sc["rj_px"])),
             "w": r["w"], "h": r["h"],
             "r_edge": round(det[s]["jupiter"]["r_edge"], 1), "r_blob": round(det[s]["jupiter"]["r_sat"], 1),
+            "edge_err": round(det[s]["jupiter"]["r_edge_err"], 2), "r_ruler": round(det[s]["jupiter"]["r_ruler"], 1),
+            "exposure_factor": round(det[s]["jupiter"]["exposure_factor"], 4),
+            "dot_brightness": None if det[s]["dot_brightness"] is None else round(det[s]["dot_brightness"], 4),
             "double": det[s]["jupiter"].get("double"),
             "native_window": round(NATIVE_WINDOW * min(r["w"], r["h"]) / 3024, 1),
             "pdots": [{"x": round(c["x"], 1), "y": round(c["y"], 1), "found_by": c.get("found_by", "detector")}
@@ -115,7 +118,7 @@ def main():
         })
         make_images(r, det[s], float(sc["rj_px"]), float(o["final_plusX_deg"]))
 
-    ruler = [{"dots": float(p["ratio_dots"]), "edge": float(p["ratio_jupiter"]),
+    ruler = [{"dots": float(p["ratio_dots"]), "edge": float(p["ratio_jupiter"]), "fixed": float(p["ratio_jupiter_fixed"]),
               "blob": float(p["ratio_jupiter_blob"]), "zoom": num(p["ratio_zoom"]), "a": p["a"], "b": p["b"]}
              for p in rows(OUT / "step1" / "pairs.csv")]
 

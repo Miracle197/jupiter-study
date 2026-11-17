@@ -32,7 +32,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "output" / "step4"
 T_REF = datetime(2023, 12, 3)
-LIMIT = 16.0                  # Rj: the gap in |X| between 15.4 and 17.0; beyond it, only one body
+LIMIT = 16.0                  # Rj: falls in a gap in |X| (see gap_around); beyond it, only one body
 F_MIN, F_MAX, F_STEP = 0.02, 2.0, 0.0002   # cycles per day
 EDGE_MARGIN_RJ = 1.0
 
@@ -123,6 +123,13 @@ def _view():
     return out
 
 
+def gap_around(limit=LIMIT):
+    """The nearest dot distances |X| below and above the limit: the empty stretch the limit sits in."""
+    ax = [abs(float(r["X_rj"])) for r in csv.DictReader(open(ROOT / "output/step2/positions.csv"))
+          if r["strong"] == "True" and r["in_band"] == "True"]
+    return [round(max(a for a in ax if a <= limit), 2), round(min(a for a in ax if a > limit), 2)]
+
+
 def load(limit=LIMIT):
     view = _view()
     outer, has_outer = [], {"-": set(), "+": set()}
@@ -170,7 +177,7 @@ def main():
     for r in res["rivals"][1:]:
         print(f"   rival P = {r['period_d']:.3f} d  score {r['score']:.1f} (empty {r['chi_empty']:.1f})", file=sys.stderr)
     print(f"without the empty photos: P = {no_empty['period_d']:.3f} d, score {no_empty['score']:.1f}", file=sys.stderr)
-    out = {"limit_rj": LIMIT, "dots": outer, "empty": empty, "speeds": speeds, "best": b,
+    out = {"limit_rj": LIMIT, "gap_rj": gap_around(), "dots": outer, "empty": empty, "speeds": speeds, "best": b,
            "rivals": res["rivals"], "without_empty": no_empty,
            "curve": {"period_d": [1 / f for f in res["curve"]["freq"][::5]], "score": res["curve"]["score"][::5]}}
     OUT.mkdir(parents=True, exist_ok=True)

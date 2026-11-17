@@ -30,10 +30,10 @@ better than 30 m).
 
 | Body | Period (days) | Photo error | Site error | Reach (Rj) |
 |---|---|---|---|---|
-| I | 1.7687 | ± 0.0005 | ± 2e-12 | 4.96 ± 0.07 |
-| II | 3.5513 | ± 0.0012 | ± 3e-11 | 7.92 ± 0.11 |
-| III | 7.1511 | ± 0.0032 | ± 1e-10 | 12.61 ± 0.16 |
-| IV | 16.673 | ± 0.013 | ± 5e-10 | 22.15 ± 0.27 |
+| I | 1.7688 | ± 0.0005 | ± 3e-12 | 4.91 ± 0.07 |
+| II | 3.5514 | ± 0.0012 | ± 2e-11 | 7.84 ± 0.09 |
+| III | 7.1512 | ± 0.0032 | ± 1e-10 | 12.46 ± 0.12 |
+| IV | 16.674 | ± 0.013 | ± 6e-10 | 21.91 ± 0.20 |
 
 ## Checking the dots
 
@@ -53,8 +53,21 @@ radius in one photo and 130 px in another.
 **The ruler is Jupiter itself** (Galileo also measured in Jupiter diameters).
 Every distance is in Jupiter radii (Rj). Jupiter and the dots are in the same
 photo, so whatever changes the magnification changes both together. Jupiter is
-overexposed and the white blob grows with exposure, so its edge is the radius
-where the ring-averaged brightness falls fastest.
+overexposed and the white blob grows with exposure, so its edge is where the
+brightness falls fastest: 360 rays go out from Jupiter's centre, each gives one
+edge point, and a circle is fitted to the 360 points (single rays pulled out by
+a diffraction spike or a flare count for little). The circle's centre is
+Jupiter's centre; the spread of the points gives each photo's measuring error
+(median ±0.4%).
+
+**Exposure fix**: a harder exposure spreads the overexposed white further, so
+even the steepest drop moves out. How hard a photo was exposed shows in the
+same photo: the dots' total light (gamma undone, background removed) divided by
+Jupiter's area in the photo is proportional to how bright each pixel of
+Jupiter's disk is, and a shake that smears a dot does not change its total
+light. The same-night dot patterns show that the edge grows by **6.3% ± 3.0%**
+each time this brightness grows e-fold (about 2.7x). Every edge is brought back
+to the median exposure with that rule.
 
 **Checking the ruler with no outside data**: photos from the same night, taken
 within 90 minutes, show almost the same pattern of dots. Lining up the two
@@ -62,27 +75,40 @@ patterns gives the true scale ratio of the two photos. Over 19 such pairs:
 
 | Ruler | Difference from the dot patterns (rms) |
 |---|---|
-| Jupiter edge (steepest drop, used) | **7.6%** |
+| Jupiter edge + exposure fix (used) | **7.0%** |
+| Jupiter edge (circle through 360 rays) | 8.0% |
 | Phone zoom (EXIF) | 8.9% |
-| Jupiter white blob | 9.2% |
+| Jupiter white blob | 12.5% |
+
+(The earlier edge, the steepest drop of ring-averaged brightness, scored 9.0%
+on the same test.)
 
 ![ruler check](output/step1/ruler_check.png)
 
 **Findings**:
 - The phone zoom is not reliable: on Jan 9 the zoom stayed at 5x all night,
   yet the real scale changed by about ±10% between neighbouring photos.
-- The Jupiter edge alone is good to about ±5.2% per photo; the 27 photos linked
-  through their dots on the same night are averaged, bringing them to 2.2–5.2%.
+- The Jupiter edge with the exposure fix is good to about ±4.8% per photo
+  (before: ±6.2%); the 27 photos linked through their dots on the same night
+  are averaged, bringing them to 2.1–3.7%.
 - Step 3 measures the real single-photo scale error the other way round (each
-  body always swings to the same distance): about ±5.9%, in line with this.
-  The Dec 17 photo (the only one from an iPhone 14 Pro) was off the most: a
-  bigger glare made Jupiter about 40% too big; step 3 corrects it.
+  body always swings to the same distance): about ±4.3% (before: ±6.1%), in
+  line with this. The Dec 17 photo (the only one from an iPhone 14 Pro) was off
+  the most: a bigger glare made Jupiter about 50% too big; step 3 corrects it.
+  The Dec 26 photo had the shortest exposure, the least overexposure, and the
+  smallest-looking Jupiter.
+- Tried and not used: measuring only at right angles to the shake (matched the
+  dot patterns worse), and re-centring the dots at full resolution (no gain).
+- Compared with before, the common "1 Rj" is about 3% bigger in pixels (the ray
+  edge sits slightly farther out), so every distance in Rj is about 3% smaller.
+  This is a choice of unit and does not touch the periods.
 - Site error: the scale is (dot offset angle) / (Jupiter radius angle), both
   seen from the same spot at the same moment; moving the camera 30 m changes
   the ratio by less than 5e-10.
 
-**Not known**: because Jupiter is overexposed, the steepest-drop edge may be
-larger than the real edge by one fixed factor, the same for all photos. It
+**Not known**: the exposure fix brings every photo to the same exposure, but at
+that exposure the steepest-drop edge may still be larger than the real edge by
+one fixed factor, the same for all photos. It
 does not affect comparing photos or the periods, but it cannot be pinned down
 without outside data.
 
@@ -122,8 +148,8 @@ the gravity axes are checked too (flipping them makes the fit clearly worse).
 a far dot fixes the angle much better than a near one, so dots are weighted by
 distance. B picks the +X end. Median error ±0.8°.
 
-**A band, not a line**: once turned, every confirmed dot lies within ±2.6 Rj of
-the line (rms 0.43 Rj), and the outer bodies stray farther (step 3): the orbits
+**A band, not a line**: once turned, every confirmed dot lies within ±2.3 Rj of
+the line (rms 0.42 Rj), and the outer bodies stray farther (step 3): the orbits
 are not seen exactly edge-on.
 
 **Which end is +X**: +X is the same end of the sky in every photo. Whether it
@@ -140,8 +166,8 @@ upside down, which the photos do not show.
 ## Step 3: how they move
 
 **Counting bodies**: something swinging back and forth spends most of its time
-near its farthest point, so distances pile up. They pile up near 4.4, 7.5,
-11.6 and 19.1 Rj: **four bodies**.
+near its farthest point, so distances pile up. They pile up near 4.4, 7.3,
+12.0 and 19.5 Rj: **four bodies**.
 
 ![pile-ups](output/step3/piles.png)
 
@@ -158,7 +184,7 @@ percentile of all periods tried, plus 3).
 then every swing X = A sin(2π t / P + φ) is fitted together with one scale
 correction per photo (first searched from 0.5 to 1.6 for the one that lines
 the dots up best with the predictions). **All** 205 dots go to a body; the
-median residual is 0.08 Rj.
+median residual is 0.05 Rj.
 
 ![motion](output/step3/motion.png)
 
@@ -167,11 +193,11 @@ median residual is 0.08 Rj.
 **Checks**:
 - **Aliases**: most photos were taken at about the same hour, so P and "one
   turn more or less per day" look alike. Each body lists its closest rival
-  periods (`bodies.json`); e.g. I at 1.769 d scores 45, its rival 2.301 d only
-  23.5. The nights with many photos (Jan 8 and 9) tell them apart.
+  periods (`bodies.json`); e.g. I at 1.769 d scores 46, its rival 2.301 d only
+  24. The nights with many photos (Jan 8 and 9) tell them apart.
 - **Circles, not lines**: as they swing, the dots also drift across the line in
-  step with cos(phase) (I −0.26 ± 0.04, II −0.38 ± 0.03, III −0.54 ± 0.05,
-  IV −0.66 ± 0.07 Rj), in proportion to their reach: they go round circles seen
+  step with cos(phase) (I −0.25 ± 0.04, II −0.39 ± 0.03, III −0.55 ± 0.05,
+  IV −0.64 ± 0.07 Rj), in proportion to their reach: they go round circles seen
   slightly from the side, all four the same way round.
 
 **Errors**:

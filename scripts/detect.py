@@ -143,3 +143,87 @@ def split_double(g, cx, cy, r_sat, sat_level=250):
         return None
     return {"c1": (float(c1[0] + x0), float(c1[1] + y0)), "c2": (float(c1[0] + v[0] + x0), float(c1[1] + v[1] + y0)),
             "r": float(r), "iou1": float(iou1), "iou2": float(iou2)}
+
+
+# ---------- Jupiter's edge, ray by ray ----------
+def limb_points(g, cx, cy, r0, n_rays=360, step=0.25, smooth_az=2):
+    """One edge point on each of n_rays rays from (cx, cy): where the brightness falls fastest.
+
+    Each ray is smoothed along its length by ~4% of the radius (blur and JPEG noise) and,
+    lightly, against its neighbours. Returns ray angles, edge radii, and the edge points.
+    """
+    gs = ndi.gaussian_filter(g, 1.0)
+    th = np.arange(n_rays) * 2 * np.pi / n_rays
+    r = np.arange(0, 2.6 * r0, step)
+    X = cx + r[None, :] * np.cos(th)[:, None]
+    Y = cy + r[None, :] * np.sin(th)[:, None]
+    P = ndi.map_coordinates(gs, [Y, X], order=1, mode="nearest")
+    P = ndi.uniform_filter1d(P, 2 * smooth_az + 1, axis=0, mode="wrap")
+    grad = np.gradient(ndi.gaussian_filter1d(P, max(2.0, 0.04 * r0) / step, axis=1), r, axis=1)
+    sel = (r > 0.5 * r0) & (r < 2.0 * r0)
+    rr = r[sel][np.argmin(grad[:, sel], axis=1)]
+    return th, rr, cx + rr * np.cos(th), cy + rr * np.sin(th)
+
+
+def fit_circle(x, y, r_guess):
+    """Robust circle through edge points (diffraction spikes and flares pull single rays outward)."""
+    from scipy.optimize import least_squares
+    c0 = [np.median(x), np.median(y), r_guess]
+    sc = max(0.02 * r_guess, 0.75)
+    sol = least_squares(lambda p: (np.hypot(x - p[0], y - p[1]) - p[2]) / sc, c0, loss="soft_l1")
+    res = np.hypot(x - sol.x[0], y - sol.x[1]) - sol.x[2]
+    return float(sol.x[0]), float(sol.x[1]), float(sol.x[2]), res
+
+
+def jupiter_edge(g, cx, cy, r0, across=None, half_width_deg=40, iters=3):
+    """Centre and radius of Jupiter's edge from 360 rays.
+
+    across: for a shaken photo, the shift direction (dx, dy); then (cx, cy) is kept and the radius
+    is the median edge distance in the two sectors at right angles to the shift, where the disk
+    is not stretched. Returns (cx, cy, R, err_R) with err_R from the spread of the edge points.
+    """
+    if across is None:
+        for _ in range(iters):
+            th, rr, x, y = limb_points(g, cx, cy, r0)
+            cx, cy, r0, res = fit_circle(x, y, r0)
+        mad = 1.4826 * np.median(np.abs(res))
+        n_ind = len(res) / 5                                   # neighbouring rays share pixels
+        return cx, cy, r0, float(mad / np.sqrt(n_ind))
+    for _ in range(iters):
+        th, rr, x, y = limb_points(g, cx, cy, r0)
+        a = np.arctan2(across[1], across[0])
+        keep = np.abs(np.cos(th - a)) < np.sin(np.radians(half_width_deg))
+        r0 = float(np.median(rr[keep]))
+    d = rr[keep] - r0
+    mad = 1.4826 * np.median(np.abs(d))
+    return cx, cy, r0, float(mad / np.sqrt(keep.sum() / 5))
+
+
+# ---------- how bright the dots are: how hard the photo was exposed ----------
+def dot_brightness(g, dots, jx, jy, R, min_dist=3.0):
+    """How hard the photo was exposed, read from the dots: their light divided by Jupiter's area.
+
+    A dot's total light (summed over its image, background removed) does not change when the
+    phone shakes and smears it. Divided by Jupiter's area in pixels (R^2), it is proportional to
+    how bright each pixel of Jupiter's disk is -- the thing that decides how far the overexposed
+    white spreads. The phone stores brightness with a gamma of about 2.2; undoing it makes the
+    numbers proportional to the light. Median over the dots well clear of Jupiter's glare.
+    """
+    vals = []
+    for d in dots:
+        if np.hypot(d["x"] - jx, d["y"] - jy) < min_dist * R:
+            continue
+        B = int(max(8, 0.5 * R))
+        xi, yi = int(round(d["x"])), int(round(d["y"]))
+        if yi - 2 * B < 0 or xi - 2 * B < 0 or yi + 2 * B >= g.shape[0] or xi + 2 * B >= g.shape[1]:
+            continue
+        p = ndi.gaussian_filter(g[yi - 2 * B:yi + 2 * B + 1, xi - 2 * B:xi + 2 * B + 1], 1.0)
+        yy, xx = np.mgrid[-2 * B:2 * B + 1, -2 * B:2 * B + 1]
+        rr = np.hypot(xx, yy)
+        lin = (p / 255) ** 2.2
+        bg = float(np.median(lin[(rr > 1.3 * B) & (rr < 2 * B)]))
+        vals.append(float(((lin - bg) * (rr < 0.8 * B)).sum()) / R ** 2)
+    if not vals and min_dist > 2:
+        return dot_brightness(g, dots, jx, jy, R, min_dist=2.0)
+    vals = [v for v in vals if v > 0]
+    return float(np.median(vals)) if vals else None

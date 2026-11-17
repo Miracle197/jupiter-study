@@ -1,5 +1,18 @@
 {
- "sig_disk_single_photo": 0.062308885915309135,
+ "sig_disk_single_photo": 0.04804,
  "site_error_rel": 4.736842105263158e-10,
- "median_err_photo": 0.062308885915309135
+ "median_err_photo": 0.04804,
+ "exposure_rule": {
+  "beta": 0.06301,
+  "beta_err": 0.03019,
+  "pairs_used": 19,
+  "ref_brightness": 0.03611
+ },
+ "pairs_rms": {
+  "zoom": 0.0891,
+  "white_blob": 0.1252,
+  "edge": 0.0797,
+  "edge_exposure_fixed": 0.07
+ },
+ "median_edge_err_rel": 0.00442
 }

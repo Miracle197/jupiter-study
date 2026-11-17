@@ -10,8 +10,18 @@ Jupiter radii (Rj). Jupiter and the dots around it sit in the same photo, so
 whatever changed the magnification changed both by the same factor.
 
 How the radius is measured: Jupiter is overexposed. Its edge is taken where the
-ring-averaged brightness falls fastest (the blurred limb), not the edge of the
-white blob, which grows with exposure.
+brightness falls fastest (the blurred limb), not the edge of the white blob,
+which grows with exposure. This is found on 360 rays from the centre, one edge
+point per ray, and a circle is fitted to the points; rays hit by a diffraction
+spike or a flare stick out and are given little weight. The fit also gives the
+centre, and the spread of the points gives each photo's measuring error.
+
+Exposure: a harder exposure spreads the overexposed white further, so even the
+edge grows a little. How hard a photo was exposed shows in the same photo: the
+dots' light divided by Jupiter's area tells how bright each pixel of Jupiter's
+disk is. Matching dot patterns of photos taken the same night tells how much
+the edge grows per step in that brightness; every edge is brought back to the
+median exposure with that rule.
 
 Checking the ruler without any outside data: photos taken on the same night,
 within 90 minutes, show the same pattern of dots, which barely moves in that
@@ -27,6 +37,7 @@ Output (output/step1/):
   detections.json     Jupiter and dots for each photo (pixels)
   pairs.csv           same-night pattern matches
   scale.csv           1 Rj in pixels for each photo, with both error bars
+  summary.json        ruler errors and the exposure rule
   ruler_check.png     dots ratio vs. Jupiter ratio vs. phone zoom ratio
   same_scale.jpg      all 58 photos resized to the same scale
 """
@@ -40,7 +51,7 @@ from scipy import ndimage as ndi
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent))
 from common import (OUT, RAW, ImageOps, gray, local_time, night_of, photo_list, relative_magnification,
                     save_json, usable, visual_check)
-from detect import find_dots, find_jupiter, radial_profile, split_double
+from detect import dot_brightness, find_dots, find_jupiter, jupiter_edge, radial_profile, split_double
 
 OUT1 = OUT / "step1"
 MIN_SNR = 40          # dots used for matching: clearly real, not glare ripples
@@ -83,22 +94,54 @@ def measure_all(recs):
         jx, jy, r_sat = find_jupiter(g)
         dots, noise = find_dots(g, jx, jy, r_sat)
         dots = apply_visual_check(dots, None if vc is None else vc.get(rec["stem"], []), r_sat)
-        jup = {"x": jx, "y": jy, "r_sat": r_sat, "r_edge": disk_edge(g, jx, jy, r_sat), "double": None}
+        r_ring = disk_edge(g, jx, jy, r_sat)
+        cx, cy, r_edge, err_edge = jupiter_edge(g, jx, jy, r_ring)
+        jup = {"x": cx, "y": cy, "x_core": jx, "y_core": jy, "r_sat": r_sat, "r_edge": r_edge, "r_edge_err": err_edge,
+               "r_ring": r_ring, "double": None}
         sd = split_double(g, jx, jy, r_sat)
         if sd:
-            # the phone moved during the exposure: two equal Jupiters overlap. Measure one disk:
-            # its radius from the two-disk fit, its edge only at right angles to the shift.
-            # Its centre is the middle of the two disks: the dots are shaken the same way and each
-            # dot's position is the centre of its own shaken light, so both are measured alike.
+            # the phone moved during the exposure: two equal Jupiters overlap (the white blob is
+            # stretched). Recorded for the pictures. The edge circle above already uses every ray;
+            # on these photos it matched the dot patterns better than measuring only at right
+            # angles to the shift, and its centre is the middle of the two disks, where the dots'
+            # own shaken light is centred too.
             v = (sd["c2"][0] - sd["c1"][0], sd["c2"][1] - sd["c1"][1])
-            mid = ((sd["c1"][0] + sd["c2"][0]) / 2, (sd["c1"][1] + sd["c2"][1]) / 2)
-            jup.update(x=mid[0], y=mid[1], r_sat=sd["r"], r_edge=disk_edge(g, mid[0], mid[1], sd["r"], across=v),
+            jup.update(r_sat=sd["r"],
                        double={"shift_px": [round(v[0], 1), round(v[1], 1)],
                                "blob_r_as_one_disk": round(r_sat, 1), "fit_overlap": [round(sd["iou1"], 3), round(sd["iou2"], 3)]})
-        det[rec["stem"]] = {"w": rec["w"], "h": rec["h"], "jupiter": jup, "noise": noise, "dots": dots}
-        print(f"  {rec['stem']:18s} Jupiter r_edge={jup['r_edge']:6.1f}px{'  (double image)' if jup['double'] else ''}  "
-              f"dots used={sum(usable(d, MIN_SNR) for d in dots)} of {len(dots)} found")
+        bright = dot_brightness(g, [d for d in dots if usable(d, MIN_SNR)], jup["x"], jup["y"], r_edge)
+        det[rec["stem"]] = {"w": rec["w"], "h": rec["h"], "jupiter": jup, "noise": noise, "dot_brightness": bright, "dots": dots}
+        print(f"  {rec['stem']:18s} Jupiter edge r={jup['r_edge']:6.1f} +- {err_edge:.1f} px{'  (double image)' if jup['double'] else ''}  "
+              f"dot brightness {bright if bright is None else round(bright, 3)}  dots used={sum(usable(d, MIN_SNR) for d in dots)} of {len(dots)} found")
     return det
+
+
+def exposure_rule(det, pairs):
+    """How much the edge grows with exposure, from the same-night pairs.
+
+    For a pair, the dots give the true scale ratio; the edges give another. What is left,
+    log(edge ratio) - log(dot ratio), should follow beta * (difference in log dot brightness).
+    Weighted least squares; the error from resampling the pairs.
+    """
+    use = [p for p in pairs if det[p["a"]]["dot_brightness"] and det[p["b"]]["dot_brightness"]]
+    D = np.array([np.log(det[p["a"]]["dot_brightness"] / det[p["b"]]["dot_brightness"]) for p in use])
+    t = np.array([np.log(p["ratio_jupiter"] / p["ratio_dots"]) for p in use])
+    w = 1 / (np.array([p["sig_log_dots"] for p in use]) ** 2 + 0.06 ** 2)
+    est = lambda i: float((w[i] * D[i] * t[i]).sum() / (w[i] * D[i] ** 2).sum())
+    beta = est(np.arange(len(use)))
+    rng = np.random.default_rng(0)
+    boot = [est(rng.integers(0, len(use), len(use))) for _ in range(2000)]
+    ref = float(np.median([d["dot_brightness"] for d in det.values() if d["dot_brightness"]]))
+    return {"beta": beta, "beta_err": float(np.std(boot)), "pairs_used": len(use), "ref_brightness": ref}
+
+
+def apply_exposure_rule(det, rule):
+    """Edge radius brought back to the median exposure (photos without a measurable dot keep theirs)."""
+    for d in det.values():
+        j, b = d["jupiter"], d["dot_brightness"]
+        f = float(np.exp(-rule["beta"] * np.log(b / rule["ref_brightness"]))) if b else 1.0
+        j["exposure_factor"] = f
+        j["r_ruler"] = j["r_edge"] * f
 
 
 # ---------- 2. same-night pattern matching ----------
@@ -172,6 +215,7 @@ def all_pairs(recs, det):
                 pairs.append({"night": night, "a": A["stem"], "b": B["stem"], "gap_min": round(gap),
                               "matched": m["n"], "ratio_dots": m["scale"], "sig_log_dots": m["sig_log"],
                               "ratio_jupiter": ja["r_edge"] / jb["r_edge"],
+                              "ratio_jupiter_fixed": ja.get("r_ruler", ja["r_edge"]) / jb.get("r_ruler", jb["r_edge"]),
                               "ratio_jupiter_blob": ja["r_sat"] / jb["r_sat"],
                               "ratio_zoom": ma / mb if ma and mb else None,
                               "rotation_deg": m["rot_deg"], "mirror": m["mirror"]})
@@ -182,12 +226,12 @@ def all_pairs(recs, det):
 def solve_scales(recs, det, pairs):
     """Least squares per night on u = log(Rj in px).
 
-    Each photo's own disk:     log r_edge_i      = u_i        +- sig_disk
+    Each photo's own disk:     log r_ruler_i     = u_i        +- sig_disk
     Each matched pair (i, j):  log ratio_dots_ij = u_i - u_j  +- sig_pair
     sig_disk comes from the data: the pair-to-pair scatter of
-    (log ratio_dots - log ratio_jupiter) = 2 sig_disk^2 + sig_pair^2.
+    (log ratio_dots - log ratio_ruler) = 2 sig_disk^2 + sig_pair^2.
     """
-    d = np.array([np.log(p["ratio_dots"] / p["ratio_jupiter"]) for p in pairs])
+    d = np.array([np.log(p["ratio_dots"] / p["ratio_jupiter_fixed"]) for p in pairs])
     sp = np.array([p["sig_log_dots"] for p in pairs])
     sig_disk = float(np.sqrt(max((np.mean(d ** 2) - np.mean(sp ** 2)) / 2, 0.01 ** 2)))
 
@@ -197,7 +241,7 @@ def solve_scales(recs, det, pairs):
     for r in recs:
         row = np.zeros(n)
         row[idx[r["stem"]]] = 1
-        rows.append(row); rhs.append(np.log(det[r["stem"]]["jupiter"]["r_edge"])); w.append(1 / sig_disk ** 2)
+        rows.append(row); rhs.append(np.log(det[r["stem"]]["jupiter"]["r_ruler"])); w.append(1 / sig_disk ** 2)
     for p in pairs:
         row = np.zeros(n)
         row[idx[p["a"]]], row[idx[p["b"]]] = 1, -1
@@ -252,7 +296,8 @@ def ruler_plot(pairs, sig_disk, path):
     dots = np.array([p["ratio_dots"] for p in pairs])
     fig, ax = plt.subplots(1, 2, figsize=(11, 4.6))
     lim = [0.3, 2.2]
-    for k, lab, c, m in [("ratio_jupiter", "Jupiter edge", "C0", "o"),
+    for k, lab, c, m in [("ratio_jupiter_fixed", "Jupiter edge, exposure fixed", "C2", "D"),
+                         ("ratio_jupiter", "Jupiter edge", "C0", "o"),
                          ("ratio_jupiter_blob", "Jupiter white blob", "C1", "s"),
                          ("ratio_zoom", "phone zoom (EXIF)", "C3", "^")]:
         v = np.array([p[k] if p[k] else np.nan for p in pairs])
@@ -318,6 +363,14 @@ def main():
 
     print("2. same-night pattern matching")
     pairs = all_pairs(recs, det)
+    rule = exposure_rule(det, pairs)
+    apply_exposure_rule(det, rule)
+    for p in pairs:
+        ja, jb = det[p["a"]]["jupiter"], det[p["b"]]["jupiter"]
+        p["ratio_jupiter_fixed"] = ja["r_ruler"] / jb["r_ruler"]
+    save_json(det, OUT1 / "detections.json")
+    print(f"  exposure rule: edge grows {100 * rule['beta']:.1f}% +- {100 * rule['beta_err']:.1f}% per e-fold of dot brightness "
+          f"({rule['pairs_used']} pairs)")
     with open(OUT1 / "pairs.csv", "w", newline="") as f:
         wr = csv.DictWriter(f, fieldnames=list(pairs[0]))
         wr.writeheader()
@@ -331,18 +384,26 @@ def main():
     with open(OUT1 / "scale.csv", "w", newline="") as f:
         wr = csv.writer(f)
         wr.writerow(["photo", "night", "local_time", "camera", "focal35_mm",
-                     "jupiter_blob_r_px", "jupiter_edge_r_px", "rj_px",
-                     "err_photo_pct", "err_site_pct", "photos_linked"])
+                     "jupiter_blob_r_px", "jupiter_edge_r_px", "edge_err_px", "dot_brightness", "exposure_factor",
+                     "rj_px", "err_photo_pct", "err_site_pct", "photos_linked"])
         for r in recs:
             s, j = scales[r["stem"]], det[r["stem"]]["jupiter"]
             wr.writerow([r["stem"], night_of(r), local_time(r).isoformat(timespec="minutes"), r["camera"] or "",
-                         r["focal35_mm"] or "", round(j["r_sat"], 1), round(j["r_edge"], 1), round(s["rj_px"], 2),
+                         r["focal35_mm"] or "", round(j["r_sat"], 1), round(j["r_edge"], 1), round(j["r_edge_err"], 2),
+                         round(det[r["stem"]]["dot_brightness"], 4) if det[r["stem"]]["dot_brightness"] else "",
+                         round(j["exposure_factor"], 4), round(s["rj_px"], 2),
                          round(100 * s["err_photo"], 1), f"{100 * site:.0e}", s["linked"]])
     e = np.array([100 * s["err_photo"] for s in scales.values()])
     print(f"  single-photo ruler error ±{100 * sig_disk:.1f}%;  final per photo: median ±{np.median(e):.1f}% "
           f"(range {e.min():.1f}-{e.max():.1f}%);  site error {100 * site:.0e}%")
-    save_json({"sig_disk_single_photo": sig_disk, "site_error_rel": site,
-               "median_err_photo": float(np.median(e) / 100)}, OUT1 / "summary.json")
+    pr = lambda k: float(np.sqrt(np.mean([np.log(p["ratio_dots"] / p[k]) ** 2 for p in pairs if p[k]])))
+    save_json({"sig_disk_single_photo": round(sig_disk, 5), "site_error_rel": site,
+               "median_err_photo": round(float(np.median(e) / 100), 5),
+               "exposure_rule": {k: (round(v, 5) if isinstance(v, float) else v) for k, v in rule.items()},
+               "pairs_rms": {"zoom": round(pr("ratio_zoom"), 4), "white_blob": round(pr("ratio_jupiter_blob"), 4),
+                             "edge": round(pr("ratio_jupiter"), 4), "edge_exposure_fixed": round(pr("ratio_jupiter_fixed"), 4)},
+               "median_edge_err_rel": round(float(np.median([d["jupiter"]["r_edge_err"] / d["jupiter"]["r_edge"] for d in det.values()])), 5)},
+              OUT1 / "summary.json")
 
     print("4. pictures")
     ruler_plot(pairs, sig_disk, OUT1 / "ruler_check.png")
