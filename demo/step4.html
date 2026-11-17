@@ -35,7 +35,6 @@ svg text { fill: var(--muted); font-size: 13px }
     <p>横轴是拍照时间，纵轴是光点沿那条线离木星中心的距离 X（单位：木星半径，第 1 步的尺子；+X 是第 3 步定下的同一头）。
       每个点是一张照片里的一个光点；误差棒是照片误差。还没有用第 4 步的比例修正。</p>
     <div class="figure">
-      <div class="btns" id="range"></div>
       <svg class="chart" id="raw" viewBox="0 0 960 420" role="img" aria-label="所有光点的位置随时间"></svg>
       <div class="caption" id="raw-cap"></div>
     </div>
@@ -43,21 +42,14 @@ svg text { fill: var(--muted); font-size: 13px }
 
   <section class="log">
     <b>更新记录</b><br>
-    2026-11-11：新建本页；① 原始光点图（无卫星区分）。
+    2026-11-11：新建本页；① 原始光点图（无卫星区分）；只保留全部时间段的一张图。
   </section>
 </div>
 
 <script>
 const $ = (id) => document.getElementById(id);
 const NS = "http://www.w3.org/2000/svg";
-const RANGES = [
-  ["全部", "2023-12-02T12:00", "2024-01-12T12:00"],
-  ["12 月 3–16 日", "2023-12-02T12:00", "2023-12-16T23:59"],
-  ["12 月 16–31 日", "2023-12-16T00:00", "2023-12-31T23:59"],
-  ["1 月 1–11 日", "2024-01-01T00:00", "2024-01-12T06:00"],
-  ["1 月 8 日夜", "2024-01-08T17:00", "2024-01-09T01:30"],
-  ["1 月 9 日夜", "2024-01-09T16:30", "2024-01-10T01:00"],
-];
+const RANGES = [["全部", "2023-12-02T12:00", "2024-01-12T12:00"]];
 const ms = (s) => new Date(s + ":00Z").getTime();   // local times, treated uniformly
 let D = null, cur = 0;
 
@@ -102,18 +94,11 @@ function draw() {
     el("line", { x1: x(t), x2: x(t), y1: y(p.X + p.err), y2: y(p.X - p.err), stroke: "#8891a0", "stroke-width": 1 }, svg);
     el("circle", { cx: x(t), cy: y(p.X), r: 3.6, fill: "var(--dot)" }, svg);
   }
-  $("raw-cap").textContent = `这个时间段里有 ${photos.size} 个拍照时刻、${n} 个光点。灰带：木星光晕（|X| < 2），那里看不到光点。`;
-  [...$("range").children].forEach((btn, i) => btn.classList.toggle("on", i === cur));
+  $("raw-cap").textContent = `共 ${photos.size} 个拍照时刻、${n} 个光点。灰带：木星光晕（|X| < 2），那里看不到光点。`;
 }
 
 fetch("step4_data.json", { cache: "no-store" }).then((r) => r.json()).then((d) => {
   D = d;
-  RANGES.forEach(([lab], i) => {
-    const btn = document.createElement("button");
-    btn.type = "button"; btn.textContent = lab;
-    btn.onclick = () => { cur = i; draw(); };
-    $("range").appendChild(btn);
-  });
   draw();
 });
 </script>

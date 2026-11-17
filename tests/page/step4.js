@@ -21,18 +21,12 @@ process.on("unhandledRejection", (e) => { console.log("ERROR:", e && e.stack); p
 eval(js);
 setTimeout(() => {
   let fail = 0;
-  const btns = els["range"].children;
-  if (btns.length !== 6) { console.log("expected 6 range buttons, got", btns.length); fail++; }
-  btns.forEach((b, i) => {
-    b.onclick();
-    const kids = els["raw"].children;
-    const dots = kids.filter((k) => k.tag === "circle");
-    const bad = kids.filter((k) => Object.values(k.attrs).some((v) => /NaN|undefined/.test(v)));
-    const cap = els["raw-cap"].textContent;
-    console.log(`${b.textContent.padEnd(12)} dots ${String(dots.length).padStart(3)}  bad ${bad.length}  | ${cap.slice(0, 40)}`);
-    if (!dots.length || bad.length || /NaN|undefined/.test(cap)) fail++;
-    if (i === 0 && dots.length !== 205) { console.log("全部 should show 205 dots"); fail++; }
-  });
+  const kids = els["raw"].children;
+  const dots = kids.filter((k) => k.tag === "circle");
+  const bad = kids.filter((k) => Object.values(k.attrs).some((v) => /NaN|undefined/.test(v)));
+  const cap = els["raw-cap"].textContent;
+  console.log(`dots ${dots.length}  bad ${bad.length}  | ${cap}`);
+  if (dots.length !== 205 || bad.length || /NaN|undefined/.test(cap)) fail++;
   console.log(fail ? "FAIL" : "OK");
   process.exit(fail ? 1 : 0);
 }, 300);
