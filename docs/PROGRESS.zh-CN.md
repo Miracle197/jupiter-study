@@ -1,6 +1,6 @@
 # 阶段性总结（2026-11-10）
 
-分支 `galileo-restart`（PR #3，暂不合并到 main，因为内容和 main 上的旧版已经不同）。
+原在分支 `galileo-restart` 上开发；2026-11-20 通过 PR #3 合并进 `main`，`main` 从此就是这个“只用照片”的版本（旧的星历版本保留在历史里，提交 `4d0c22b`）。
 本文件记录到目前为止做了什么、还没做什么，方便在新的会话里接着干。
 
 ---
@@ -121,7 +121,7 @@
 
 ```bash
 cd /home/miracle/Thomas_vibe_projects/jupiter-study
-git checkout galileo-restart && git pull
+git checkout main && git pull
 python3 -m http.server -d demo 8000     # 看页面
 ```
 完整重跑约 12 分钟（见 README“运行”一节），第一次会把照片解码到 `cache/`（约 650 MB）。
