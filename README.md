@@ -13,27 +13,35 @@ gravity sensor); the observing site given by the photographer
 (`data/observer.json`: 33.976683° N, 117.310320° W, known to within 30 m).
 **Not used**: any ephemeris, orbit, moon name, size of or distance to Jupiter.
 
-Every result carries two separate error bars: the **photo error** (from
-measuring pixels) and the **site error** (from not knowing the camera position
-better than 30 m).
+Every result carries its **photo error** (from measuring pixels). The **site
+error** (from not knowing the camera position better than 30 m) was worked out
+at every step and is negligible (for the periods, less than a millionth of the
+photo error), so it is no longer listed.
 
 ## Progress
 
-| Step | What | Status |
-|---|---|---|
-| 1 | Put every photo on the same scale | ✅ |
-| 2 | Same orientation: line horizontal, same end on the same side in all photos | ✅ |
-| 3 | Which dots are the same body, how they swing, how long they take | ✅ |
-| — | Interactive demo page (`demo/`) | ✅ |
+Steps follow the demo page; the script numbers are older and do not quite match.
 
-**Main result**: four bodies swing back and forth next to Jupiter, with periods
+| Page | What | Scripts | Status |
+|---|---|---|---|
+| Step 1 | Jupiter as the ruler: every photo on the same scale | `step1_scale.py` | ✅ |
+| Step 2 | Are they going around Jupiter? The evidence | computed on the page | ✅ |
+| Step 3 | Turn every photo: line horizontal, the same end of the sky to the right | `step2_orient.py`, `field_rotation.py` | ✅ |
+| Step 4 | How long each of the four takes to go round (redone from scratch, parts 1–8) | `step4_*.py` | ✅ |
+| Step 5 | The model: every photo's own scale, turned and labelled photos, a 3D model | `step5_model.py` | ✅ |
+| Comparison | The earlier identification and periods | `step3_motion.py` | kept |
 
-| Body | Period (days) | Photo error | Site error | Reach (Rj) |
+**Main result** (step 5, from the photos alone): four bodies go around Jupiter on circles seen almost edge-on, all in one plane and all the same way round.
+
+| Body | Period (days) | Reach (Rj) | Tilt (°) | Dots |
 |---|---|---|---|---|
-| I | 1.7688 | ± 0.0005 | ± 3e-12 | 4.91 ± 0.07 |
-| II | 3.5514 | ± 0.0012 | ± 2e-11 | 7.84 ± 0.09 |
-| III | 7.1512 | ± 0.0032 | ± 1e-10 | 12.46 ± 0.12 |
-| IV | 16.674 | ± 0.013 | ± 6e-10 | 21.91 ± 0.20 |
+| I | 1.76895 ± 0.00020 | 4.91 ± 0.05 | -3.0 ± 0.4 | 49 |
+| II | 3.55108 ± 0.00070 | 7.83 ± 0.09 | -3.0 ± 0.2 | 48 |
+| III | 7.15117 ± 0.00179 | 12.47 ± 0.12 | -2.5 ± 0.2 | 56 |
+| IV | 16.6730 ± 0.0058 | 21.92 ± 0.22 | -1.7 ± 0.2 | 58 |
+
+± is the photo error. Reach is in step 1's "Jupiter radius" (the overexposed disk measures too large by an uncalibrated factor). Tilt is how far each orbit is from exactly edge-on.
+Period and reach follow P² ∝ a³ (Kepler's third law), and the inner three periods are locked at 1 : 2 : 4 (step 4, part 8).
 
 ## Checking the dots
 
@@ -91,10 +99,10 @@ on the same test.)
 - The Jupiter edge with the exposure fix is good to about ±4.8% per photo
   (before: ±6.2%); the 27 photos linked through their dots on the same night
   are averaged, bringing them to 2.1–3.7%.
-- Step 3 measures the real single-photo scale error the other way round (each
-  body always swings to the same distance): about ±4.3% (before: ±6.1%), in
-  line with this. The Dec 17 photo (the only one from an iPhone 14 Pro) was off
-  the most: a bigger glare made Jupiter about 50% too big; step 3 corrects it.
+- Step 5 measures the real single-photo scale error the other way round (each
+  body always swings to the same distance): typically ±4.5%, in line with
+  this. The Dec 17 photo (the only one from an iPhone 14 Pro) was off the most:
+  a bigger glare made Jupiter about 49% too big; step 5 corrects it (× 0.672).
   The Dec 26 photo had the shortest exposure, the least overexposure, and the
   smallest-looking Jupiter.
 - Tried and not used: measuring only at right angles to the shake (matched the
@@ -114,7 +122,18 @@ without outside data.
 
 ![same scale](output/step1/same_scale.jpg)
 
-## Step 2: same orientation
+## Step 2: are they going around Jupiter? (computed on the page)
+
+Once the photos are turned and on one scale, what are the dots: distant stars,
+or something swinging along a line? Three pieces of evidence from the photos
+alone, before any period is known: (1) over 40 days they stay with Jupiter
+(Jupiter itself moves about 3° against the stars, far more than the telescope's
+field); (2) along the line the dots pile up symmetrically near the far ends,
+so they swing out equally far both ways; (3) going out and coming back they
+keep to opposite sides of the line (from same-night photos only, a first hint;
+the full test is step 4, part 7).
+
+## Step 3: same orientation (`step2_orient.py`)
 
 **Problem**: the phone was turned differently for each photo, and the sky
 itself turns during the night (Jupiter rises and sets, the sky turns relative
@@ -149,8 +168,8 @@ a far dot fixes the angle much better than a near one, so dots are weighted by
 distance. B picks the +X end. Median error ±0.8°.
 
 **A band, not a line**: once turned, every confirmed dot lies within ±2.3 Rj of
-the line (rms 0.42 Rj), and the outer bodies stray farther (step 3): the orbits
-are not seen exactly edge-on.
+the line (rms 0.42 Rj), and the outer bodies stray farther (step 4, part 7): the
+orbits are not seen exactly edge-on.
 
 **Which end is +X**: +X is the same end of the sky in every photo. Whether it
 is east or west depends on whether the telescope shows the sky upright or
@@ -163,7 +182,54 @@ upside down, which the photos do not show.
 
 ![notebook](output/step2/notebook.png)
 
-## Step 3: how they move
+## Step 4: periods (redone from scratch, `step4_*.py`)
+
+No number of bodies assumed and no curves drawn: it starts from the raw "time, position" of every dot.
+
+| Part | What | Script |
+|---|---|---|
+| 1 | 205 dots: only the time and the position X along the line | `step4_raw_plot.py` |
+| 2 | Nights with several photos: link the dots into tracks (along the line by extrapolation, across it by keeping Y) | `step4_tracks.py` |
+| 3 | The outermost body: beyond 16 Rj only one body reaches; fold for its period (dots + one-night speeds + "should be there but isn't") | `step4_fold.py` |
+| 4 | Take away the explained dots, fold beyond the next gap; the inner two overlap and are found as a pair | `step4_peel.py`, `step4_inner.py` |
+| 5–8 | All four together; the "one turn more per day" rivals; the tilt check; how the periods relate | `step4_joint.py` |
+
+Results (photo errors; no per-photo scale correction yet at this step):
+
+| Body | Period (days) | Reach (Rj) | Drift across the line B (Rj) |
+|---|---|---|---|
+| I | 1.7686 ± 0.0008 | 4.81 ± 0.08 | -0.25 ± 0.04 |
+| II | 3.5521 ± 0.0020 | 7.78 ± 0.13 | -0.32 ± 0.05 |
+| III | 7.1526 ± 0.0059 | 12.52 ± 0.20 | -0.57 ± 0.06 |
+| IV | 16.6945 ± 0.0242 | 22.10 ± 0.35 | -0.60 ± 0.08 |
+
+- Part 4 counts a gap in |X| only when enough dots (≥ 8) lie beyond it to fold. For the inner pair, folding alone
+  favours a wrong period; finding the two together and asking that neither predicts a body where there is no dot
+  singles out 3.53 + 1.77 d.
+- Part 6: the "one turn more or less per day" rivals score at least 35 times worse; at least 9 times without the nights with several photos.
+- Part 7: the drift across the line B is negative for all four (6–10 times its error): circles seen almost edge-on, in one plane, turning the same way.
+- Part 8: slope of log P against log a **1.47 ± 0.02** (Kepler's third law: 1.5); P₂/P₁ = 2.0084, P₃/P₂ = 2.0136;
+  1/P₁ − 3/P₂ + 2/P₃ = (0.45 ± 0.59)×10⁻³ turns per day, consistent with 0.
+
+## Step 5: the model (`step5_model.py`)
+
+Step 4's four swings and every photo's own scale are fitted together: a body always swings out to the same distance, so a photo with dots of two or more bodies tells its own scale.
+The dots are also handed out again: for every photo each stretch from 0.6 to 1.6 is tried, and the dots go to the bodies one to one (at most one dot per body; two bodies predicted close together may share one).
+
+- All 58 photos get their own scale, typically ±4.5%; the largest is the Dec 17 photo (× 0.672).
+- All 205 dots belong to a body; the median distance from the model is **0.067 Rj** (step 4, part 5: 0.30 Rj); the period errors shrink about 3.6-fold.
+- Tilt (drift across the line ÷ reach): -3.0°, -3.0°, -2.5°, -1.7°, all negative.
+- Output: every photo turned and put on the common scale (`demo/final/`; the page draws the labels on top), all photos labelled in `output/step5/annotated.jpg`, the model in `output/step5/model.png`.
+
+![model](output/step5/model.png)
+
+On the page, step 5 has a time slider (with play), the photo nearest that moment (turned, on the common scale, labelled, with the model's predictions), and a 3D model built from the photos alone
+(from the Earth / from above / from the side / oblique, with the sight line of every dot in the photo). What the photos cannot tell: which half of each orbit is in front of Jupiter (the model can swap front and back and looks the same from the Earth),
+whether +X is east or west, the true size and mass, and what the moons and Jupiter look like.
+
+## Comparison: the earlier identification and periods (`step3_motion.py`)
+
+This is how it was done before step 4 was redone, kept for comparison; step 1's ruler check and the step 2 figures on the page still use its scale corrections and labels. Its results agree with step 5 within the errors.
 
 **Counting bodies**: something swinging back and forth spends most of its time
 near its farthest point, so distances pile up. They pile up near 4.4, 7.3,
@@ -203,40 +269,42 @@ median residual is 0.05 Rj.
 **Errors**:
 - Photo: the larger of the fit covariance (scaled by the actual scatter) and a
   bootstrap over nights (200 refits, each on 31 nights drawn at random).
-- Site: step 2's site error turns each photo by a tiny angle, which moves X by
+- Site: the turning step's site error turns each photo by a tiny angle, which moves X by
   Y × angle. That change is far below the fit's numerical precision, so it is
   applied 10,000 times larger and the result scaled back.
 
 ## Demo page
 
-`demo/` is an interactive page: the original and the marked-up version of
-every photo, the three rulers, the turning-sky curve, the motion with error
-bars and bands, and the period table. To view it locally:
+`demo/` is an interactive page that follows the five steps above: every photo as taken and labelled, the rulers compared,
+the evidence for going around, the turning-sky curve, step 4's parts 1–8, and step 5's time slider, turned and labelled photos and 3D model. To view it locally:
 
 ```bash
 python3 -m http.server -d demo 8000
 ```
 
-then open http://localhost:8000/view.html . `demo/data.json` and the images
-are made by `scripts/make_demo.py`.
+then open http://localhost:8000/view.html. The 3D model loads three.js from jsdelivr and needs the internet; the rest does not.
+`demo/data.json` comes from `scripts/make_demo.py`, `demo/step4_data.json` from the step 4 scripts, `demo/model_data.json` and `demo/final/` from `scripts/step5_model.py`.
+`python3 tools/bundle_preview.py demo out.html` packs the page, data and pictures into one file that opens with a double-click.
 
 ## Layout
 
 ```
-data/raw/                 the 58 original photos (file name = local time)
+data/raw/                 58 original photos (file name = local time)
 data/observer.json        observing site
 data/visual_check.json    dots confirmed photo by photo (pixel coordinates)
-scripts/common.py         photo list, EXIF, gravity sensor, decoding
-scripts/detect.py         find Jupiter and candidate dots
-scripts/step1_scale.py    step 1
-scripts/step2_orient.py   step 2
-scripts/field_rotation.py step 2 method B: the turning-sky model
-scripts/step3_motion.py   step 3
-scripts/make_demo.py      data and images for the demo page
-output/step1/             scale.csv, pairs.csv, detections.json, ruler_check.png, same_scale.jpg
-output/step2/             orientation.csv, positions.csv, links.csv, summary.json, field_rotation.png, notebook.png, strips.jpg
-output/step3/             bodies.json, assignments.csv, photo_scale.csv, summary.json, motion.png, folded.png, piles.png
+scripts/common.py         reading photos, EXIF, gravity sensor, decoding
+scripts/detect.py         Jupiter (circle through 360 rays), candidate dots, dot brightness
+scripts/step1_scale.py    step 1: same scale (with the exposure fix)
+scripts/step2_orient.py   step 3: same orientation
+scripts/field_rotation.py step 3, method B: the turning-sky model
+scripts/step3_motion.py   comparison: the earlier identification and periods
+scripts/step4_*.py        step 4, parts 1-8: raw_plot, tracks, fold, peel, inner, joint
+scripts/step5_model.py    step 5: final fit, turned and labelled photos, model figure
+scripts/make_demo.py      data and pictures for the demo page
+output/step1/ ... step5/  results of every step (csv, json, figures)
 demo/                     demo page (index.html for claude.ai, view.html for a local server)
+tests/                    Python tests; tests/page/ tests the page script (Node)
+tools/bundle_preview.py   packs the page into one file
 ```
 
 ## Run
@@ -244,11 +312,15 @@ demo/                     demo page (index.html for claude.ai, view.html for a l
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
-for s in step1_scale step2_orient step3_motion make_demo; do .venv/bin/python scripts/$s.py; done
+for s in step1_scale step2_orient step3_motion step4_raw_plot step4_tracks step4_fold step4_peel step4_inner step4_joint step5_model make_demo; do .venv/bin/python scripts/$s.py; done
 ```
 
-About 12 minutes in all (Raspberry Pi 5). The first run decodes the photos into
-`cache/` (about 650 MB, not in git).
+About 10 minutes in all (a cloud machine; longer on a Raspberry Pi 5). The first run decodes the photos into `cache/` (about 650 MB, not in git). Tests:
+
+```bash
+.venv/bin/python -m pytest -q tests
+for t in run click tracks fold step4 joint model; do node tests/page/$t.js demo; done
+```
 
 The previous version (analysis using NASA ephemerides) is in the git history
 (commit `4d0c22b`).

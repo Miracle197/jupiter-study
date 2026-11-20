@@ -24,6 +24,8 @@
   --none: #8a91a0;
   --sky: #06080d;         /* photo panels stay dark in both themes */
   --sky-fg: #d8dde8;
+  --on-sky-1: #ef7a63; --on-sky-2: #e8b445; --on-sky-3: #5cc485; --on-sky-4: #74a2f5;
+  --on-sky-muted: #8b94a8; --on-sky-rule: #2a3345; --on-sky-button: #121722; --on-sky-deep: #03050a;
   --display: "Noto Serif SC", "Songti SC", "SimSun", serif;
   --body: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -140,6 +142,42 @@ details summary { cursor: pointer; color: var(--accent); font-size: 14px; font-w
 .cols2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px }
 .cols4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px }
 .cols4 > * { min-width: 0 }
+
+/* step 5: the model bench (a night-sky panel in both themes) */
+.bench { background: var(--sky); color: var(--sky-fg); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0 }
+.bench h3 { font-size: 16px; color: var(--sky-fg) }
+.bench .caption, .bench .legend { color: var(--on-sky-muted) }
+.bench details summary { color: var(--jupiter) }
+#m5-table td.n, #m5-params td.n { white-space: nowrap }
+.bench button, .bench select { background: var(--on-sky-button); color: var(--sky-fg); border: 1px solid var(--on-sky-rule); border-radius: 4px; font: 500 13px var(--body); padding: 5px 11px }
+.bench button[aria-pressed="true"] { background: var(--jupiter); color: var(--on-sky-deep); border-color: var(--jupiter) }
+.bench label { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--sky-fg) }
+.timebar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center }
+.clock { font-family: var(--mono); font-size: 16px; font-variant-numeric: tabular-nums; min-width: 13ch }
+.slider { position: relative; padding-bottom: 10px }
+.slider input { width: 100%; margin: 0; accent-color: var(--jupiter) }
+.slider svg { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 8px }
+.strip { position: relative; width: 100%; aspect-ratio: 4 / 1; background: #000; border-radius: 4px; overflow: hidden }
+.strip img, .strip svg { position: absolute; inset: 0; width: 100%; height: 100% }
+.m5-tick { fill: var(--on-sky-muted); font: 18px var(--mono) }
+.m5-lab { font: 600 21px var(--mono) }
+.m5-kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 6px 18px; font-size: 13px }
+.m5-kv div { display: flex; flex-direction: column; min-width: 0 }
+.m5-kv small { color: var(--on-sky-muted); font-size: 11px; letter-spacing: 0.06em }
+.m5-kv span { font-family: var(--mono); font-variant-numeric: tabular-nums }
+.bench table { font-size: 13px }
+.bench th { color: var(--on-sky-muted) }
+.bench th, .bench td { border-bottom-color: var(--on-sky-rule) }
+.scene { position: relative; width: 100%; height: clamp(300px, 50vw, 520px); background: var(--on-sky-deep); border-radius: 4px; overflow: hidden; touch-action: none }
+.scene canvas { display: block; width: 100%; height: 100% }
+.m5-labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden }
+.m5-lbl { position: absolute; left: 0; top: 0; font: 600 12px var(--mono); white-space: nowrap; text-shadow: 0 0 3px #000, 0 0 6px #000 }
+.m5-lbl.muted { color: var(--on-sky-muted); font-weight: 400 }
+.m5-noscene[hidden] { display: none }
+.m5-noscene { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; text-align: center; color: var(--on-sky-muted) }
+.gallery { display: flex; flex-direction: column; gap: 10px; margin-top: 10px }
+.gallery figure { margin: 0; display: flex; flex-direction: column; gap: 4px }
+.gallery figcaption { font: 12px var(--mono); color: var(--on-sky-muted) }
 </style>
 
 <div class="wrap">
@@ -384,9 +422,77 @@ details summary { cursor: pointer; color: var(--accent); font-size: 14px; font-w
       2026-11-20：④–⑧ 放回页面，按新的尺子重算；④ 找空隙时只算外面光点够折叠的空隙。</p>
   </section>
 
+  <section aria-labelledby="s5-h">
+    <div class="eyebrow">第 5 步 · 模型</div>
+    <h2 id="s5-h">把四颗放回天上</h2>
+    <p>第 4 步得到了四颗各自的周期、最远距离和离线的摆动。最后把它们和每张照片一起再拟合一次：
+      一颗天体每次都摆到同样远，所以一张照片里只要有两颗以上，就能定出这张照片自己的比例，比第 1 步的木星尺子（每张约 ±5%）准得多。
+      <span id="m5-intro"></span></p>
+    <p>下面的时间可以拖动或播放。上面是离这个时刻最近的那张照片：按第 3 步转正，按修正后的比例放大缩小，每个光点标出属于哪一颗，
+      三角是模型在拍摄那一刻预测的位置。下面是只用这些照片搭出的 3D 模型。</p>
+    <div class="bench" id="bench">
+      <div class="timebar">
+        <span class="clock" id="m5-clock">—</span>
+        <div class="btns">
+          <button type="button" id="m5-prev">← 上一张照片</button>
+          <button type="button" id="m5-play" aria-pressed="false">▶ 播放</button>
+          <button type="button" id="m5-next">下一张照片 →</button>
+        </div>
+        <label for="m5-speed">速度 <select id="m5-speed"><option value="1">1 小时 / 秒</option><option value="6" selected>6 小时 / 秒</option><option value="24">1 天 / 秒</option></select></label>
+      </div>
+      <div class="slider">
+        <input type="range" id="m5-t" min="-0.5" max="40.5" step="0.001" value="37.9" aria-label="时间（2023 年 12 月 3 日到 2024 年 1 月 12 日）">
+        <svg id="m5-ticks" viewBox="0 0 1000 8" preserveAspectRatio="none" aria-hidden="true"></svg>
+      </div>
+      <h3>照片：转正、统一比例、标出每个光点属于谁</h3>
+      <div class="timebar">
+        <label><input type="checkbox" id="m5-ov-dots" checked> 标出光点</label>
+        <label><input type="checkbox" id="m5-ov-pred" checked> 模型预测（三角）</label>
+      </div>
+      <div class="strip"><img id="m5-img" alt="离当前时刻最近的照片，转正并统一比例"><svg id="m5-over" viewBox="0 0 1080 270" preserveAspectRatio="none"></svg></div>
+      <div class="legend" id="m5-legend"></div>
+      <div class="m5-kv" id="m5-kv"></div>
+      <div class="scroll"><table id="m5-table"></table></div>
+      <h3>3D 模型</h3>
+      <div class="timebar">
+        <div class="btns" id="m5-views" role="group" aria-label="视角">
+          <button type="button" data-v="free" aria-pressed="true">斜视</button>
+          <button type="button" data-v="earth" aria-pressed="false">从地球看</button>
+          <button type="button" data-v="top" aria-pressed="false">俯视</button>
+          <button type="button" data-v="side" aria-pressed="false">侧视</button>
+        </div>
+        <label><input type="checkbox" id="m5-flip"> 前后对调</label>
+        <label><input type="checkbox" id="m5-sight" checked> 照片里的视线</label>
+      </div>
+      <div class="scene" id="m5-scene"><p class="m5-noscene" id="m5-noscene" hidden>3D 模型需要联网加载 three.js；照片和下面的表格不受影响。</p></div>
+      <p class="caption">拖动旋转，滚轮或双指缩放。<b>斜视</b>：从轨道平面斜上方看。<b>从地球看</b>就是照片里的样子：四个圈几乎侧对着我们，压成了一条线。
+        <b>俯视</b>：从轨道平面上方往下看，下方朝地球。<b>侧视</b>：从 −X 那一边看，右边朝地球。
+        虚线是当前照片里每个光点的视线：照片只告诉我们光点在这条线上的某处，模型把它放在线和轨道相交的地方。
+        木星画成半径 1 的球（第 1 步的单位），四颗画大了很多，只是示意。</p>
+      <details id="m5-all"><summary>展开全部 58 张照片：转正、统一比例、标注</summary><div class="gallery" id="m5-gallery"></div></details>
+    </div>
+    <div class="figure">
+      <h3>模型的数字（只来自照片）</h3>
+      <div class="scroll"><table id="m5-params"></table></div>
+      <div class="caption" id="m5-params-cap"></div>
+    </div>
+    <div class="note2">
+      <b>照片定不出的东西</b>
+      <ul style="margin:6px 0 0;padding-left:20px">
+        <li><b>前后</b>：照片是平的，只知道光点在天上的左右上下，不知道它在木星前面还是后面。每颗都可以整个“前后对调”，从地球看完全一样（勾选“前后对调”试试）。</li>
+        <li><b>东西</b>：+X 是天上的东还是西，取决于望远镜成的像是正的还是倒的，照片看不出来。</li>
+        <li><b>真实大小和质量</b>：单位是第 1 步的“木星半径”，过曝让它比真实的木星半径大一个没校准的比例，而且真实长度要借照片以外的数字。模型里只有相对大小。</li>
+        <li><b>样子</b>：卫星在照片里只是光点，看不出大小；木星过曝，看不到条纹。模型里的球都是示意。</li>
+      </ul>
+    </div>
+    <p class="caption">更新记录 · 2026-11-20：第 5 步：四条摆动和每张照片的比例一起拟合；照片转正、统一比例、标注；3D 模型。</p>
+  </section>
+
   <footer class="caption">数据由 <span class="mono">scripts/make_demo.py</span> 从第 1–3 步的结果生成；第 3 步方向与第 4 步周期只来自照片、EXIF、手机重力传感器和拍摄地点（地点误差可忽略，未列出）。</footer>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
 const $ = (id) => document.getElementById(id);
 const css = (v) => `var(${v})`;
@@ -1158,18 +1264,248 @@ function kepler4() {
     Bs.map((B, k) => `<tr><td><span class="swatch" style="background:${JB(k)}"></span> ${B.name}</td><td class="n">${fmt(B.period_d, 4)}</td><td class="n">± ${fmt(B.period_err_d, 4)}</td><td class="n">${fmt(B.reach_rj, 2)} ± ${fmt(B.reach_err_rj, 2)}</td><td class="n">${B.dots}</td><td class="n">${fmt(B.tilt.B_rj, 2)} ± ${fmt(B.tilt.B_err_rj, 2)}</td></tr>`).join("") + "</tbody>";
 }
 
+/* ---------- step 5: the model ---------- */
+let M5 = null, M5S = null, m5t = 37.9, m5i = -1, m5playing = false, m5last = null;
+const ONSKY = ["--on-sky-1", "--on-sky-2", "--on-sky-3", "--on-sky-4"];
+const m5col = (k) => css(ONSKY[k % 4]);
+const m5name = (ks) => ks && ks.length ? ks.map(k => M5.bodies[k].name).join("+") : "?";
+const m5on = (id) => $(id).checked !== false;
+function m5clock(t) {                       // days since 2023-12-03 00:00 (local time at the telescope)
+  const d = new Date(Date.UTC(2023, 11, 3) + Math.round(t * 1440) * 60000);
+  return `${d.getUTCMonth() + 1}月${d.getUTCDate()}日 ${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
+}
+function m5nearest(t) {
+  let best = 0;
+  M5.photos.forEach((p, i) => { if (Math.abs(p.t - t) < Math.abs(M5.photos[best].t - t)) best = i; });
+  return best;
+}
+function m5stripSVG(p, show) {
+  const S = M5.strip, K = S.px_per_rj, W = 2 * S.half_x_rj * K, H = 2 * S.half_y_rj * K;
+  const u = (X) => W / 2 + X * K, v = (Y) => H / 2 - Y * K;
+  let s = "";
+  for (let x = -25; x <= 25; x += 5) s += `<line x1="${u(x)}" x2="${u(x)}" y1="${H - 9}" y2="${H}" style="stroke:var(--on-sky-muted);stroke-width:2"/>` +
+    (x % 10 === 0 ? `<text x="${u(x)}" y="${H - 14}" text-anchor="middle" class="m5-tick">${x}</text>` : "");
+  s += `<circle cx="${u(0)}" cy="${v(0)}" r="${K}" style="fill:none;stroke:var(--on-sky-muted);stroke-width:1.5;stroke-dasharray:4 4"/>`;
+  if (show.pred) p.pred.forEach((q, k) => {
+    if (Math.abs(q.X) > S.half_x_rj - 0.3) return;
+    const x = u(q.X), y = v(q.Y) - 20;
+    if (q.err * K > 1.5) s += hbar(y - 12, u(q.X - q.err), u(q.X + q.err), m5col(k), 2);
+    s += `<path d="M${x - 7} ${y - 10}L${x + 7} ${y - 10}L${x} ${y}Z" style="fill:${m5col(k)};opacity:${q.hidden ? 0.4 : 1}"/>`;
+  });
+  if (show.dots) p.dots.forEach(d => {
+    const c = d.bodies.length ? m5col(d.bodies[0]) : "var(--on-sky-muted)", x = u(d.X), y = v(d.Y);
+    s += `<circle cx="${x}" cy="${y}" r="12" style="fill:none;stroke:${c};stroke-width:2.5"/>` +
+      (d.bodies.length > 1 ? `<circle cx="${x}" cy="${y}" r="16" style="fill:none;stroke:${m5col(d.bodies[1])};stroke-width:2.5"/>` : "") +
+      `<text x="${x}" y="${y + 38}" text-anchor="middle" class="m5-lab" style="fill:${c}">${m5name(d.bodies)}</text>`;
+  });
+  return s;
+}
+function m5photo(i) {
+  m5i = i;
+  const p = M5.photos[i];
+  $("m5-img").src = `final/${p.id}.jpg`;
+  $("m5-over").innerHTML = m5stripSVG(p, { dots: m5on("m5-ov-dots"), pred: m5on("m5-ov-pred") });
+  $("m5-table").innerHTML = `<thead><tr><th>光点</th><th>属于</th><th class="n">X（照片，Rj）</th><th class="n">X（模型）</th><th class="n">差</th><th class="n">Y（照片）</th></tr></thead><tbody>` +
+    [...p.dots].sort((a, b) => a.X - b.X).map((d, j) => {
+      const k = d.bodies[0], q = k != null ? p.pred[k] : null;
+      return `<tr><td>${j + 1}</td><td style="color:${k != null ? m5col(k) : "var(--on-sky-muted)"}">${m5name(d.bodies)}</td><td class="n">${fmt(d.X, 2)}</td>` +
+        `<td class="n">${q ? fmt(q.X, 2) : "—"}</td><td class="n">${d.resid == null ? "—" : (d.resid >= 0 ? "+" : "−") + fmt(Math.abs(d.resid), 2)}</td><td class="n">${fmt(d.Y, 2)}</td></tr>`;
+    }).join("") + "</tbody>";
+  if (M5S) M5S.setPhoto(p);
+  m5info();
+}
+function m5info() {
+  const p = M5.photos[m5i], dh = (p.t - m5t) * 24;
+  const hidden = p.pred.map((q, k) => q.hidden ? M5.bodies[k].name : null).filter(Boolean);
+  $("m5-kv").innerHTML = [
+    ["照片", `${p.time.replace("T", " ")} · 第 ${m5i + 1} / ${M5.photos.length} 张`],
+    ["离当前时刻", Math.abs(dh) < 0.05 ? "就是这一刻" : `${dh > 0 ? "晚" : "早"} ${Math.abs(dh) < 48 ? fmt(Math.abs(dh), 1) + " 小时" : fmt(Math.abs(dh) / 24, 1) + " 天"}`],
+    ["这张照片的比例修正", `× ${fmt(p.scale_fix, 3)}` + (p.own_scale ? "" : "（只有一颗，沿用第 1 步）")],
+    ["模型说在木星光晕里（看不到）", hidden.length ? hidden.join("、") : "没有"],
+  ].map(([k, v]) => `<div><small>${k}</small><span>${v}</span></div>`).join("");
+}
+function m5time(t, photo) {
+  m5t = Math.max(-0.5, Math.min(40.5, t));
+  $("m5-t").value = m5t;
+  $("m5-clock").textContent = m5clock(m5t);
+  const i = photo != null ? photo : m5nearest(m5t);
+  if (i !== m5i) m5photo(i); else m5info();
+  if (M5S) M5S.setTime(m5t);
+}
+function m5tick(ts) {
+  if (!m5playing) return;
+  if (m5last != null) {
+    let t = m5t + (ts - m5last) / 1000 * +$("m5-speed").value / 24;
+    if (t > 40.5) t = -0.5;
+    m5time(t);
+  }
+  m5last = ts;
+  requestAnimationFrame(m5tick);
+}
+function m5play(on) {
+  m5playing = on; m5last = null;
+  $("m5-play").setAttribute("aria-pressed", String(on));
+  $("m5-play").textContent = on ? "❚❚ 暂停" : "▶ 播放";
+  if (on) requestAnimationFrame(m5tick);
+}
+function m5step(dir) {
+  m5play(false);
+  const n = M5.photos.length;
+  if (m5i >= 0 && Math.abs(M5.photos[m5i].t - m5t) < 1e-4) { const i = (m5i + dir + n) % n; m5time(M5.photos[i].t, i); return; }   // on a photo: its neighbour
+  const ts = M5.photos.map(p => p.t);
+  const j = dir > 0 ? ts.findIndex(x => x > m5t + 1e-4) : ts.map((x, i) => [x, i]).filter(([x]) => x < m5t - 1e-4).map(([, i]) => i).pop();
+  const i = j == null || j < 0 ? (dir > 0 ? 0 : ts.length - 1) : j;
+  m5time(M5.photos[i].t, i);
+}
+function m5init() {
+  if (!M5) { $("m5-intro").textContent = "（模型数据没有载入。）"; return; }
+  const S = M5.summary, Bs = M5.bodies;
+  const i0 = M5.photos.findIndex(p => p.id === "2024-01-09T2130");
+  if (i0 >= 0) m5t = M5.photos[i0].t;
+  const far = M5.photos.reduce((u, p) => Math.abs(Math.log(p.scale_fix)) > Math.abs(Math.log(u.scale_fix)) ? p : u);
+  $("m5-intro").innerHTML = `${S.photos_with_own_scale} 张照片定出了自己的比例：典型的修正是 ±${fmt(100 * S.scale_fix_typical, 1)}%，和第 1 步自己估计的误差一致；` +
+    `修正最大的是 ${m5clock(far.t)} 那张（× ${fmt(far.scale_fix, 3)}，第 1 步把木星量${far.scale_fix < 1 ? "大" : "小"}了约 ${fmt(100 * Math.abs(1 / far.scale_fix - 1), 0)}%）。` +
+    `修正以后，光点离模型的偏差中位只有 <b>${fmt(S.resid_robust_rj, 3)} Rj</b>（第 4 步 ⑤ 是 ${fmt(R4.joint.summary.resid_robust_rj, 2)} Rj）。` +
+    `${S.n_dots} 个光点里 ${S.assigned} 个有归属：每张照片先试一遍放大倍数，再一一对应地分给四颗（每颗最多一个光点，${S.shared} 个是两颗挤在一起共用）。`;
+  $("m5-ticks").innerHTML = M5.photos.map(p => `<line x1="${(p.t + 0.5) / 41 * 1000}" x2="${(p.t + 0.5) / 41 * 1000}" y1="0" y2="8" style="stroke:var(--on-sky-muted);stroke-width:2"/>`).join("");
+  $("m5-legend").innerHTML = Bs.map((b, k) => `<span><span class="swatch" style="background:${m5col(k)}"></span>${b.name}</span>`).join("") +
+    `<span>圈：照片里的光点（双圈：两颗挤在一起）</span><span>三角：模型预测（淡的在木星光晕里）</span><span>虚线圆：1 Rj</span><span>刻度：每 5 Rj</span>`;
+  $("m5-params").innerHTML = `<thead><tr><th>天体</th><th class="n">周期（天）</th><th class="n">最远距离（Rj）</th><th class="n">倾斜（°）</th><th class="n">光点数</th></tr></thead><tbody>` +
+    Bs.map((b, k) => `<tr><td><span class="swatch" style="background:${JB(k)}"></span> ${b.name}</td><td class="n">${fmt(b.period_d, 5)} ± ${fmt(b.period_err_d, 5)}</td>` +
+      `<td class="n">${fmt(b.reach_rj, 2)} ± ${fmt(b.reach_err_rj, 2)}</td><td class="n">${fmt(b.tilt_deg, 1)} ± ${fmt(b.tilt_err_deg, 1)}</td><td class="n">${b.dots}</td></tr>`).join("") + "</tbody>";
+  $("m5-params-cap").innerHTML = `周期误差取拟合误差和按夜重抽样（${S.bootstrap_refits} 次）中较大的一个。最远距离的单位是第 1 步的 Rj。` +
+    `倾斜是轨道离“正好侧对着我们”差多少度（离线摆动 ÷ 最远距离），四颗都是负的，平均 ${fmt(S.mean_tilt_deg, 1)}°。` +
+    `和第 4 步 ⑤ 相比，周期误差小了约 ${fmt(Bs.reduce((u, b, k) => u + R4.joint.bodies[k].period_err_d / b.period_err_d, 0) / Bs.length, 1)} 倍：每张照片的比例误差不再混进来了。`;
+  try { M5S = m5scene($("m5-scene")); } catch (e) { console.error("3D model", e); $("m5-noscene").hidden = false; M5S = null; }
+  m5time(m5t);
+  if (M5S) M5S.setPhoto(M5.photos[m5i]);
+}
+function m5gallery() {
+  if (!M5 || $("m5-gallery").innerHTML) return;
+  const S = M5.strip, W = 2 * S.half_x_rj * S.px_per_rj, H = 2 * S.half_y_rj * S.px_per_rj;
+  $("m5-gallery").innerHTML = M5.photos.map(p => `<figure><div class="strip"><img src="final/${p.id}.jpg" alt="" loading="lazy">` +
+    `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${m5stripSVG(p, { dots: true, pred: true })}</svg></div>` +
+    `<figcaption>${p.time.replace("T", " ")} · 比例 × ${fmt(p.scale_fix, 3)}</figcaption></figure>`).join("");
+}
+function m5scene(box) {
+  const T = window.THREE;
+  if (!T || !T.OrbitControls) { $("m5-noscene").hidden = false; return null; }
+  const renderer = new T.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  box.appendChild(renderer.domElement);
+  const layer = document.createElement("div"); layer.className = "m5-labels"; box.appendChild(layer);
+  const scene = new T.Scene(), camera = new T.PerspectiveCamera(10, 2, 1, 5000);
+  const controls = new T.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = false; controls.minDistance = 30; controls.maxDistance = 3000;
+  scene.add(new T.AmbientLight(0xffffff, 0.45));
+  const sun = new T.DirectionalLight(0xffffff, 0.9); sun.position.set(0.3, 0.2, 1); scene.add(sun);
+  scene.add(new T.Mesh(new T.SphereGeometry(1, 48, 32), new T.MeshStandardMaterial({ color: 0xe9d9b6, roughness: 0.9, metalness: 0 })));
+  const cs = getComputedStyle(document.documentElement);
+  const colorOf = (k) => new T.Color(cs.getPropertyValue(ONSKY[k]).trim() || "#ffffff");
+  const muted = new T.Color(cs.getPropertyValue("--on-sky-muted").trim() || "#8b94a8");
+  const label = (text, cls, color) => { const el = document.createElement("span"); el.className = "m5-lbl" + (cls ? " " + cls : ""); el.textContent = text; if (color) el.style.color = color; layer.appendChild(el); return el; };
+  const Bs = M5.bodies, orbits = [], moons = [], tags = [];
+  Bs.forEach((b, k) => {
+    const line = new T.LineLoop(new T.BufferGeometry(), new T.LineBasicMaterial({ color: colorOf(k), transparent: true, opacity: 0.85 }));
+    scene.add(line); orbits.push(line);
+    const m = new T.Mesh(new T.SphereGeometry(0.45, 20, 14), new T.MeshBasicMaterial({ color: colorOf(k) }));
+    scene.add(m); moons.push(m);
+    tags.push(label(b.name, "", `var(${ONSKY[k]})`));
+  });
+  // +X (the end that is right in every turned photo) and the direction to the Earth
+  const arrows = [[new T.Vector3(23, 0, 0), new T.Vector3(26.5, 0, 0), label("+X", "muted")],
+                  [new T.Vector3(0, 0, 23), new T.Vector3(0, 0, 26.5), label("朝地球", "muted")]].map(([a, b, el]) => {
+    const h = new T.ArrowHelper(b.clone().sub(a).normalize(), a, a.distanceTo(b), muted, 1.2, 0.7); scene.add(h); return { a, b, el, h }; });
+  const sight = new T.Group(); scene.add(sight);
+  let depth = 1, t = 0, photo = null, showSight = true, view = "free", anim = null;
+  const theta = (b, tt) => 2 * Math.PI * b.freq * tt + b.phase_rad;
+  // a circle seen almost edge-on: X = A sin(theta), Y = A sin(tilt) cos(theta), depth = +-A cos(tilt) cos(theta)
+  const pos = (b, th) => { const e = Math.asin(Math.max(-1, Math.min(1, b.tilt.B_rj / b.reach_rj))), A = b.reach_rj;
+    return new T.Vector3(A * Math.sin(th), A * Math.sin(e) * Math.cos(th), depth * A * Math.cos(e) * Math.cos(th)); };
+  function build() {
+    Bs.forEach((b, k) => { const pts = []; for (let i = 0; i < 360; i++) pts.push(pos(b, 2 * Math.PI * i / 360)); orbits[k].geometry.setFromPoints(pts); });
+    place();
+  }
+  function place() { Bs.forEach((b, k) => moons[k].position.copy(pos(b, theta(b, t)))); }
+  function lines() {
+    sight.clear();
+    if (!photo || !showSight) return;
+    photo.dots.forEach(d => {
+      const g = new T.BufferGeometry().setFromPoints([new T.Vector3(d.X, d.Y, -32), new T.Vector3(d.X, d.Y, 32)]);
+      const l = new T.Line(g, new T.LineDashedMaterial({ color: d.bodies.length ? colorOf(d.bodies[0]) : muted, dashSize: 0.9, gapSize: 0.7, transparent: true, opacity: 0.8 }));
+      l.computeLineDistances(); sight.add(l);
+    });
+  }
+  const VIEWS = { earth: { dir: [0, 0, 1], up: [0, 1, 0], fit: [26, 4] }, top: { dir: [0, 1, 0], up: [0, 0, -1], fit: [26, 26] },
+    side: { dir: [-1, 0, 0], up: [0, 1, 0], fit: [26, 4] }, free: { dir: [0.5, 0.42, 0.76], up: [0, 1, 0], fit: [26, 16] } };
+  const DIST = 900;
+  const fovFor = (v) => { const a = camera.aspect || 2, half = Math.max(v.fit[1], v.fit[0] / a) * 1.08; return 2 * Math.atan(half / DIST) * 180 / Math.PI; };
+  function setView(name, instant) {
+    view = name; const v = VIEWS[name];
+    const to = new T.Vector3(...v.dir).normalize().multiplyScalar(DIST);
+    controls.target.set(0, 0, 0);
+    anim = { from: camera.position.clone(), to, f0: camera.fov, f1: fovFor(v), u0: camera.up.clone(), u1: new T.Vector3(...v.up), k: instant ? 1 : 0 };
+    step();
+  }
+  const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function step() {
+    if (!anim) return;
+    anim.k = Math.min(1, anim.k + (reduced ? 1 : 0.08));
+    const e = 1 - Math.pow(1 - anim.k, 3);
+    camera.position.lerpVectors(anim.from, anim.to, e);
+    camera.up.lerpVectors(anim.u0, anim.u1, e).normalize();
+    camera.fov = anim.f0 + (anim.f1 - anim.f0) * e;
+    camera.updateProjectionMatrix(); camera.lookAt(0, 0, 0); controls.update();
+    render();
+    if (anim.k < 1) requestAnimationFrame(step); else anim = null;
+  }
+  function tag(el, v3) {
+    const w = box.clientWidth, h = box.clientHeight, p = v3.clone().project(camera);
+    el.hidden = p.z > 1 || Math.abs(p.x) > 1.2 || Math.abs(p.y) > 1.2;
+    if (!el.hidden) el.style.transform = `translate(${((p.x + 1) / 2) * w + 8}px, ${((1 - p.y) / 2) * h - 16}px)`;
+  }
+  function render() {
+    // an arrow pointing straight at the camera is only a dot: hide it and its label
+    const w = box.clientWidth, h = box.clientHeight;
+    arrows.forEach(r => { const pa = r.a.clone().project(camera), pb = r.b.clone().project(camera);
+      r.h.visible = Math.hypot((pb.x - pa.x) * w / 2, (pb.y - pa.y) * h / 2) > 18; });
+    renderer.render(scene, camera);
+    moons.forEach((m, k) => tag(tags[k], m.position));
+    arrows.forEach(r => { tag(r.el, r.b); if (!r.h.visible) r.el.hidden = true; });
+  }
+  function resize() {
+    const w = box.clientWidth, h = box.clientHeight;
+    if (!w || !h) return;
+    renderer.setSize(w, h, false); camera.aspect = w / h;
+    if (!anim) camera.fov = fovFor(VIEWS[view]);
+    camera.updateProjectionMatrix(); render();
+  }
+  controls.addEventListener("change", render);
+  if (window.ResizeObserver) new ResizeObserver(resize).observe(box);
+  camera.position.set(0, 0, DIST); camera.aspect = (box.clientWidth || 2) / (box.clientHeight || 1);
+  build(); resize(); setView("free", true);
+  return {
+    setTime(tt) { t = tt; place(); render(); },
+    setPhoto(p) { photo = p; lines(); render(); },
+    setView(name) { setView(name, false); },
+    setDepth(sign) { depth = sign; build(); render(); },
+    setSight(on) { showSight = on; lines(); render(); },
+  };
+}
+
 /* ---------- boot ---------- */
 async function start() {
   try { D = await (await fetch("data.json", { cache: "no-store" })).json();
         R4 = await (await fetch("step4_data.json", { cache: "no-store" })).json(); }      // always the latest numbers
   catch (e) { document.body.insertAdjacentHTML("afterbegin", `<p>数据载入失败：${e.message}。请通过本地服务器打开（python3 -m http.server -d demo）。</p>`); return; }
+  try { M5 = await (await fetch("model_data.json", { cache: "no-store" })).json(); } catch (e) { console.error("model data", e); M5 = null; }
   D.bodies.forEach((b, k) => { bodyIdx[b.name] = k; shown.add(k); });
   showPhoto(D.photos.findIndex(p => p.id === "2024-01-09T1823") >= 0 ? D.photos.findIndex(p => p.id === "2024-01-09T1823") : 0);
   s1cur = Math.max(0, D.photos.findIndex(p => p.id === "2023-12-17T2236"));
   // buttons first, then each chart on its own: one chart failing must not stop the rest of the page
   const safe = (f) => { try { f(); } catch (e) { console.error(f.name, e); } };
   bind();
-  for (const f of [ruler, wall, () => s1detail(s1cur), direction, orbit, raw4, tracks4, fold4, peel4, joint4, rivals4, tilt4, kepler4]) safe(f);
+  for (const f of [ruler, wall, () => s1detail(s1cur), direction, orbit, raw4, tracks4, fold4, peel4, joint4, rivals4, tilt4, kepler4, m5init]) safe(f);
 }
 function bind() {
   $("ruler").addEventListener("click", (e) => { const i = e.target.dataset?.i; if (i != null) s1detail(+i); });
@@ -1186,6 +1522,18 @@ function bind() {
   $("trk-night").addEventListener("click", (e) => { const n = e.target.closest("button")?.dataset.n; if (n) { trkNight = n; tracks4(); } });
   $("fold-p").addEventListener("click", (e) => { const p = e.target.closest("button")?.dataset.p; if (p) { foldP = +p; fold4(); } });
   $("j-range").addEventListener("click", (e) => { const r = e.target.closest("button")?.dataset.r; if (r != null) { jRange = +r; joint4(); } });
+  if (M5) {
+    $("m5-t").addEventListener("input", () => { m5play(false); m5time(+$("m5-t").value); });
+    $("m5-prev").onclick = () => m5step(-1);
+    $("m5-next").onclick = () => m5step(1);
+    $("m5-play").onclick = () => m5play(!m5playing);
+    for (const id of ["m5-ov-dots", "m5-ov-pred"]) $(id).addEventListener("change", () => m5photo(m5i));
+    $("m5-views").addEventListener("click", (e) => { const v = e.target.closest("button")?.dataset.v; if (!v) return;
+      document.querySelectorAll("#m5-views button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === v))); if (M5S) M5S.setView(v); });
+    $("m5-flip").addEventListener("change", () => { if (M5S) M5S.setDepth($("m5-flip").checked ? -1 : 1); });
+    $("m5-sight").addEventListener("change", () => { if (M5S) M5S.setSight($("m5-sight").checked); });
+    $("m5-all").addEventListener("toggle", m5gallery);
+  }
   if ($("m-range")) $("m-range").addEventListener("click", (e) => { const r = e.target.closest("button")?.dataset.r; if (r != null) { range = +r; motion(); } });
   if ($("m-legend")) $("m-legend").addEventListener("click", (e) => { const k = e.target.closest("button")?.dataset.b; if (k != null) { shown.has(+k) ? shown.delete(+k) : shown.add(+k); motion(); } });
 }
