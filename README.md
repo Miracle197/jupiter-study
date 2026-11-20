@@ -11,7 +11,7 @@ periodically. Work everything out from the photos, one step at a time.
 **Allowed**: the photos; what the camera wrote into them (time, zoom, iPhone
 gravity sensor); the observing site given by the photographer
 (`data/observer.json`: 33.976683° N, 117.310320° W, known to within 30 m).
-**Not used**: any ephemeris, orbit, moon name, size of or distance to Jupiter.
+**Not used**: any ephemeris, orbit, moon name, size of or distance to Jupiter. The one exception is the last section, which checks the accuracy against NASA's ephemeris.
 
 Every result carries its **photo error** (from measuring pixels). The **site
 error** (from not knowing the camera position better than 30 m) was worked out
@@ -29,6 +29,7 @@ Steps follow the demo page; the script numbers are older and do not quite match.
 | Step 3 | Turn every photo: line horizontal, the same end of the sky to the right | `step2_orient.py`, `field_rotation.py` | ✅ |
 | Step 4 | How long each of the four takes to go round (redone from scratch, parts 1–8) | `step4_*.py` | ✅ |
 | Step 5 | The model: every photo's own scale, turned and labelled photos, a 3D model | `step5_model.py` | ✅ |
+| Last | Accuracy against NASA's ephemeris (the only place it is used) | `check_nasa.py` | ✅ |
 | Comparison | The earlier identification and periods | `step3_motion.py` | kept |
 
 **Main result** (step 5, from the photos alone): four bodies go around Jupiter on circles seen almost edge-on, all in one plane and all the same way round.
@@ -229,6 +230,46 @@ On the page, step 5 has a time slider (with play), the photo nearest that moment
 (from the Earth / from above / from the side / oblique, with the sight line of every dot in the photo). What the photos cannot tell: which half of each orbit is in front of Jupiter (the model can swap front and back and looks the same from the Earth),
 whether +X is east or west, the true size and mass, and what the moons and Jupiter look like.
 
+## Last: against NASA (`check_nasa.py`)
+
+Steps 1–5 use no NASA numbers at all. This is the one exception: the photo-only results compared with the moons' positions
+from NASA's JPL Horizons system (same observing site, each photo's camera time, light time corrected; see `data/nasa/README.md`).
+The two things the photos cannot tell, how many true Jupiter radii the photos' "1 Rj" is and whether +X points east or west,
+are fitted from all the dots at once.
+
+| Item | Photos only | NASA | Verdict |
+|---|---|---|---|
+| Which bodies | I–IV (numbered outward) | I = Io, II = Europa, III = Ganymede, IV = Callisto | match |
+| Which dot is which | 205 dots | 0 given to the wrong body; 0 moons in plain view without a dot | all right |
+| Periods | see below | within 1 sigma of NASA's periods fitted the same way over the same 40 days | within errors |
+| Dot positions | after step 5's scale fix | median 0.053 Jupiter radii (about 1.2"); 0.20 with step 1's scale | precise |
+| Each photo's scale | step 1 about ±5%, refined in step 5 | against NASA: step 1 off by 4.5%, step 5 by 0.4% | the fix works |
+| How big is "1 Rj" | overexposed, uncalibrated | the photos' 1 Rj = **1.202** true Jupiter radii (the glare makes Jupiter 20% too big); the same for all four | new |
+| Mirrored image | no (step 3) | not mirrored | match |
+| +X points | cannot tell | east | new |
+| Which half is in front | cannot tell | the half moving toward +X is behind Jupiter (tick the front/back swap in the step 5 model) | new |
+| Orbit tilt | I -3.0°, II -3.0°, III -2.5°, IV -1.7° | I -3.1°, II -3.4°, III -3.2°, IV -2.9° | outer ones too small |
+| Jupiter highest, Dec 3 | 21:20.6 ± 2 min | 21:16.6 (4.0 min apart) | close |
+| Jupiter's declination | +13.8° ± 0.7° | +12.5° (1.3° apart) | close |
+| Jupiter's daily drift against the stars | 0.56 ± 0.11 min earlier | 0.09 min earlier (4.3 sigma) | error too small |
+| Clock of the Jan 10 photo | camera 20:11 is right | rms 0.05 Rj at 20:11, 0.70 at 18:11 | match |
+
+| Body | Photos only (d) | NASA: same 40 days, same fit | diff | NASA: true orbit | diff |
+|---|---|---|---|---|---|
+| I = Io | 1.76895 ± 0.00020 | 1.76907 | -0.6σ | 1.76914 | -1.0σ |
+| II = Europa | 3.55108 ± 0.00070 | 3.55077 | +0.4σ | 3.55118 | -0.1σ |
+| III = Ganymede | 7.15117 ± 0.00179 | 7.15153 | -0.2σ | 7.15455 | -1.9σ |
+| IV = Callisto | 16.67298 ± 0.00584 | 16.67635 | -0.6σ | 16.68902 | -2.7σ |
+
+![against NASA](output/check/nasa.png)
+
+- **Periods**: the photos measure the period as seen from the Earth; it agrees with NASA's under the same conditions to about 1 sigma. Against the true orbital periods the outer ones come out short (IV by 23 minutes): the Earth itself moved during these 40 days (step 5, note 6).
+- **Outer tilts too small**: each photo was turned with a line fitted to its own dots, weighted toward the far ones, which turns away part of the outermost body's drift across the line.
+  Turned by step 3's method B alone (gravity sensor + turning sky, no dots): I -3.6°, II -3.7°, III -3.1°, IV -2.5°, much closer to NASA. Steps 1–5 were not changed: that change would come from having seen NASA's answer.
+- **The sky's daily drift**: off by 4.3 sigma, so its error was underestimated; it does not affect the turning (36 of 36 pairs right).
+- **Unit**: multiply the photos' distances by 1.20 for true Jupiter radii.
+- **Borrowed numbers give the mass** (mostly borrowed, not a photo result): with NASA's unit and Jupiter's radius and Newton's G, the photos' periods and reaches give 1.904×10²⁷ kg (NASA 1.898×10²⁷).
+
 ## Comparison: the earlier identification and periods (`step3_motion.py`)
 
 This is how it was done before step 4 was redone, kept for comparison; step 1's ruler check and the step 2 figures on the page still use its scale corrections and labels. Its results agree with step 5 within the errors.
@@ -278,14 +319,14 @@ median residual is 0.05 Rj.
 ## Demo page
 
 `demo/` is an interactive page that follows the five steps above: every photo as taken and labelled, the rulers compared,
-the evidence for going around, the turning-sky curve, step 4's parts 1–8, and step 5's time slider, turned and labelled photos and 3D model. To view it locally:
+the evidence for going around, the turning-sky curve, step 4's parts 1–8, step 5's time slider, turned and labelled photos and 3D model, and the final comparison with NASA. To view it locally:
 
 ```bash
 python3 -m http.server -d demo 8000
 ```
 
 then open http://localhost:8000/view.html. The 3D model loads three.js from jsdelivr and needs the internet; the rest does not.
-`demo/data.json` comes from `scripts/make_demo.py`, `demo/step4_data.json` from the step 4 scripts, `demo/model_data.json` and `demo/final/` from `scripts/step5_model.py`.
+`demo/data.json` comes from `scripts/make_demo.py`, `demo/step4_data.json` from the step 4 scripts, `demo/model_data.json` and `demo/final/` from `scripts/step5_model.py`, `demo/nasa_data.json` from `scripts/check_nasa.py`.
 `python3 tools/bundle_preview.py demo out.html` packs the page, data and pictures into one file that opens with a double-click.
 
 ## Layout
@@ -294,6 +335,7 @@ then open http://localhost:8000/view.html. The 3D model loads three.js from jsde
 data/raw/                 58 original photos (file name = local time)
 data/observer.json        observing site
 data/visual_check.json    dots confirmed photo by photo (pixel coordinates)
+data/nasa/                NASA JPL Horizons moon positions (used only for the final check)
 scripts/common.py         reading photos, EXIF, gravity sensor, decoding
 scripts/detect.py         Jupiter (circle through 360 rays), candidate dots, dot brightness
 scripts/step1_scale.py    step 1: same scale (with the exposure fix)
@@ -302,8 +344,10 @@ scripts/field_rotation.py step 3, method B: the turning-sky model
 scripts/step3_motion.py   comparison: the earlier identification and periods
 scripts/step4_*.py        step 4, parts 1-8: raw_plot, tracks, fold, peel, inner, joint
 scripts/step5_model.py    step 5: final fit, turned and labelled photos, model figure
+scripts/check_nasa.py     last: against NASA (the only script that reads an ephemeris)
 scripts/make_demo.py      data and pictures for the demo page
 output/step1/ ... step5/  results of every step (csv, json, figures)
+output/check/             the comparison with NASA (nasa.json, nasa.png)
 demo/                     demo page (index.html for claude.ai, view.html for a local server)
 tests/                    Python tests; tests/page/ tests the page script (Node)
 tools/bundle_preview.py   packs the page into one file
@@ -314,14 +358,14 @@ tools/bundle_preview.py   packs the page into one file
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
-for s in step1_scale step2_orient step3_motion step4_raw_plot step4_tracks step4_fold step4_peel step4_inner step4_joint step5_model make_demo; do .venv/bin/python scripts/$s.py; done
+for s in step1_scale step2_orient step3_motion step4_raw_plot step4_tracks step4_fold step4_peel step4_inner step4_joint step5_model check_nasa make_demo; do .venv/bin/python scripts/$s.py; done
 ```
 
 About 10 minutes in all (a cloud machine; longer on a Raspberry Pi 5). The first run decodes the photos into `cache/` (about 650 MB, not in git). Tests:
 
 ```bash
 .venv/bin/python -m pytest -q tests
-for t in run click tracks fold step4 joint model; do node tests/page/$t.js demo; done
+for t in run click tracks fold step4 joint model nasa; do node tests/page/$t.js demo; done
 ```
 
 The previous version (analysis using NASA ephemerides) is in the git history

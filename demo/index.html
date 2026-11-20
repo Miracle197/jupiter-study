@@ -19,6 +19,7 @@
   --sky-fg: #d8dde8;
   --on-sky-1: #ef7a63; --on-sky-2: #e8b445; --on-sky-3: #5cc485; --on-sky-4: #74a2f5;
   --on-sky-muted: #8b94a8; --on-sky-rule: #2a3345; --on-sky-button: #121722; --on-sky-deep: #03050a;
+  --ok-bg: #e2f2e7; --ok-fg: #1d6337; --info-bg: #e3eafb; --info-fg: #24448f; --warn-bg: #fbf0d9; --warn-fg: #7a5208; --bad-bg: #fbe3df; --bad-fg: #8f2a1c;
   --display: "Noto Serif SC", "Songti SC", "SimSun", serif;
   --body: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -26,11 +27,13 @@
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #0e121a; --surface: #151b26; --fg: #e4e8f0; --muted: #9aa3b5; --rule: #2a3242; --accent: #8fa8f0;
   --jupiter: #e6ac55; --b1: #ef7a63; --b2: #e8b445; --b3: #5cc485; --b4: #74a2f5; --b5: #b993ec; --b6: #7cc3cf;
-  --none: #6f7789; color-scheme: dark } }
+  --none: #6f7789; --ok-bg: #173523; --ok-fg: #8fdcab; --info-bg: #1b2747; --info-fg: #a9c0f7; --warn-bg: #3a2c0e; --warn-fg: #f0c36a;
+  --bad-bg: #42201b; --bad-fg: #f3a597; color-scheme: dark } }
 :root[data-theme="dark"] {
   --bg: #0e121a; --surface: #151b26; --fg: #e4e8f0; --muted: #9aa3b5; --rule: #2a3242; --accent: #8fa8f0;
   --jupiter: #e6ac55; --b1: #ef7a63; --b2: #e8b445; --b3: #5cc485; --b4: #74a2f5; --b5: #b993ec; --b6: #7cc3cf;
-  --none: #6f7789; color-scheme: dark }
+  --none: #6f7789; --ok-bg: #173523; --ok-fg: #8fdcab; --info-bg: #1b2747; --info-fg: #a9c0f7; --warn-bg: #3a2c0e; --warn-fg: #f0c36a;
+  --bad-bg: #42201b; --bad-fg: #f3a597; color-scheme: dark }
 
 * { box-sizing: border-box }
 body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.7;
@@ -143,6 +146,14 @@ details summary { cursor: pointer; color: var(--accent); font-size: 14px; font-w
 .bench details summary { color: var(--jupiter) }
 #m5-table td.n, #m5-params td.n, #m5w-table td.n { white-space: nowrap }
 .why p { max-width: 72ch }
+.pill { display: inline-block; padding: 1px 9px; border-radius: 10px; font-size: 12px; font-weight: 500; white-space: nowrap }
+.pill.ok { background: var(--ok-bg); color: var(--ok-fg) }
+.pill.info { background: var(--info-bg); color: var(--info-fg) }
+.pill.warn { background: var(--warn-bg); color: var(--warn-fg) }
+.pill.bad { background: var(--bad-bg); color: var(--bad-fg) }
+#nasa-score td { vertical-align: top }
+#nasa-score td:first-child { white-space: nowrap; font-weight: 500 }
+#nasa-notes p { max-width: 72ch; margin: 0 0 10px }
 .bench button, .bench select { background: var(--on-sky-button); color: var(--sky-fg); border: 1px solid var(--on-sky-rule); border-radius: 4px; font: 500 13px var(--body); padding: 5px 11px }
 .bench button[aria-pressed="true"] { background: var(--jupiter); color: var(--on-sky-deep); border-color: var(--jupiter) }
 .bench label { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--sky-fg) }
@@ -457,6 +468,7 @@ details summary { cursor: pointer; color: var(--accent); font-size: 14px; font-w
         </div>
         <label><input type="checkbox" id="m5-flip"> 前后对调</label>
         <label><input type="checkbox" id="m5-sight" checked> 照片里的视线</label>
+        <label><input type="checkbox" id="m5-nasa"> 叠加 NASA 的位置（见最后一节）</label>
       </div>
       <div class="scene" id="m5-scene"><p class="m5-noscene" id="m5-noscene" hidden>3D 模型需要联网加载 three.js；照片和下面的表格不受影响。</p></div>
       <p class="caption">拖动旋转，滚轮或双指缩放。<b>斜视</b>：从轨道平面斜上方看。<b>从地球看</b>就是照片里的样子：四个圈几乎侧对着我们，压成了一条线。
@@ -513,6 +525,37 @@ details summary { cursor: pointer; color: var(--accent); font-size: 14px; font-w
     </div>
     <p class="caption">更新记录 · 2026-11-20：第 5 步：四条摆动和每张照片的比例一起拟合；照片转正、统一比例、标注；3D 模型。
       加注解：为什么光点误差棒长、周期却很准（修正比例前后的偏差、“数圈数”、公式下限、这是从地球上看到的周期）。</p>
+  </section>
+
+  <section aria-labelledby="nasa-h">
+    <div class="eyebrow">最后 · 核对</div>
+    <h2 id="nasa-h">和 NASA 的星历比一比</h2>
+    <p>前面五步，一个 NASA 的数字都没用。这一节是唯一的例外：把只用照片得到的结果，和 NASA 喷气推进实验室（JPL）的 Horizons 系统给出的四颗卫星位置放在一起比较。
+      NASA 的位置是在同一个拍摄地点、按每张照片的相机时间算的（光从木星传过来要走半个多小时，已经算进去）。
+      照片本身定不出的两样东西，“照片里的 1 Rj 是多少个真实的木星半径”和“+X 朝东还是朝西”，比较时用全部光点一起定出来。</p>
+    <div class="figure">
+      <h3>成绩单</h3>
+      <div class="scroll"><table id="nasa-score"></table></div>
+      <div class="caption" id="nasa-score-cap"></div>
+    </div>
+    <div class="figure">
+      <h3>周期：照片测的和 NASA 的</h3>
+      <div class="scroll"><table id="nasa-periods"></table></div>
+      <div class="caption" id="nasa-periods-cap"></div>
+    </div>
+    <div class="figure">
+      <h3>每个光点和 NASA 的位置</h3>
+      <div class="btns" id="nasa-range"></div>
+      <svg class="chart" id="nasa-chart" viewBox="0 0 960 540" role="img" aria-label="NASA 的四条曲线、照片里的光点，以及两者之差"></svg>
+      <div class="legend" id="nasa-legend"></div>
+      <div class="caption" id="nasa-chart-cap"></div>
+    </div>
+    <div class="figure">
+      <h3>哪里有偏差，为什么</h3>
+      <div id="nasa-notes"></div>
+    </div>
+    <p class="caption">NASA 数据来自本项目早先的版本（main 分支）从 JPL Horizons 下载的结果，说明见 <span class="mono">data/nasa/README.md</span>；对比由 <span class="mono">scripts/check_nasa.py</span> 计算。
+      更新记录 · 2026-11-20：加入和 NASA 的对比。</p>
   </section>
 
   <footer class="caption">数据由 <span class="mono">scripts/make_demo.py</span> 从第 1–3 步的结果生成；第 3 步方向与第 4 步周期只来自照片、EXIF、手机重力传感器和拍摄地点（地点误差可忽略，未列出）。</footer>
@@ -1535,6 +1578,11 @@ function m5scene(box) {
                   [new T.Vector3(0, 0, 23), new T.Vector3(0, 0, 26.5), label("朝地球", "muted")]].map(([a, b, el]) => {
     const h = new T.ArrowHelper(b.clone().sub(a).normalize(), a, a.distanceTo(b), muted, 1.2, 0.7); scene.add(h); return { a, b, el, h }; });
   const sight = new T.Group(); scene.add(sight);
+  // NASA's moons, only when asked (the last section): wire spheres with NASA's names
+  const nasaMarks = Bs.map((b, k) => { const g = new T.Mesh(new T.SphereGeometry(0.9, 12, 8), new T.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.75 }));
+    g.visible = false; scene.add(g); return g; });
+  const nasaTags = Bs.map((b, k) => { const el = label(NS && NS.names ? NS.names[b.name] : "NASA", "muted"); el.hidden = true; return el; });
+  let showNasa = false;
   let depth = 1, t = 0, photo = null, showSight = true, view = "free", anim = null;
   const theta = (b, tt) => 2 * Math.PI * b.freq * tt + b.phase_rad;
   // a circle seen almost edge-on: X = A sin(theta), Y = A sin(tilt) cos(theta), depth = +-A cos(tilt) cos(theta)
@@ -1544,7 +1592,11 @@ function m5scene(box) {
     Bs.forEach((b, k) => { const pts = []; for (let i = 0; i < 360; i++) pts.push(pos(b, 2 * Math.PI * i / 360)); orbits[k].geometry.setFromPoints(pts); });
     place();
   }
-  function place() { Bs.forEach((b, k) => moons[k].position.copy(pos(b, theta(b, t)))); }
+  function place() {
+    Bs.forEach((b, k) => moons[k].position.copy(pos(b, theta(b, t))));
+    Bs.forEach((b, k) => { nasaMarks[k].visible = showNasa && !!NS;
+      if (nasaMarks[k].visible) nasaMarks[k].position.set(nasaAt(k, t, "X"), nasaAt(k, t, "Y"), nasaAt(k, t, "toward")); });
+  }
   function lines() {
     sight.clear();
     if (!photo || !showSight) return;
@@ -1589,6 +1641,7 @@ function m5scene(box) {
       r.h.visible = Math.hypot((pb.x - pa.x) * w / 2, (pb.y - pa.y) * h / 2) > 18; });
     renderer.render(scene, camera);
     moons.forEach((m, k) => tag(tags[k], m.position));
+    nasaMarks.forEach((g, k) => { if (g.visible) { tag(nasaTags[k], g.position); nasaTags[k].style.transform += " translateY(18px)"; } else nasaTags[k].hidden = true; });
     arrows.forEach(r => { tag(r.el, r.b); if (!r.h.visible) r.el.hidden = true; });
   }
   function resize() {
@@ -1608,7 +1661,102 @@ function m5scene(box) {
     setView(name) { setView(name, false); },
     setDepth(sign) { depth = sign; build(); render(); },
     setSight(on) { showSight = on; lines(); render(); },
+    setNasa(on) { showNasa = on; place(); render(); },
   };
+}
+
+/* ---------- last: against NASA (the only place where NASA data is used) ---------- */
+let NS = null, nRange = 0;
+const N_RANGES = [["全部 40 天", [-0.5, 40.5]], ["12 月 3–13 日", [0.5, 10.5]], ["1 月 8–11 日", [36.5, 40.5]], ["1 月 9 日夜", [37.65, 38.1]]];
+const pill = (kind, text) => `<span class="pill ${kind}">${text}</span>`;
+const nasaAt = (k, t, key) => {                          // NASA's moon k at time t, in the photos' unit and orientation
+  const C = NS.curves, a = C.bodies[M5.bodies[k].name][key], x = (t - C.t0) / C.step_d, i = Math.max(0, Math.min(a.length - 2, Math.floor(x))), f = x - i;
+  return a[i] * (1 - f) + a[i + 1] * f;
+};
+const hm2 = (h) => `${Math.floor(h)}:${((h % 1) * 60).toFixed(1).padStart(4, "0")}`;      // e.g. 21:20.6, as in step 3
+function nasaScore() {
+  const N = NS, B = M5.bodies, P = N.periods, T = N.tilts, sk = N.sky, pos = N.positions, ps = N.photo_scale, L = N.labels;
+  const sig = (q) => `${q >= 0 ? "+" : "−"}${fmt(Math.abs(q), 1)}`;
+  const maxSame = Math.max(...P.map(q => Math.abs(q.sigma_vs_same)));
+  const unit = 1 / N.unit_c, arc = N.positions.arcsec_per_true_rj;
+  const hiOurs = sk.ours.highest_2023_12_03_local, hiNasa = sk.nasa.highest_2023_12_03_local, dMin = (hiOurs - hiNasa) * 60;
+  const decD = sk.ours.declination_deg - sk.nasa.declination_deg, drD = sk.ours.drift_min_per_day_vs_stars - sk.nasa.drift_min_per_day_vs_stars;
+  const rows = [
+    ["四个天体是谁", `I、II、III、IV（按离木星从近到远编号）`, B.map(b => `${b.name} = ${N.names[b.name]}`).join("、"), pill("ok", "对上了")],
+    ["每个光点属于谁", `${L.dots_checked} 个光点分给了四颗`, `${L.wrong.length ? L.wrong.length + " 个分错" : "一个都没分错"}；NASA 说看得到（不在木星前后、不在光晕里、在照片里）的卫星，${N.missed.length ? "漏了 " + N.missed.length + " 颗" : "一颗都没漏"}`,
+      pill(L.wrong.length || N.missed.length ? "warn" : "ok", L.wrong.length || N.missed.length ? "基本对" : "全对")],
+    ["周期", "第 5 步：见下表", `和 NASA 在同样 40 天、按同样方法拟合的周期相比，四颗都在 ${fmt(Math.ceil(maxSame * 10) / 10, 1)} 倍误差以内`, pill("ok", "在误差内")],
+    ["每个光点的位置", `第 5 步修正每张照片的比例以后`, `离 NASA 的位置中位只差 ${fmt(pos.median_abs_x_true_rj_step5, 3)} 个木星半径（约 ${fmt(pos.median_abs_x_true_rj_step5 * arc, 1)}″）；只用第 1 步的比例是 ${fmt(pos.median_abs_x_true_rj_step1, 2)}`, pill("ok", "很准")],
+    ["每张照片的比例", `第 1 步约 ±${fmt(100 * M5.summary.scale_fix_typical, 1)}%，第 5 步再修正`, `和 NASA 比：第 1 步差 ${fmt(100 * ps.step1_scatter, 1)}%，第 5 步修正后只差 ${fmt(100 * ps.step5_scatter, 1)}%（${ps.photos} 张）`, pill("ok", "修正有效")],
+    ["“1 Rj” 有多大", "过曝的木星当尺子，没法校准", `照片里的 1 Rj = <b>${fmt(unit, 3)}</b> 个真实木星半径（过曝把木星撑大了 ${fmt(100 * (unit - 1), 0)}%）；四颗给出同一个比例（${P.map(q => fmt(1 / q.unit_ratio, 3)).join("、")}）`, pill("info", "新知道的")],
+    ["像有没有镜像", "没有镜像（第 3 步从天空转动的方向推出）", N.mirrored ? "有镜像" : "没有镜像", pill(N.mirrored ? "bad" : "ok", N.mirrored ? "错了" : "对上了")],
+    ["+X 朝哪边", "照片看不出", `+X 朝<b>${N.plus_x_is === "east" ? "东" : "西"}</b>，+Y 朝木星的${N.plus_y_is.includes("south") ? "南" : "北"}极`, pill("info", "新知道的")],
+    ["哪半圈在前面", "照片看不出（模型默认：往 +X 走时在前面）", N.front.model_default_right ? "模型默认的就是对的" : `往 +X（${N.plus_x_is === "east" ? "东" : "西"}）走的那半圈在木星<b>后面</b>：第 5 步模型里勾选“前后对调”才是真实的情况`, pill("info", "新知道的")],
+    ["轨道的倾斜", T.map(q => `${q.body} ${fmt(q.ours_deg, 1)}°`).join("，"), T.map(q => `${q.body} ${fmt(q.nasa_deg, 1)}°`).join("，") + `（地球在木星赤道面以上 ${fmt(T[0].sub_earth_lat_deg, 1)}°）`,
+      pill("warn", "外侧偏小")],
+    ["木星 12/3 升到最高", `${hm2(hiOurs)} ± ${fmt(sk.ours.highest_err_min, 0)} 分钟`, `${hm2(hiNasa)}（差 ${fmt(Math.abs(dMin), 1)} 分钟，${fmt(Math.abs(dMin) / sk.ours.highest_err_min, 1)} 倍误差）`, pill(Math.abs(dMin) / sk.ours.highest_err_min < 2.5 ? "ok" : "warn", "接近")],
+    ["木星的赤纬", `+${fmt(sk.ours.declination_deg, 1)}° ± ${fmt(sk.ours.declination_err_deg, 1)}°`, `+${fmt(sk.nasa.declination_deg, 1)}°（差 ${fmt(Math.abs(decD), 1)}°，${fmt(Math.abs(decD) / sk.ours.declination_err_deg, 1)} 倍误差）`, pill(Math.abs(decD) / sk.ours.declination_err_deg < 2.5 ? "ok" : "warn", "接近")],
+    ["木星每天在恒星间的漂移", `每天比恒星早 ${fmt(-sk.ours.drift_min_per_day_vs_stars, 2)} ± ${fmt(sk.ours.drift_err, 2)} 分钟`, `早 ${fmt(-sk.nasa.drift_min_per_day_vs_stars, 2)} 分钟（差 ${fmt(Math.abs(drD) / sk.ours.drift_err, 1)} 倍误差）`, pill(Math.abs(drD) / sk.ours.drift_err < 2.5 ? "ok" : "bad", Math.abs(drD) / sk.ours.drift_err < 2.5 ? "接近" : "误差估小了")],
+    ["1 月 10 日那张的时间", "相机时间 20:11 对，文件名 18:11 错（第 3 步）", `按 20:11，光点离 NASA 的位置均方根 ${fmt(N.clock_2024_01_10["camera_20:11"], 2)} Rj；按 18:11 是 ${fmt(N.clock_2024_01_10["file_name_18:11"], 2)} Rj`, pill("ok", "对上了")],
+  ];
+  $("nasa-score").innerHTML = `<thead><tr><th>项目</th><th>只用照片</th><th>NASA</th><th>结论</th></tr></thead><tbody>` +
+    rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("") + "</tbody>";
+  $("nasa-score-cap").textContent = `“对上了”“在误差内”是照片的结论被 NASA 证实；“新知道的”是照片本身定不出、只有 NASA 能告诉我们的；“外侧偏小”“误差估小了”是有偏差的地方，原因见下面。`;
+}
+function nasaPeriods() {
+  const P = NS.periods, sg = (v) => `${v >= 0 ? "+" : "−"}${fmt(Math.abs(v), 1)} 倍`;
+  $("nasa-periods").innerHTML = `<thead><tr><th>天体</th><th class="n">只用照片（天）</th><th class="n">NASA：同样 40 天、同样拟合</th><th class="n">差</th><th class="n">NASA：真正绕木星一圈</th><th class="n">差</th></tr></thead><tbody>` +
+    P.map((q, k) => `<tr><td><span class="swatch" style="background:${JB(k)}"></span> ${q.body} = ${q.moon}</td><td class="n">${fmt(q.ours, 5)} ± ${fmt(q.err, 5)}</td>` +
+      `<td class="n">${fmt(q.nasa_same_moments, 5)}</td><td class="n">${sg(q.sigma_vs_same)}</td><td class="n">${fmt(q.nasa_orbit, 5)}</td><td class="n">${sg(q.sigma_vs_orbit)}</td></tr>`).join("") + "</tbody>";
+  const iv = P[P.length - 1];
+  $("nasa-periods-cap").innerHTML = `“同样 40 天、同样拟合”：在照片拍摄的那些时刻取 NASA 的位置，用和第 4、5 步一样的来回摆动去拟合，也就是“从地球上看到的周期”。照片测的周期和它相比都在 1 倍误差左右，说明误差棒是诚实的。` +
+    `和“真正绕木星一圈”的时间相比，外侧的偏短：${iv.body} 短了 ${fmt((iv.nasa_orbit - iv.ours) * 1440, 0)} 分钟（${fmt(Math.abs(iv.sigma_vs_orbit), 1)} 倍误差）。这正是第 5 步注解 ⑥ 说的：这 40 天里地球自己在动，看到的周期和真正的周期不一样，周期越长差得越多。`;
+}
+function nasaChart() {
+  const W = 960, H = 540, [a, b] = N_RANGES[nRange][1], short = b - a < 1;
+  $("nasa-range").innerHTML = N_RANGES.map(([l], i) => `<button type="button" data-r="${i}" class="${i === nRange ? "on" : ""}">${l}</button>`).join("");
+  const xfmt = short ? (v) => { const h = (v % 1) * 24; return `${String(Math.floor(h + 1e-6) % 24).padStart(2, "0")}:${String(Math.round((h % 1) * 60) % 60).padStart(2, "0")}`; }
+                     : (v) => { const d = new Date(Date.UTC(2023, 11, 3 + Math.floor(v))); return `${d.getUTCMonth() + 1}/${d.getUTCDate()}`; };
+  const xt = short ? niceTicks(a, b, 8) : niceTicks(a, b, 10).filter(v => Number.isInteger(v));
+  const top = frame(W, H, { l: 56, r: 14, t: 12, b: 200 }, [a, b], [-25, 25], { ylabel: "X（照片的 Rj）", xticks: [] });
+  const bot = frame(W, H, { l: 56, r: 14, t: 376, b: 42 }, [a, b], [-0.4, 0.4], { ylabel: "光点 − NASA", xlabel: short ? "当地时间" : "日期", xticks: xt, xfmt, yticks: [-0.4, -0.2, 0, 0.2, 0.4] });
+  let s = top.s + bot.s;
+  M5.bodies.forEach((B, k) => { let d = ""; const n = 900; for (let i = 0; i <= n; i++) { const t = a + (b - a) * i / n; d += `${i ? "L" : "M"}${top.x(t)},${top.y(nasaAt(k, t, "X"))}`; }
+    s += `<path d="${d}" style="fill:none;stroke:${JB(k)};stroke-width:1.2;opacity:0.75"/>`; });
+  M5.photos.forEach(p => { if (p.t < a || p.t > b) return; p.dots.forEach(d => { if (!d.bodies.length) return;
+    s += `<circle cx="${top.x(p.t)}" cy="${top.y(d.X)}" r="3.4" style="fill:${JB(d.bodies[0])};stroke:var(--surface);stroke-width:0.8"/>`; }); });
+  s += `<line class="axis" x1="56" x2="${W - 14}" y1="${bot.y(0)}" y2="${bot.y(0)}"/>`;
+  for (const [t, k, r] of NS.dot_residuals_true_rj) { if (t < a || t > b) continue; s += `<circle cx="${bot.x(t)}" cy="${bot.y(Math.max(-0.39, Math.min(0.39, r)))}" r="3" style="fill:${JB(k)}"/>`; }
+  s += `<text x="${62}" y="${top.y(23.5)}" style="fill:var(--fg)">线：NASA 的四颗（换成照片的单位和方向）；点：照片里的光点（第 5 步）</text>`;
+  s += `<text x="${62}" y="${bot.y(0.36)}" style="fill:var(--fg)">每个光点和 NASA 位置之差（真实木星半径）</text>`;
+  $("nasa-chart").innerHTML = s;
+  $("nasa-legend").innerHTML = M5.bodies.map((B, k) => `<span><span class="swatch" style="background:${JB(k)}"></span>${B.name} = ${NS.names[B.name]}</span>`).join("");
+  const rs = NS.dot_residuals_true_rj.map(v => Math.abs(v[2])).sort((u, w) => u - w);
+  $("nasa-chart-cap").innerHTML = `${rs.length} 个光点和 NASA 位置之差：中位 ${fmt(rs[Math.floor(rs.length / 2)], 3)} 个木星半径，90% 在 ${fmt(rs[Math.floor(rs.length * 0.9)], 2)} 以内，最大 ${fmt(rs[rs.length - 1], 2)}。` +
+    `同一张照片里的几个点常常一起偏向同一边：那是这张照片的中心或比例还剩一点误差。切换时间范围可以放大看一晚之内的移动。`;
+}
+function nasaNotes() {
+  const T = NS.tilts, P = NS.periods, m = NS.borrowed_mass_kg, unit = 1 / NS.unit_c;
+  const e27 = (v) => `${fmt(v / 1e27, 3)}×10²⁷`;
+  $("nasa-notes").innerHTML = [
+    `<b>轨道的倾斜，外侧偏小。</b>四颗都是负的、大约同样斜，这和 NASA 一致（地球在木星赤道面以上约 ${fmt(T[0].sub_earth_lat_deg, 1)}°，四颗卫星都在木星赤道面里，所以看上去都斜这么多）。` +
+      `但越外面的偏得越少：${T.map(q => `${q.body} ${fmt(q.ours_deg, 1)}° 对 ${fmt(q.nasa_deg, 1)}°`).join("，")}。原因在第 3 步：转正时，线的方向是用这张照片里的光点自己定的，离木星远的光点权重大，` +
+      `最外面那颗离线的那一点就被“转掉”了一部分。改用只靠重力传感器和天空旋转规律（第 3 步的方法 B，不用光点）来转正，再量一次：` +
+      `${T.map(q => `${q.body} ${fmt(q.gravity_sky_deg, 1)}° ± ${fmt(q.gravity_sky_err_deg, 1)}°`).join("，")}，就和 NASA 接近多了。前面几步没有按这个改：看过 NASA 的答案再回头改方法，就不算只靠照片了。`,
+    `<b>第 3 步顺便推出的天空规律。</b>木星升到最高的时刻和赤纬都在 2 倍误差左右；每天在恒星间的漂移差了 ${fmt(Math.abs(NS.sky.ours.drift_min_per_day_vs_stars - NS.sky.nasa.drift_min_per_day_vs_stars) / NS.sky.ours.drift_err, 1)} 倍误差，说明那一项的误差估小了：` +
+      `天空旋转的规律只用了几个数（最高的时刻、赤纬、漂移、镜筒的转动），它们互相牵连，单张照片的方向又只准到几度。这些都是“顺便”的结果，不影响转正（两头 36 对全部判断正确）。`,
+    `<b>周期：从地球上看到的，和真正绕一圈的。</b>见上面的周期表。照片测的周期和 NASA“从地球上看到的周期”在 1 倍误差左右；和真正绕木星一圈的时间相比，${P[2].body}、${P[3].body} 偏短 2–3 倍误差，正是地球自己在动造成的（第 5 步注解 ⑥）。`,
+    `<b>单位。</b>照片里的 1 Rj 是 ${fmt(unit, 3)} 个真实的木星半径：照片里的距离乘以 ${fmt(unit, 2)}，就是真实的木星半径数。例如最远距离：` +
+      `${P.map(q => `${q.body} ${fmt(q.reach_ours * unit, 2)}`).join("、")}。四颗换算出同一个比例，说明第 1 步到第 5 步的比例在四颗之间是一致的，只是整体被过曝撑大了。`,
+    `<b>前后和东西。</b>照片定不出的这两样，NASA 说：+X 朝${NS.plus_x_is === "east" ? "东" : "西"}；往 +X 走的那半圈在木星${NS.front.model_default_right ? "前面" : "后面"}。` +
+      `回到第 5 步的 3D 模型，勾选“叠加 NASA 的位置”（白色网格球），${NS.front.model_default_right ? "就能看到它们和模型重合" : "会看到它们在轨道的另一边；再勾选“前后对调”，就重合了"}。`,
+    `<b>顺便：借来数字算木星的质量。</b>借 NASA 的单位换算和木星半径（71,492 公里），再加上牛顿的引力常数，用照片测的周期和最远距离，四颗算出的木星质量是 ` +
+      `${m.per_body.map(v => e27(v)).join("、")} 千克，平均 ${e27(m.mean)}；NASA 的值是 ${e27(m.nasa)}。这一项主要靠借来的数字，算不上照片的成果，但说明周期和四颗的距离彼此是一致的。`,
+  ].map(t => `<p>${t}</p>`).join("");
+}
+function nasaInit() {
+  if (!NS || !M5) { $("nasa-score").innerHTML = "<tbody><tr><td>NASA 对比数据没有载入。</td></tr></tbody>"; return; }
+  nasaScore(); nasaPeriods(); nasaChart(); nasaNotes();
 }
 
 /* ---------- boot ---------- */
@@ -1617,13 +1765,14 @@ async function start() {
         R4 = await (await fetch("step4_data.json", { cache: "no-store" })).json(); }      // always the latest numbers
   catch (e) { document.body.insertAdjacentHTML("afterbegin", `<p>数据载入失败：${e.message}。请通过本地服务器打开（python3 -m http.server -d demo）。</p>`); return; }
   try { M5 = await (await fetch("model_data.json", { cache: "no-store" })).json(); } catch (e) { console.error("model data", e); M5 = null; }
+  try { NS = await (await fetch("nasa_data.json", { cache: "no-store" })).json(); } catch (e) { console.error("NASA data", e); NS = null; }
   D.bodies.forEach((b, k) => { bodyIdx[b.name] = k; shown.add(k); });
   showPhoto(D.photos.findIndex(p => p.id === "2024-01-09T1823") >= 0 ? D.photos.findIndex(p => p.id === "2024-01-09T1823") : 0);
   s1cur = Math.max(0, D.photos.findIndex(p => p.id === "2023-12-17T2236"));
   // buttons first, then each chart on its own: one chart failing must not stop the rest of the page
   const safe = (f) => { try { f(); } catch (e) { console.error(f.name, e); } };
   bind();
-  for (const f of [ruler, wall, () => s1detail(s1cur), direction, orbit, raw4, tracks4, fold4, peel4, joint4, rivals4, tilt4, kepler4, m5init]) safe(f);
+  for (const f of [ruler, wall, () => s1detail(s1cur), direction, orbit, raw4, tracks4, fold4, peel4, joint4, rivals4, tilt4, kepler4, m5init, nasaInit]) safe(f);
 }
 function bind() {
   $("ruler").addEventListener("click", (e) => { const i = e.target.dataset?.i; if (i != null) s1detail(+i); });
@@ -1640,6 +1789,7 @@ function bind() {
   $("trk-night").addEventListener("click", (e) => { const n = e.target.closest("button")?.dataset.n; if (n) { trkNight = n; tracks4(); } });
   $("fold-p").addEventListener("click", (e) => { const p = e.target.closest("button")?.dataset.p; if (p) { foldP = +p; fold4(); } });
   $("j-range").addEventListener("click", (e) => { const r = e.target.closest("button")?.dataset.r; if (r != null) { jRange = +r; joint4(); } });
+  $("nasa-range").addEventListener("click", (e) => { const r = e.target.closest("button")?.dataset.r; if (r != null && NS && M5) { nRange = +r; nasaChart(); } });
   if (M5) {
     $("m5-t").addEventListener("input", () => { m5play(false); m5time(+$("m5-t").value); });
     $("m5-prev").onclick = () => m5step(-1);
@@ -1651,6 +1801,7 @@ function bind() {
     $("m5-flip").addEventListener("change", () => { if (M5S) M5S.setDepth($("m5-flip").checked ? -1 : 1); });
     $("m5-sight").addEventListener("change", () => { if (M5S) M5S.setSight($("m5-sight").checked); });
     $("m5-all").addEventListener("toggle", m5gallery);
+    $("m5-nasa").addEventListener("change", () => { if (M5S) M5S.setNasa($("m5-nasa").checked); });
     $("m5w-body").addEventListener("click", (e) => { const k = e.target.closest("button")?.dataset.k; if (k != null) { m5wk = +k; m5wiggle(); } });
     $("m5w-d").addEventListener("click", (e) => { const n = e.target.closest("button")?.dataset.n; if (n != null) { m5wn = +n; m5wiggle(); } });
   }

@@ -8,7 +8,7 @@
 
 **能用的信息**：照片本身；照片里相机记录的信息（拍摄时间、变焦、iPhone 重力传感器）；
 拍摄者告诉我的拍摄地点（`data/observer.json`：北纬 33.976683°，西经 117.310320°，误差半径 30 米）。
-**不用的信息**：任何星历、轨道、卫星名字、木星大小或距离。
+**不用的信息**：任何星历、轨道、卫星名字、木星大小或距离。只有最后一节例外：用 NASA 的星历检验准确性。
 
 每个结果都带**照片误差**（来自像素测量）。拍摄地点不确定 30 米带来的**地点误差**每一步都算过，小到可以忽略（周期上不到照片误差的百万分之一），所以不再列出。
 
@@ -23,6 +23,7 @@
 | 第 3 步 | 把每张照片转正：线水平，天上的同一头朝右 | `step2_orient.py`、`field_rotation.py` | ✅ |
 | 第 4 步 | 四个天体各绕一圈要多久（从头重做，①–⑧） | `step4_*.py` | ✅ |
 | 第 5 步 | 模型：每张照片的比例修正、转正标注的照片、3D 模型 | `step5_model.py` | ✅ |
+| 最后 | 和 NASA 的星历对比准确性（唯一用星历的地方） | `check_nasa.py` | ✅ |
 | 对照 | 早一版的认点和周期 | `step3_motion.py` | 保留 |
 
 **主要结果**（第 5 步，只来自照片）：木星旁边有 4 个天体，沿着几乎侧对着我们的圆绕木星转，四个圈在同一个平面里、转的方向相同。
@@ -183,6 +184,45 @@ B 决定哪头是 +X。中位误差 ±0.8°。
 （从地球看 / 俯视 / 侧视 / 斜视，照片里每个光点的视线）。照片定不出：轨道哪半圈在木星前面（模型可以“前后对调”，从地球看完全一样）、
 +X 是东还是西、真实大小和质量、卫星和木星的样子。
 
+## 最后：和 NASA 对比（`check_nasa.py`）
+
+前面五步一个 NASA 的数字都没用。这是唯一的例外：把只用照片得到的结果和 NASA JPL Horizons 给出的四颗卫星位置比较
+（同一个拍摄地点、按每张照片的相机时间，光行时已改正；数据和来源见 `data/nasa/README.md`）。照片定不出的两样，
+“照片里的 1 Rj 是多少个真实木星半径”和“+X 朝东还是朝西”，比较时用全部光点一起定。
+
+| 项目 | 只用照片 | NASA | 结论 |
+|---|---|---|---|
+| 四个天体是谁 | I–IV（按离木星远近编号） | I = Io, II = Europa, III = Ganymede, IV = Callisto | 对上了 |
+| 每个光点属于谁 | 205 个光点 | 分错 0 个；看得到却没找到的卫星 0 颗 | 全对 |
+| 周期 | 见下表 | 和 NASA 同样 40 天、同样拟合的周期相比，四颗都在 1 倍误差以内 | 在误差内 |
+| 光点位置 | 第 5 步修正比例后 | 中位差 0.053 个木星半径（约 1.2″）；只用第 1 步比例时 0.20 | 很准 |
+| 每张照片的比例 | 第 1 步约 ±5%，第 5 步再修正 | 和 NASA 比：第 1 步差 4.5%，第 5 步只差 0.4% | 修正有效 |
+| “1 Rj” 有多大 | 过曝，没法校准 | 照片的 1 Rj = **1.202** 个真实木星半径（过曝撑大了 20%），四颗给出同一个比例 | 新知道的 |
+| 镜像 | 没有镜像（第 3 步） | 没有镜像 | 对上了 |
+| +X 朝哪边 | 看不出 | +X 朝东 | 新知道的 |
+| 哪半圈在前面 | 看不出 | 往 +X 走的那半圈在木星后面（第 5 步模型里勾“前后对调”） | 新知道的 |
+| 轨道倾斜 | I -3.0°、II -3.0°、III -2.5°、IV -1.7° | I -3.1°、II -3.4°、III -3.2°、IV -2.9° | 外侧偏小 |
+| 木星 12/3 升到最高 | 21:20.6 ± 2 分钟 | 21:16.6（差 4.0 分钟） | 接近 |
+| 木星赤纬 | +13.8° ± 0.7° | +12.5°（差 1.3°） | 接近 |
+| 木星每天在恒星间的漂移 | 早 0.56 ± 0.11 分钟 | 早 0.09 分钟（4.3 倍误差） | 误差估小了 |
+| 1 月 10 日那张的时间 | 相机时间 20:11 对 | 按 20:11 均方根 0.05 Rj，按 18:11 是 0.70 Rj | 对上了 |
+
+| 天体 | 只用照片（天） | NASA：同样 40 天、同样拟合 | 差 | NASA：真正绕一圈 | 差 |
+|---|---|---|---|---|---|
+| I = Io | 1.76895 ± 0.00020 | 1.76907 | -0.6σ | 1.76914 | -1.0σ |
+| II = Europa | 3.55108 ± 0.00070 | 3.55077 | +0.4σ | 3.55118 | -0.1σ |
+| III = Ganymede | 7.15117 ± 0.00179 | 7.15153 | -0.2σ | 7.15455 | -1.9σ |
+| IV = Callisto | 16.67298 ± 0.00584 | 16.67635 | -0.6σ | 16.68902 | -2.7σ |
+
+![和 NASA 对比](output/check/nasa.png)
+
+- **周期**：照片测的是“从地球上看到的周期”，和 NASA 同样条件下的周期都在 1 倍误差左右；和真正绕一圈的时间相比，外侧偏短（IV 短 23 分钟），是这 40 天里地球自己在动造成的（第 5 步注解 ⑥）。
+- **倾斜外侧偏小**：转正时线的方向是用光点自己定的，离木星远的光点权重大，最外面那颗离线的那一点被“转掉”了一部分。
+  改用只靠重力传感器和天空旋转（第 3 步方法 B）转正再量：I -3.6°、II -3.7°、III -3.1°、IV -2.5°，和 NASA 接近多了。前面几步没有按这个改，因为那是看过 NASA 以后的改动。
+- **天空规律的漂移**：差 4.3 倍误差，这一项的误差估小了；不影响转正（两头 36 对全对）。
+- **单位**：照片里的距离乘以 1.20 就是真实的木星半径数。
+- **借来数字算质量**（主要靠借来的数字，不算照片的成果）：借 NASA 的单位换算和木星半径、加上引力常数，照片的周期和距离给出木星质量 1.904×10²⁷ 千克（NASA 1.898×10²⁷）。
+
 ## 对照：早一版的认点和周期（`step3_motion.py`）
 
 这是第 4 步重做之前的做法，保留作对照；页面第 1 步的尺子检验和第 2 步的图仍用它的比例修正和归属。结果和第 5 步在误差内一致。
@@ -221,14 +261,14 @@ X = A sin(2π t / P + φ)，同时给每张照片拟合一个比例修正（先�
 ## 演示页面
 
 `demo/` 是一个交互网页，按上面的 5 步展开：每张照片的原图和标注、尺子的对比、环绕的证据、天空旋转曲线、
-第 4 步的 ①–⑧，以及第 5 步的时间滑块、转正标注的照片和 3D 模型。本地查看：
+第 4 步的 ①–⑧，第 5 步的时间滑块、转正标注的照片和 3D 模型，以及最后和 NASA 的对比。本地查看：
 
 ```bash
 python3 -m http.server -d demo 8000
 ```
 
 然后打开 http://localhost:8000/view.html 。3D 模型从 jsdelivr 加载 three.js，需要联网；其他部分不需要。
-`demo/data.json` 由 `scripts/make_demo.py` 生成，`demo/step4_data.json` 由第 4 步的脚本生成，`demo/model_data.json` 和 `demo/final/` 由 `scripts/step5_model.py` 生成。
+`demo/data.json` 由 `scripts/make_demo.py` 生成，`demo/step4_data.json` 由第 4 步的脚本生成，`demo/model_data.json` 和 `demo/final/` 由 `scripts/step5_model.py` 生成，`demo/nasa_data.json` 由 `scripts/check_nasa.py` 生成。
 `python3 tools/bundle_preview.py demo 输出.html` 把页面、数据和图片打包成一个可以直接双击打开的文件。
 
 ## 目录
@@ -237,6 +277,7 @@ python3 -m http.server -d demo 8000
 data/raw/                 58 张原始照片（文件名 = 当地时间）
 data/observer.json        拍摄地点
 data/visual_check.json    逐张核对确认的光点（像素坐标）
+data/nasa/                NASA JPL Horizons 的卫星位置（只给最后的对比用）
 scripts/common.py         读照片、EXIF、重力传感器、解码
 scripts/detect.py         找木星（360 条射线贴圆）、候选光点、光点亮度
 scripts/step1_scale.py    第 1 步：统一比例（含曝光修正）
@@ -245,8 +286,10 @@ scripts/field_rotation.py 第 3 步方法 B：天空旋转模型
 scripts/step3_motion.py   对照：早一版的认点和周期
 scripts/step4_*.py        第 4 步 ①–⑧：raw_plot、tracks、fold、peel、inner、joint
 scripts/step5_model.py    第 5 步：最终拟合、转正标注的照片、模型图
+scripts/check_nasa.py     最后：和 NASA 对比（唯一读星历的脚本）
 scripts/make_demo.py      演示页面的数据和图片
 output/step1/ … step5/    每一步的结果（csv、json、图）
+output/check/             和 NASA 的对比（nasa.json、nasa.png）
 demo/                     演示页面（index.html 用于 claude.ai，view.html 用于本地）
 tests/                    Python 测试；tests/page/ 是页面脚本的测试（Node）
 tools/bundle_preview.py   把页面打包成单个文件
@@ -257,14 +300,14 @@ tools/bundle_preview.py   把页面打包成单个文件
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
-for s in step1_scale step2_orient step3_motion step4_raw_plot step4_tracks step4_fold step4_peel step4_inner step4_joint step5_model make_demo; do .venv/bin/python scripts/$s.py; done
+for s in step1_scale step2_orient step3_motion step4_raw_plot step4_tracks step4_fold step4_peel step4_inner step4_joint step5_model check_nasa make_demo; do .venv/bin/python scripts/$s.py; done
 ```
 
 全部约 10 分钟（云端机器；树莓派 5 上更久）。第一次运行会把照片解码到 `cache/`（约 650 MB，不进 git）。测试：
 
 ```bash
 .venv/bin/python -m pytest -q tests
-for t in run click tracks fold step4 joint model; do node tests/page/$t.js demo; done
+for t in run click tracks fold step4 joint model nasa; do node tests/page/$t.js demo; done
 ```
 
 旧版本（借助 NASA 星历的分析）保存在 git 历史里（提交 `4d0c22b`）。

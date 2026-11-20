@@ -7,7 +7,7 @@ img = {}
 for d in ("src", "native", "norm", "jup", "final"):
     for f in sorted((demo / d).glob("*.jpg")):
         img[f"{d}/{f.stem}"] = "data:image/jpeg;base64," + base64.b64encode(f.read_bytes()).decode()
-files = {n: json.loads((demo / n).read_text()) for n in ("data.json", "step4_data.json", "model_data.json")}
+files = {n: json.loads((demo / n).read_text()) for n in ("data.json", "step4_data.json", "model_data.json", "nasa_data.json")}
 s, n = re.subn(r"`(src|native|norm|jup|final)/\$\{p\.id\}\.jpg`", r'IMG["\1/" + p.id]', s)
 s = s.replace('<img src="src/${p.id}.jpg"', '<img src="${IMG["src/" + p.id]}"')
 s = s.replace('<img src="final/${p.id}.jpg"', '<img src="${IMG["final/" + p.id]}"')

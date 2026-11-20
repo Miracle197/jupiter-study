@@ -12,7 +12,7 @@ global.fetch = async (u) => ({ json: async () => JSON.parse(fs.readFileSync(path
 process.on("unhandledRejection", (e) => { console.log("ERROR:", e && e.stack); process.exit(1); });
 try { eval(js); } catch (e) { console.log("ERROR (load):", e.stack); process.exit(1); }
 setTimeout(() => {
-  for (const id of ["wall", "ruler", "orb1", "orb2", "orb4", "d1", "d2", "d3", "d4", "sky", "skyparts", "skycheck", "ab", "sky-table", "sky-bonus", "raw4", "trk", "trk-table", "fold-t", "fold-f", "fold-s", "fold-cap", "peel-table", "peel-cap", "joint", "j-fold", "rival-table", "rival-cap", "tilt", "tilt-cap", "kepler", "finds", "final-table", "m5-over", "m5-table", "m5-kv", "m5-params"])
+  for (const id of ["wall", "ruler", "orb1", "orb2", "orb4", "d1", "d2", "d3", "d4", "sky", "skyparts", "skycheck", "ab", "sky-table", "sky-bonus", "raw4", "trk", "trk-table", "fold-t", "fold-f", "fold-s", "fold-cap", "peel-table", "peel-cap", "joint", "j-fold", "rival-table", "rival-cap", "tilt", "tilt-cap", "kepler", "finds", "final-table", "m5-over", "m5-table", "m5-kv", "m5-params", "nasa-score", "nasa-periods", "nasa-chart", "nasa-notes"])
     console.log(id.padEnd(8), (els[id]?.innerHTML || "").length, "chars", /NaN|undefined/.test(els[id]?.innerHTML || "") ? "<-- contains NaN/undefined" : "");
 
 }, 500);
