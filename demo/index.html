@@ -154,6 +154,10 @@ details summary { cursor: pointer; color: var(--accent); font-size: 14px; font-w
 #nasa-score td { vertical-align: top }
 #nasa-score td:first-child { white-space: nowrap; font-weight: 500 }
 #nasa-notes p { max-width: 72ch; margin: 0 0 10px }
+.sum-lists { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px }
+.sum-lists > div { min-width: 0 }
+.sum-lists h3 { margin-bottom: 6px }
+.sum-lists ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: 14px }
 .bench button, .bench select { background: var(--on-sky-button); color: var(--sky-fg); border: 1px solid var(--on-sky-rule); border-radius: 4px; font: 500 13px var(--body); padding: 5px 11px }
 .bench button[aria-pressed="true"] { background: var(--jupiter); color: var(--on-sky-deep); border-color: var(--jupiter) }
 .bench label { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--sky-fg) }
@@ -556,6 +560,24 @@ details summary { cursor: pointer; color: var(--accent); font-size: 14px; font-w
     </div>
     <p class="caption">NASA 数据来自本项目早先的版本（main 分支）从 JPL Horizons 下载的结果，说明见 <span class="mono">data/nasa/README.md</span>；对比由 <span class="mono">scripts/check_nasa.py</span> 计算。
       更新记录 · 2026-11-20：加入和 NASA 的对比。</p>
+  </section>
+
+  <section aria-labelledby="sum-h">
+    <div class="eyebrow">总结</div>
+    <h2 id="sum-h">只用照片，走到了哪一步</h2>
+    <p class="lead" id="sum-lead"></p>
+    <div class="figure">
+      <h3>推理链</h3>
+      <div class="scroll"><table id="sum-chain"></table></div>
+    </div>
+    <div class="figure">
+      <h3>最后的数字</h3>
+      <div class="scroll"><table id="sum-final"></table></div>
+      <div class="caption" id="sum-final-cap"></div>
+    </div>
+    <div class="figure">
+      <div class="sum-lists" id="sum-lists"></div>
+    </div>
   </section>
 
   <footer class="caption">数据由 <span class="mono">scripts/make_demo.py</span> 从第 1–3 步的结果生成；第 3 步方向与第 4 步周期只来自照片、EXIF、手机重力传感器和拍摄地点（地点误差可忽略，未列出）。</footer>
@@ -1759,6 +1781,59 @@ function nasaInit() {
   nasaScore(); nasaPeriods(); nasaChart(); nasaNotes();
 }
 
+/* ---------- summary (every number read from the data above) ---------- */
+function summaryInit() {
+  if (!M5 || !NS) { $("sum-lead").textContent = "（总结需要第 5 步和 NASA 对比的数据。）"; return; }
+  const K = R4.joint.kepler, Rt = R4.joint.ratios, S5 = M5.summary, N = NS, P = N.periods, T = N.tilts, unit = 1 / N.unit_c;
+  const arc = N.positions.arcsec_per_true_rj, med = N.positions.median_abs_x_true_rj_step5;
+  const maxSame = Math.max(...P.map(q => Math.abs(q.sigma_vs_same))), iv = P[P.length - 1];
+  const drift = Math.abs(N.sky.ours.drift_min_per_day_vs_stars - N.sky.nasa.drift_min_per_day_vs_stars) / N.sky.ours.drift_err;
+  const east = N.plus_x_is === "east" ? "东" : "西";
+  $("sum-lead").innerHTML = `只凭 ${D.photos.length} 张手机贴着目镜拍的木星照片，不借任何星历，找出了木星旁边的 4 个天体，定出它们的周期、轨道大小和轨道面，` +
+    `还发现了周期和距离之间的规律（开普勒第三定律）和内侧三颗的 1 : 2 : 4。最后和 NASA 核对：${N.labels.dots_checked} 个光点${N.labels.wrong.length ? "有 " + N.labels.wrong.length + " 个认错" : "全部认对"}，` +
+    `周期都在 ${fmt(Math.ceil(maxSame * 10) / 10, 1)} 倍误差以内，位置准到约 ${fmt(med * arc, 1)} 角秒。`;
+  const chain = [
+    ["第 1 步 · 用木星当尺子", "360 条射线找木星边缘，按卫星光点的亮度做曝光修正", `单张照片的比例误差 ±${fmt(100 * D.ruler_summary.sig_disk_single_photo, 1)}%`],
+    ["第 2 步 · 环绕的证据", "一直跟着木星；两边摆得一样远；去和回走在线的两侧", "是绕着木星转，不是远处的星"],
+    ["第 3 步 · 把照片转正", "手机重力传感器 + 天空旋转的规律，分清线的两头", `方向准到 ±${fmt(D.sky.final.median_err_photo_deg, 1)}°；同一晚 ${D.sky.C.pairs} 对照片${D.sky.C.agree_with_B_on_ends === D.sky.C.pairs ? "全部" : D.sky.C.agree_with_B_on_ends + " 对"}一致；顺便推出木星最高的时刻和赤纬`],
+    ["第 4 步 · 周期 ①–⑧", "从最外面一颗颗往里认；排除“每天多转一圈”的对手；扁圆检验", `四颗都找到；P² ∝ a³（斜率 ${fmt(K.slope, 2)} ± ${fmt(K.slope_err, 2)}）；P₂/P₁ = ${fmt(Rt["P2/P1"], 3)}，P₃/P₂ = ${fmt(Rt["P3/P2"], 3)}`],
+    ["第 5 步 · 模型", "四条摆动和每张照片的比例一起拟合；转正标注的照片；3D 模型", `光点离模型的偏差中位 ${fmt(S5.resid_robust_rj, 3)} Rj，${S5.n_dots} 个光点${S5.assigned === S5.n_dots ? "全部" : S5.assigned + " 个"}有归属`],
+    ["最后 · 和 NASA 比", "唯一用到星历的地方", `认点${N.labels.wrong.length ? "错 " + N.labels.wrong.length + " 个" : "全对"}；周期在误差内；位置中位差 ${fmt(med, 3)} 个木星半径`],
+  ];
+  $("sum-chain").innerHTML = `<thead><tr><th>步骤</th><th>做了什么</th><th>关键结果</th></tr></thead><tbody>` +
+    chain.map(r => `<tr><td style="white-space:nowrap"><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("") + "</tbody>";
+  $("sum-final").innerHTML = `<thead><tr><th>天体</th><th class="n">周期（天，只用照片）</th><th class="n">NASA，同样条件下</th><th class="n">离木星最远（真实木星半径）</th></tr></thead><tbody>` +
+    P.map((q, k) => `<tr><td><span class="swatch" style="background:${JB(k)}"></span> ${q.body} = ${q.moon}</td><td class="n">${fmt(q.ours, 5)} ± ${fmt(q.err, 5)}</td>` +
+      `<td class="n">${fmt(q.nasa_same_moments, 5)}（${q.sigma_vs_same >= 0 ? "+" : "−"}${fmt(Math.abs(q.sigma_vs_same), 1)}σ）</td><td class="n">${fmt(q.reach_ours * unit, 2)}</td></tr>`).join("") + "</tbody>";
+  $("sum-final-cap").textContent = `“离木星最远”是照片测的距离乘以 ${fmt(unit, 2)} 换成真实木星半径：这个换算只有和 NASA 比较时才知道（照片里的 1 Rj 被过曝撑大了）。`;
+  const lists = [
+    ["被 NASA 证实的", [
+      `认点${N.labels.wrong.length ? "错了 " + N.labels.wrong.length + " 个" : "全对"}，照片里看得到的卫星${N.missed.length ? "漏了 " + N.missed.length + " 颗" : "一颗没漏"}`,
+      "周期在误差内：误差棒是诚实的",
+      `像${N.mirrored ? "其实有" : "没有"}镜像（第 3 步${N.mirrored ? "判断错了" : "推断对了"}）`,
+      "1 月 10 日那张：相机时间对，文件名错",
+      `每张照片的比例：第 5 步修正后和 NASA 只差 ${fmt(100 * N.photo_scale.step5_scatter, 1)}%`]],
+    ["照片定不出、NASA 告诉我们的", [
+      `照片里的 1 Rj = ${fmt(unit, 2)} 个真实木星半径（过曝撑大了 ${fmt(100 * (unit - 1), 0)}%）`,
+      `+X 朝${east}`,
+      `往 +X 走的那半圈在木星${N.front.model_default_right ? "前面" : "后面"}${N.front.model_default_right ? "" : "（第 5 步模型要勾“前后对调”）"}`,
+      `四颗依次是 ${P.map(q => q.moon).join("、")}`]],
+    ["有偏差的地方", [
+      `外侧轨道的倾斜测小了（${T[T.length - 1].body} ${fmt(T[T.length - 1].ours_deg, 1)}°，NASA ${fmt(T[T.length - 1].nasa_deg, 1)}°）：转正时用了光点自己来定方向`,
+      `木星每天在恒星间的漂移差 ${fmt(drift, 1)} 倍误差：那一项的误差估小了`,
+      `测到的是“从地球上看到的周期”：外侧两颗比真正绕一圈的时间偏短（${iv.body} 短 ${fmt((iv.nasa_orbit - iv.ours) * 1440, 0)} 分钟）`]],
+    ["照片做不到的", [
+      `真实大小和质量：要借照片以外的数字（借来 NASA 的尺度后，木星质量 ${fmt(N.borrowed_mass_kg.mean / 1e27, 2)}×10²⁷ 千克，NASA ${fmt(N.borrowed_mass_kg.nasa / 1e27, 2)}×10²⁷）`,
+      "哪半圈在前面、+X 是东还是西",
+      "卫星和木星的样子：卫星只是光点，木星过曝看不到条纹"]],
+    ["还没做完的", [
+      "页面第 1、2 步的部分图还用早一版（step3_motion.py）的比例和认点，可以换成第 5 步的结果",
+      "倾斜偏小：改用重力传感器 + 天空旋转来转正，就能接近 NASA（看过答案后的改动，要不要改待定）",
+      "第 3 步天空规律的误差估计要重新检查"]],
+  ];
+  $("sum-lists").innerHTML = lists.map(([h, items]) => `<div><h3>${h}</h3><ul>${items.map(t => `<li>${t}</li>`).join("")}</ul></div>`).join("");
+}
+
 /* ---------- boot ---------- */
 async function start() {
   try { D = await (await fetch("data.json", { cache: "no-store" })).json();
@@ -1772,7 +1847,7 @@ async function start() {
   // buttons first, then each chart on its own: one chart failing must not stop the rest of the page
   const safe = (f) => { try { f(); } catch (e) { console.error(f.name, e); } };
   bind();
-  for (const f of [ruler, wall, () => s1detail(s1cur), direction, orbit, raw4, tracks4, fold4, peel4, joint4, rivals4, tilt4, kepler4, m5init, nasaInit]) safe(f);
+  for (const f of [ruler, wall, () => s1detail(s1cur), direction, orbit, raw4, tracks4, fold4, peel4, joint4, rivals4, tilt4, kepler4, m5init, nasaInit, summaryInit]) safe(f);
 }
 function bind() {
   $("ruler").addEventListener("click", (e) => { const i = e.target.dataset?.i; if (i != null) s1detail(+i); });

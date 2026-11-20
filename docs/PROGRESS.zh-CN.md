@@ -288,3 +288,5 @@ for t in run click tracks fold step4 joint; do node tests/page/$t.js demo; done
   第 3 步的木星每天漂移差 4.3σ（误差估小了）；周期和真正绕一圈的时间比外侧偏短（从地球看到的周期）。
 - 第 5 步 3D 模型加了“叠加 NASA 的位置”（默认不勾）。测试 `tests/page/nasa.js`。
 - 页面上第 1、2 步仍用旧 `step3_motion.py` 的比例和归属（见第九节“还可以做”）。
+
+- 页面最后加了“总结”一节（推理链、最后的数字、证实的 / NASA 告诉的 / 有偏差的 / 做不到的 / 还没做完的），数字都从数据读取。

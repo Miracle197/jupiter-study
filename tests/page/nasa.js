@@ -26,6 +26,7 @@ setTimeout(() => {
     console.log("range", r, "circles", dots, bad("nasa-chart") || bad("nasa-chart-cap") ? "<-- bad" : "");
     if (bad("nasa-chart") || bad("nasa-chart-cap") || dots < 4) fail++;
   }
-  console.log(`scorecard ${rows} rows`);
+  for (const id of ["sum-lead", "sum-chain", "sum-final", "sum-final-cap", "sum-lists"]) if (els[id].innerHTML.length + els[id].textContent.length < 50 || bad(id)) { console.log(id, "empty or bad"); fail++; }
+  console.log(`scorecard ${rows} rows; summary ${(els["sum-chain"].innerHTML.match(/<tr>/g) || []).length - 1} steps, ${(els["sum-lists"].innerHTML.match(/<li>/g) || []).length} points`);
   console.log(fail ? "FAIL" : "OK"); process.exit(fail ? 1 : 0);
 }, 500);
