@@ -12,6 +12,36 @@
 
 每个结果都带**照片误差**（来自像素测量）。拍摄地点不确定 30 米带来的**地点误差**每一步都算过，小到可以忽略（周期上不到照片误差的百万分之一），所以不再列出。
 
+## 演示
+
+![第 5 步：时间在走，离当前时刻最近的照片（转正、统一比例、标出 I–IV）跟着换，下面是只用照片搭出的 3D 模型](docs/img/demo-model.gif)
+
+演示页面一步步讲清楚怎么从照片走到这些结果：每一张照片、用木星当尺子、环绕的证据、把照片转正、四颗的周期（①–⑧）、模型，最后和 NASA 对比，并有总结。
+
+- **单个文件，双击打开**：[`demo/jupiter-demo.html`](demo/jupiter-demo.html)（约 6 MB，页面、数据和图片都在里面）。
+  在 GitHub 上打开它，点右上角的 “Download raw file” 下载，再用浏览器打开。3D 模型要联网加载 three.js，其他部分不用联网。
+- **本地服务器**：`python3 -m http.server -d demo 8000`，然后打开 http://localhost:8000/view.html 。
+
+<details><summary>更多截图</summary>
+
+每一张照片：原图和确认的光点
+
+![每一张照片](docs/img/demo-photos.png)
+
+第 4 步 ⑤：四颗一起，每个光点属于谁
+
+![第 4 步](docs/img/demo-step4.png)
+
+最后：每个光点和 NASA 的位置
+
+![和 NASA 对比](docs/img/demo-nasa.png)
+
+总结
+
+![总结](docs/img/demo-summary.png)
+
+</details>
+
 ## 进度
 
 步骤按演示页面的顺序；脚本编号是早先定的，和页面不完全一致。
@@ -269,7 +299,7 @@ python3 -m http.server -d demo 8000
 
 然后打开 http://localhost:8000/view.html 。3D 模型从 jsdelivr 加载 three.js，需要联网；其他部分不需要。
 `demo/data.json` 由 `scripts/make_demo.py` 生成，`demo/step4_data.json` 由第 4 步的脚本生成，`demo/model_data.json` 和 `demo/final/` 由 `scripts/step5_model.py` 生成，`demo/nasa_data.json` 由 `scripts/check_nasa.py` 生成。
-`python3 tools/bundle_preview.py demo 输出.html` 把页面、数据和图片打包成一个可以直接双击打开的文件。
+单文件版 `demo/jupiter-demo.html` 由 `python3 tools/bundle_preview.py demo demo/jupiter-demo.html` 打包（页面、数据和图片都在一个文件里，双击就能打开）；页面改了以后重新打包一次。
 
 ## 目录
 
@@ -290,7 +320,8 @@ scripts/check_nasa.py     最后：和 NASA 对比（唯一读星历的脚本）
 scripts/make_demo.py      演示页面的数据和图片
 output/step1/ … step5/    每一步的结果（csv、json、图）
 output/check/             和 NASA 的对比（nasa.json、nasa.png）
-demo/                     演示页面（index.html 用于 claude.ai，view.html 用于本地）
+demo/                     演示页面（index.html 用于 claude.ai，view.html 用于本地，jupiter-demo.html 是打包好的单文件）
+docs/img/                 README 里的动图和截图
 tests/                    Python 测试；tests/page/ 是页面脚本的测试（Node）
 tools/bundle_preview.py   把页面打包成单个文件
 ```

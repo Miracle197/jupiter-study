@@ -18,6 +18,36 @@ error** (from not knowing the camera position better than 30 m) was worked out
 at every step and is negligible (for the periods, less than a millionth of the
 photo error), so it is no longer listed.
 
+## Demo
+
+![Step 5: time runs, the photo nearest that moment (turned, on the common scale, labelled I–IV) follows, and below it the 3D model built from the photos alone](docs/img/demo-model.gif)
+
+The demo page walks through how the photos lead to these results: every photo, Jupiter as the ruler, the evidence for going around, turning the photos, the four periods (parts 1–8), the model, and finally the comparison with NASA and a summary.
+
+- **One file, double-click to open**: [`demo/jupiter-demo.html`](demo/jupiter-demo.html) (about 6 MB; page, data and pictures all inside).
+  Open it on GitHub, press "Download raw file" at the top right, then open it in a browser. The 3D model loads three.js from the internet; the rest works offline.
+- **Local server**: `python3 -m http.server -d demo 8000`, then open http://localhost:8000/view.html.
+
+<details><summary>More screenshots</summary>
+
+Every photo: as taken, with the confirmed dots
+
+![every photo](docs/img/demo-photos.png)
+
+Step 4, part 5: all four together, which dot belongs to which body
+
+![step 4](docs/img/demo-step4.png)
+
+Last: every dot against NASA's positions
+
+![against NASA](docs/img/demo-nasa.png)
+
+Summary
+
+![summary](docs/img/demo-summary.png)
+
+</details>
+
 ## Progress
 
 Steps follow the demo page; the script numbers are older and do not quite match.
@@ -327,7 +357,7 @@ python3 -m http.server -d demo 8000
 
 then open http://localhost:8000/view.html. The 3D model loads three.js from jsdelivr and needs the internet; the rest does not.
 `demo/data.json` comes from `scripts/make_demo.py`, `demo/step4_data.json` from the step 4 scripts, `demo/model_data.json` and `demo/final/` from `scripts/step5_model.py`, `demo/nasa_data.json` from `scripts/check_nasa.py`.
-`python3 tools/bundle_preview.py demo out.html` packs the page, data and pictures into one file that opens with a double-click.
+The one-file version `demo/jupiter-demo.html` is packed by `python3 tools/bundle_preview.py demo demo/jupiter-demo.html` (page, data and pictures in one file that opens with a double-click); pack it again after changing the page.
 
 ## Layout
 
@@ -348,7 +378,8 @@ scripts/check_nasa.py     last: against NASA (the only script that reads an ephe
 scripts/make_demo.py      data and pictures for the demo page
 output/step1/ ... step5/  results of every step (csv, json, figures)
 output/check/             the comparison with NASA (nasa.json, nasa.png)
-demo/                     demo page (index.html for claude.ai, view.html for a local server)
+demo/                     demo page (index.html for claude.ai, view.html for a local server, jupiter-demo.html packed into one file)
+docs/img/                 the animation and screenshots in this README
 tests/                    Python tests; tests/page/ tests the page script (Node)
 tools/bundle_preview.py   packs the page into one file
 ```

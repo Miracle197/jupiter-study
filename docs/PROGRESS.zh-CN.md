@@ -290,3 +290,5 @@ for t in run click tracks fold step4 joint; do node tests/page/$t.js demo; done
 - 页面上第 1、2 步仍用旧 `step3_motion.py` 的比例和归属（见第九节“还可以做”）。
 
 - 页面最后加了“总结”一节（推理链、最后的数字、证实的 / NASA 告诉的 / 有偏差的 / 做不到的 / 还没做完的），数字都从数据读取。
+
+- README 开头加了“演示”：第 5 步的动图（docs/img/demo-model.gif）、四张截图、单文件演示 demo/jupiter-demo.html（tools/bundle_preview.py 打包，下载后双击打开）；加了 .nojekyll，方便以后开 GitHub Pages。
