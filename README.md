@@ -223,6 +223,8 @@ The dots are also handed out again: for every photo each stretch from 0.6 to 1.6
 
 ![model](output/step5/model.png)
 
+Step 5 on the page ends with an annotated note on why the periods are so much more precise than any single dot (residuals before and after the scale fix, a "change the period a little" chart for counting turns, the textbook limit side by side), and on these being periods as seen from the Earth: the ± does not include the effect of the Earth's own motion.
+
 On the page, step 5 has a time slider (with play), the photo nearest that moment (turned, on the common scale, labelled, with the model's predictions), and a 3D model built from the photos alone
 (from the Earth / from above / from the side / oblique, with the sight line of every dot in the photo). What the photos cannot tell: which half of each orbit is in front of Jupiter (the model can swap front and back and looks the same from the Earth),
 whether +X is east or west, the true size and mass, and what the moons and Jupiter look like.

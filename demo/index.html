@@ -141,7 +141,8 @@ details summary { cursor: pointer; color: var(--accent); font-size: 14px; font-w
 .bench h3 { font-size: 16px; color: var(--sky-fg) }
 .bench .caption, .bench .legend { color: var(--on-sky-muted) }
 .bench details summary { color: var(--jupiter) }
-#m5-table td.n, #m5-params td.n { white-space: nowrap }
+#m5-table td.n, #m5-params td.n, #m5w-table td.n { white-space: nowrap }
+.why p { max-width: 72ch }
 .bench button, .bench select { background: var(--on-sky-button); color: var(--sky-fg); border: 1px solid var(--on-sky-rule); border-radius: 4px; font: 500 13px var(--body); padding: 5px 11px }
 .bench button[aria-pressed="true"] { background: var(--jupiter); color: var(--on-sky-deep); border-color: var(--jupiter) }
 .bench label { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--sky-fg) }
@@ -469,6 +470,38 @@ details summary { cursor: pointer; color: var(--accent); font-size: 14px; font-w
       <div class="scroll"><table id="m5-params"></table></div>
       <div class="caption" id="m5-params-cap"></div>
     </div>
+    <div class="figure why">
+      <h3>注解：光点的误差棒那么长，周期为什么能定得这么准？</h3>
+      <p><b>① 两种“误差”说的不是一回事。</b>图上的误差棒说的是<b>一个光点</b>的位置有多不准；表里周期后面的 ± 说的是用<b>全部光点</b>拟合出的那条曲线有多不准。
+        几十个光点一起定一条曲线，曲线比其中任何一个光点都准。下面三条说明它能准到什么程度、为什么。</p>
+      <p><b>② 长误差棒主要是比例误差，第 5 步把它修掉了。</b>第 4 步的图上，误差棒按 0.35 + 0.08 × |X| Rj 画，里面算进了第 1 步每张照片约 ±5% 的比例误差，
+        所以离木星越远越长。可是同一张照片里几颗卫星的位置是一起被放大或缩小的：几颗都对着模型一比，这张照片的比例就定出来了。
+        下图是每个光点离模型的偏差：灰圈是用第 1 步的比例，彩色点是第 5 步修正每张照片的比例以后。</p>
+      <svg class="chart" id="m5w-res" viewBox="0 0 960 330" role="img" aria-label="每个光点离模型的偏差，修正比例前后"></svg>
+      <div class="legend" id="m5w-res-legend"></div>
+      <div class="caption" id="m5w-res-cap"></div>
+      <p><b>③ 周期是“数圈数”数出来的。</b>像用秒表测摆：秒表按早按晚有 0.2 秒的误差，只测一次摆动，周期就差 0.2 秒；连着数 100 次摆动再除以 100，
+        周期只差 0.002 秒。卫星也一样：39 天里 I 绕了二十多圈，开头几晚和最后几晚它在哪儿，各自都能定到一圈的很小一部分，
+        这点误差摊到二十多圈上，周期就非常准。周期哪怕只改一点点，每圈都差一点，圈数多了就累积成看得见的错位。下面可以自己试：
+        选一颗、把周期改几倍误差，看开头几晚和最后几晚曲线（虚线）和光点还对不对得上。</p>
+      <div class="btns" id="m5w-body" role="group" aria-label="选一颗"></div>
+      <div class="btns" id="m5w-d" role="group" aria-label="把周期改多少"></div>
+      <div class="cols2">
+        <svg class="chart" id="m5w-a" viewBox="0 0 560 300" role="img" aria-label="开头几晚：光点和两条曲线"></svg>
+        <svg class="chart" id="m5w-b" viewBox="0 0 560 300" role="img" aria-label="最后几晚：光点和两条曲线"></svg>
+      </div>
+      <div class="caption" id="m5w-cap"></div>
+      <p><b>④ 照片最多能支持多准？</b>一条正弦曲线的周期，最多能定到 σ<sub>P</sub> ≈ P² × √(6/N) × σ ÷ (π × A × T)：N 是光点数，σ 是光点离曲线的散布，
+        A 是最远距离，T 是从第一张到最后一张的天数。光点越多、散布越小、摆得越远、时间跨度越长（也就是圈数越多），周期就越准。
+        表里给的误差都比这个下限大：它取的是拟合误差和“按夜重抽样”（整晚整晚地随机抽，重新拟合 120 次）两者中较大的一个，是偏保守的。</p>
+      <div class="scroll"><table id="m5w-table"></table></div>
+      <p><b>⑤ 前提：圈数没有数错。</b>如果每天多数或少数一圈，周期会差一大截（例如 I 会从 1.77 天变成 2.30 天或 0.64 天），这种错误误差棒根本盖不住。
+        第 4 步 ⑥ 专门排除了这种可能：这些“对手”周期的偏差分数都比真周期大几十倍。</p>
+      <p><b>⑥ 这是“从地球上看到的”周期。</b>这 40 天里地球自己也在绕太阳走：从木星那边看，地球所在的方向在慢慢转，地球和木星的距离也在变远，
+        光传过来要多走一会儿。所以照片里卫星“回到同一个位置”的时间，和它真正绕木星一圈的时间会略有不同。这一项对四颗是同一个频率上的差，
+        换成周期就和周期的平方成正比：周期越长的受影响越明显。照片本身分不出这一项，要知道地球和木星的轨道才能算。
+        所以表里的 ± 是这 40 天里“从地球上看到的周期”的统计误差，不包括这一项。</p>
+    </div>
     <div class="note2">
       <b>照片定不出的东西</b>
       <ul style="margin:6px 0 0;padding-left:20px">
@@ -478,7 +511,8 @@ details summary { cursor: pointer; color: var(--accent); font-size: 14px; font-w
         <li><b>样子</b>：卫星在照片里只是光点，看不出大小；木星过曝，看不到条纹。模型里的球都是示意。</li>
       </ul>
     </div>
-    <p class="caption">更新记录 · 2026-11-20：第 5 步：四条摆动和每张照片的比例一起拟合；照片转正、统一比例、标注；3D 模型。</p>
+    <p class="caption">更新记录 · 2026-11-20：第 5 步：四条摆动和每张照片的比例一起拟合；照片转正、统一比例、标注；3D 模型。
+      加注解：为什么光点误差棒长、周期却很准（修正比例前后的偏差、“数圈数”、公式下限、这是从地球上看到的周期）。</p>
   </section>
 
   <footer class="caption">数据由 <span class="mono">scripts/make_demo.py</span> 从第 1–3 步的结果生成；第 3 步方向与第 4 步周期只来自照片、EXIF、手机重力传感器和拍摄地点（地点误差可忽略，未列出）。</footer>
@@ -1372,6 +1406,97 @@ function m5init() {
   try { M5S = m5scene($("m5-scene")); } catch (e) { console.error("3D model", e); $("m5-noscene").hidden = false; M5S = null; }
   m5time(m5t);
   if (M5S) M5S.setPhoto(M5.photos[m5i]);
+  m5why();
+}
+/* step 5 notes: why the periods are so precise */
+let m5wk = 0, m5wn = 10;
+const M5W_N = [-10, -3, -1, 0, 1, 3, 10];
+const m5sig = (X) => 0.10 + 0.01 * Math.abs(X);                  // a dot's error once the photo's scale is fitted
+function m5own(k) {                                               // the dots that belong to body k alone
+  const out = [];
+  M5.photos.forEach(p => p.dots.forEach(d => { if (d.bodies.length === 1 && d.bodies[0] === k)
+    out.push({ t: p.t, X: d.X, raw: d.X * p.scale_fix, pred: p.pred[k].X }); }));
+  return out;
+}
+function m5fitAt(f, pts) {                                        // best a sin + b cos at a fixed frequency (weighted)
+  let s11 = 0, s12 = 0, s22 = 0, r1 = 0, r2 = 0;
+  for (const q of pts) { const w = 2 * Math.PI * f, S = Math.sin(w * q.t), C = Math.cos(w * q.t), u = 1 / m5sig(q.X) ** 2;
+    s11 += S * S * u; s12 += S * C * u; s22 += C * C * u; r1 += S * q.X * u; r2 += C * q.X * u; }
+  const det = s11 * s22 - s12 * s12;
+  return { f, a: (r1 * s22 - r2 * s12) / det, b: (s11 * r2 - s12 * r1) / det };
+}
+const m5curve = (c, t) => c.a * Math.sin(2 * Math.PI * c.f * t) + c.b * Math.cos(2 * Math.PI * c.f * t);
+const m5rms = (c, pts) => Math.sqrt(pts.reduce((u, q) => u + (q.X - m5curve(c, q.t)) ** 2, 0) / pts.length);
+function m5span() { const ts = M5.photos.map(p => p.t); return [Math.min(...ts), Math.max(...ts)]; }
+function m5why() {
+  if (!M5) return;
+  const Bs = M5.bodies, [t0, t1] = m5span(), T = t1 - t0;
+  // (2) every dot's distance from the model, with step 1's scale and with the photo's own scale
+  const W = 960, H = 330, m = { l: 56, r: 14, t: 14, b: 42 }, ylim = 3;
+  const f = frame(W, H, m, [0, 25], [-ylim, ylim], { xlabel: "模型预测的位置离木星多远 |X|（Rj）", ylabel: "光点 − 模型（Rj）", nx: 10 });
+  let s = f.s, xs = [];
+  const env = (sg) => { let d = ""; for (let i = 0; i <= 50; i++) { const x = 25 * i / 50; d += `${i ? "L" : "M"}${f.x(x)},${f.y(sg * (0.35 + 0.08 * x))}`; } return d; };
+  s += `<path d="${env(1)}" style="fill:none;stroke:var(--muted);stroke-dasharray:5 4"/><path d="${env(-1)}" style="fill:none;stroke:var(--muted);stroke-dasharray:5 4"/>`;
+  const before = [], after = [];
+  M5.photos.forEach(p => p.dots.forEach(d => { if (!d.bodies.length) return; const q = p.pred[d.bodies[0]];
+    before.push([Math.abs(q.X), d.X * p.scale_fix - q.X, p]); after.push([Math.abs(q.X), d.X - q.X, d.bodies[0]]); }));
+  const clip = (v) => Math.max(-ylim + 0.08, Math.min(ylim - 0.08, v));
+  for (const [x, r] of before) s += Math.abs(r) > ylim
+    ? `<path d="M${f.x(x) - 4} ${f.y(clip(r)) + (r > 0 ? 4 : -4)}L${f.x(x) + 4} ${f.y(clip(r)) + (r > 0 ? 4 : -4)}L${f.x(x)} ${f.y(clip(r)) + (r > 0 ? -3 : 3)}Z" style="fill:var(--muted)"/>`
+    : `<circle cx="${f.x(x)}" cy="${f.y(r)}" r="3.6" style="fill:none;stroke:var(--muted);stroke-width:1.2"/>`;
+  for (const [x, r, k] of after) s += `<circle cx="${f.x(x)}" cy="${f.y(clip(r))}" r="2.8" style="fill:${JB(k)}"/>`;
+  s += `<text x="${f.x(0.6)}" y="${f.y(2.55)}" style="fill:var(--fg)">灰圈：用第 1 步的比例，离木星越远偏得越多（每张照片的比例误差）</text>`;
+  s += `<text x="${f.x(0.6)}" y="${f.y(-2.75)}" style="fill:var(--fg)">彩色点：每张照片修正比例以后，都贴着 0</text>`;
+  $("m5w-res").innerHTML = s;
+  const med = (a) => { const v = a.map(Math.abs).sort((u, w) => u - w); return v[Math.floor(v.length / 2)]; };
+  const offs = [...new Set(before.filter(([, r]) => Math.abs(r) > ylim).map(v => v[2]))];
+  const out = before.filter(([, r]) => Math.abs(r) > ylim).length;
+  $("m5w-res-legend").innerHTML = `<span><svg width="14" height="14"><circle cx="7" cy="7" r="5" style="fill:none;stroke:var(--muted);stroke-width:1.4"/></svg>修正前（第 1 步的比例）</span>` +
+    Bs.map((b, k) => `<span><span class="swatch" style="background:${JB(k)}"></span>${b.name} 修正后</span>`).join("") +
+    `<span><svg width="26" height="8"><line x1="0" x2="26" y1="4" y2="4" style="stroke:var(--muted);stroke-dasharray:5 4"/></svg>第 4 步的误差棒 0.35 + 0.08 × |X|</span>`;
+  $("m5w-res-cap").innerHTML = `偏差的中位数：修正前 ${fmt(med(before.map(v => v[1])), 2)} Rj，修正后 <b>${fmt(med(after.map(v => v[1])), 3)} Rj</b>。` +
+    (out ? `${out} 个灰圈超出了图的范围（三角），来自 ${offs.map(p => `${m5clock(p.t)} 那张（比例修正 × ${fmt(p.scale_fix, 3)}）`).join("、")}：比例偏得多，光点又离木星远，偏差（比例误差乘上离木星的距离）就超出了图。` : "") +
+    `修正后的散布才是拟合曲线时真正起作用的误差。`;
+  // (4) the textbook precision, body by body
+  $("m5w-table").innerHTML = `<thead><tr><th>天体</th><th class="n">光点数 N</th><th class="n">第 4 步误差棒（典型）</th><th class="n">修正后散布 σ</th>` +
+    `<th class="n">39 天里绕的圈数</th><th class="n">公式下限 σ<sub>P</sub>（天）</th><th class="n">表里给的误差（天）</th></tr></thead><tbody>` +
+    Bs.map((b, k) => {
+      const pts = m5own(k), n = pts.length, sg = Math.sqrt(pts.reduce((u, q) => u + (q.X - q.pred) ** 2, 0) / n);
+      const bar = 0.35 + 0.08 * med(pts.map(q => q.X)), lo = b.period_d ** 2 * Math.sqrt(6 / n) * sg / (Math.PI * b.reach_rj * T);
+      return `<tr><td><span class="swatch" style="background:${JB(k)}"></span> ${b.name}</td><td class="n">${n}</td><td class="n">± ${fmt(bar, 2)} Rj</td><td class="n">${fmt(sg, 3)} Rj</td>` +
+        `<td class="n">${fmt(T / b.period_d, 1)}</td><td class="n">${fmt(lo, 5)}</td><td class="n">${fmt(b.period_err_d, 5)}</td></tr>`;
+    }).join("") + "</tbody>";
+  m5wiggle();
+}
+function m5wiggle() {
+  const Bs = M5.bodies, b = Bs[m5wk], pts = m5own(m5wk), [t0, t1] = m5span(), T = t1 - t0;
+  $("m5w-body").innerHTML = Bs.map((B, k) => `<button type="button" data-k="${k}" aria-pressed="${k === m5wk}">${B.name}</button>`).join("");
+  $("m5w-d").innerHTML = M5W_N.map(n => `<button type="button" data-n="${n}" aria-pressed="${n === m5wn}">${n === 0 ? "不改" : `${n > 0 ? "+" : "−"}${Math.abs(n)} 倍误差`}</button>`).join("");
+  const best = { f: b.freq, a: b.a, b: b.b }, dP = m5wn * b.period_err_d, trial = m5fitAt(1 / (b.period_d + dP), pts);
+  const draw = (id, [a, z], title) => {
+    const yl = Math.ceil(b.reach_rj + 2), W = 560, H = 300, m = { l: 46, r: 10, t: 26, b: 40 };
+    const f = frame(W, H, m, [a, z], [-yl, yl], { xlabel: title, ylabel: "X（Rj）", nx: 5, ny: 4,
+      xticks: niceTicks(a, z, 5).filter(v => Number.isInteger(v)), xfmt: (v) => { const d = new Date(Date.UTC(2023, 11, 3 + v)); return `${d.getUTCMonth() + 1}/${d.getUTCDate()}`; } });
+    let s = f.s, c1 = "", c2 = "";
+    for (let i = 0; i <= 400; i++) { const t = a + (z - a) * i / 400; c1 += `${i ? "L" : "M"}${f.x(t)},${f.y(m5curve(best, t))}`; c2 += `${i ? "L" : "M"}${f.x(t)},${f.y(m5curve(trial, t))}`; }
+    s += `<path d="${c1}" style="fill:none;stroke:${JB(m5wk)};stroke-width:1.6"/>`;
+    if (m5wn) s += `<path d="${c2}" style="fill:none;stroke:var(--fg);stroke-width:1.4;stroke-dasharray:6 4"/>`;
+    for (const q of pts) if (q.t >= a && q.t <= z) s += ebar(f.x(q.t), f.y(q.X - m5sig(q.X)), f.y(q.X + m5sig(q.X)), "var(--muted)") + `<circle cx="${f.x(q.t)}" cy="${f.y(q.X)}" r="3.4" style="fill:${JB(m5wk)}"/>`;
+    // how far apart the two curves are at the photo times in this window
+    const sep = pts.filter(q => q.t >= a && q.t <= z).reduce((u, q) => Math.max(u, Math.abs(m5curve(trial, q.t) - m5curve(best, q.t))), 0);
+    if (m5wn) s += `<text x="${m.l + 6}" y="${m.t - 8}" style="fill:var(--fg)">这几晚拍照时两条曲线最多相差 ${fmt(sep, 2)} Rj</text>`;
+    $(id).innerHTML = s;
+  };
+  draw("m5w-a", [t0 - 0.4, t0 + 3.6], "开头几晚（日期）");
+  draw("m5w-b", [t1 - 3.6, t1 + 0.4], "最后几晚（日期）");
+  const r0 = m5rms(best, pts), r1 = m5rms(trial, pts), turns = T / b.period_d;
+  const shiftH = Math.abs(dP) * turns / 2 * 24;                  // the refit centres the error: half of it shows at each end
+  $("m5w-cap").innerHTML = m5wn === 0
+    ? `实线是第 5 步拟合出的 ${b.name}（P = ${fmt(b.period_d, 5)} 天），误差棒是修正比例后每个光点的误差。选一个“倍误差”看看周期改动以后会怎样。`
+    : `把 ${b.name} 的周期改 ${m5wn > 0 ? "+" : "−"}${Math.abs(m5wn)} 倍误差，也就是 ${fmt(Math.abs(dP), 5)} 天（约 ${fmt(Math.abs(dP) * 1440, 1)} 分钟），再重新找最贴合的摆幅和起点（虚线）。` +
+      `39 天里绕 ${fmt(turns, 1)} 圈，每圈差这么一点，累积起来开头和结尾各错开约 ${fmt(shiftH, 1)} 小时。` +
+      `所有 ${pts.length} 个光点离曲线的均方根：${fmt(r0, 3)} → <b>${fmt(r1, 3)} Rj</b>` +
+      (r1 / r0 < 1.05 ? `，几乎没变：这么小的改动还藏在光点的散布里，所以说周期只定到这个程度。` : r1 / r0 < 1.5 ? `，开始变差：开头和结尾的光点已经偏向曲线的一边。` : `，明显变差：开头和结尾的光点对不上了。`);
 }
 function m5gallery() {
   if (!M5 || $("m5-gallery").innerHTML) return;
@@ -1526,6 +1651,8 @@ function bind() {
     $("m5-flip").addEventListener("change", () => { if (M5S) M5S.setDepth($("m5-flip").checked ? -1 : 1); });
     $("m5-sight").addEventListener("change", () => { if (M5S) M5S.setSight($("m5-sight").checked); });
     $("m5-all").addEventListener("toggle", m5gallery);
+    $("m5w-body").addEventListener("click", (e) => { const k = e.target.closest("button")?.dataset.k; if (k != null) { m5wk = +k; m5wiggle(); } });
+    $("m5w-d").addEventListener("click", (e) => { const n = e.target.closest("button")?.dataset.n; if (n != null) { m5wn = +n; m5wiggle(); } });
   }
   if ($("m-range")) $("m-range").addEventListener("click", (e) => { const r = e.target.closest("button")?.dataset.r; if (r != null) { range = +r; motion(); } });
   if ($("m-legend")) $("m-legend").addEventListener("click", (e) => { const k = e.target.closest("button")?.dataset.b; if (k != null) { shown.has(+k) ? shown.delete(+k) : shown.add(+k); motion(); } });

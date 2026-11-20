@@ -12,7 +12,7 @@ global.window = global;
 global.requestAnimationFrame = () => 0;
 global.fetch = async (u) => ({ json: async () => JSON.parse(fs.readFileSync(path.join(demo, u), "utf8")) });
 process.on("unhandledRejection", (e) => { console.log("ERROR:", e && e.stack); process.exit(1); });
-eval(js + "\n;global.__m = { m5time, m5step, m5gallery, n: () => M5.photos.length, t: (i) => M5.photos[i].t, cur: () => m5i, scene: () => M5S };");
+eval(js + "\n;global.__m = { m5time, m5step, m5gallery, m5wiggle, setW: (k, n) => { m5wk = k; m5wn = n; }, N: () => M5W_N, n: () => M5.photos.length, t: (i) => M5.photos[i].t, cur: () => m5i, scene: () => M5S };");
 setTimeout(() => {
   let fail = 0;
   const bad = (id) => /NaN|undefined|Infinity/.test(els[id].innerHTML + els[id].textContent);
@@ -32,6 +32,14 @@ setTimeout(() => {
   __m.m5gallery();
   const strips = (els["m5-gallery"].innerHTML.match(/<figure>/g) || []).length;
   if (strips !== __m.n() || bad("m5-gallery")) { console.log("gallery", strips); fail++; }
-  console.log(`photos ${__m.n()}, circles ${circles}, gallery ${strips}, 3D ${__m.scene() ? "on" : "off (no three.js)"}`);
+  // the notes: residuals before/after, the precision table, and every body x every period change
+  for (const id of ["m5w-res", "m5w-res-cap", "m5w-table"]) if (els[id].innerHTML.length < 50 || bad(id)) { console.log(id, "empty or bad"); fail++; }
+  let tries = 0;
+  for (let k = 0; k < 4; k++) for (const n of __m.N()) {
+    __m.setW(k, n); __m.m5wiggle(); tries++;
+    for (const id of ["m5w-a", "m5w-b", "m5w-cap", "m5w-d", "m5w-body"]) if (!els[id].innerHTML || bad(id)) { console.log("notes", k, n, id, "bad"); fail++; }
+    if ((els["m5w-a"].innerHTML.match(/<circle/g) || []).length < 2 || (els["m5w-b"].innerHTML.match(/<circle/g) || []).length < 2) { console.log("notes", k, n, "too few dots"); fail++; }
+  }
+  console.log(`photos ${__m.n()}, circles ${circles}, gallery ${strips}, notes drawn ${tries} ways, 3D ${__m.scene() ? "on" : "off (no three.js)"}`);
   console.log(fail ? "FAIL" : "OK"); process.exit(fail ? 1 : 0);
 }, 500);
