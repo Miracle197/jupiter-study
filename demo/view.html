@@ -138,6 +138,8 @@ details summary { cursor: pointer; color: var(--accent); font-size: 14px; font-w
 .kv2 .note { font-family: var(--body); color: var(--muted); font-size: 12.5px }
 
 .cols2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px }
+.cols4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px }
+.cols4 > * { min-width: 0 }
 </style>
 
 <div class="wrap">
@@ -302,7 +304,7 @@ details summary { cursor: pointer; color: var(--accent); font-size: 14px; font-w
   </section>
 
   <section aria-labelledby="s3-h">
-    <div class="eyebrow">第 4 步 · 周期（重做中）</div>
+    <div class="eyebrow">第 4 步 · 周期</div>
     <h2 id="s3-h">四个天体各绕一圈要多久</h2>
     <p>这一步从头重做。先只看照片给出的东西：每个光点在哪一天、离木星多远。
       <b>不预先假定有几颗，不画任何曲线，也不分颜色。</b></p>
@@ -338,8 +340,48 @@ details summary { cursor: pointer; color: var(--accent); font-size: 14px; font-w
       <svg class="chart" id="fold-s" viewBox="0 0 960 300" role="img" aria-label="周期与分数"></svg>
       <div class="caption" id="fold-s-cap"></div>
     </div>
+    <div class="figure">
+      <h3>④ 一颗一颗往里认</h3>
+      <p>把已经认出的那颗能解释的光点拿走，再看剩下的 |X|：又出现一道空隙，空隙外面又只有一颗，同样折叠。
+        再往里，剩下的光点挤在木星附近，两颗互相重叠，没有干净的空隙了。这时单独折叠外侧的点，有好几个周期分数差不多
+        （另一颗的点在捣乱），所以<b>两颗一起找</b>：外侧那颗的每个候选周期，都配上一个“搭档”周期，光点分给离得近的那条摆动，
+        再看两条一起能不能解释所有剩下的光点，而且<b>不在没有光点的地方预测一颗</b>。</p>
+      <div class="scroll"><table id="peel-table"></table></div>
+      <div class="caption" id="peel-cap"></div>
+    </div>
+    <div class="figure">
+      <h3>⑤ 四颗一起：每个光点属于谁</h3>
+      <div class="btns" id="j-range"></div>
+      <svg class="chart" id="joint" viewBox="0 0 960 420" role="img" aria-label="所有光点和四条摆动"></svg>
+      <div class="legend" id="joint-legend"></div>
+      <div class="caption" id="joint-cap"></div>
+      <div class="cols4" id="j-fold"></div>
+    </div>
+    <div class="figure">
+      <h3>⑥ “每天多转一圈”的陷阱</h3>
+      <p>照片大多在晚上拍。如果一颗每天比真实情况多转（或少转）一整圈，在“每天差不多同一时刻”看，它的位置几乎一样，
+        所以 1/P ± 1、± 2 圈/天 的周期都是对手。下表是每颗的对手周期和偏差分数（越低越好），
+        右边一列去掉了一晚拍 3 张以上的那些夜晚。</p>
+      <div class="scroll"><table id="rival-table"></table></div>
+      <div class="caption" id="rival-cap"></div>
+    </div>
+    <div class="figure">
+      <h3>⑦ 回头检验：它们走的是圆，而且是同一个平面</h3>
+      <svg class="chart" id="tilt" viewBox="0 0 960 330" role="img" aria-label="离线距离随相位"></svg>
+      <div class="caption" id="tilt-cap"></div>
+    </div>
+    <div class="figure">
+      <h3>⑧ 结论：四个周期之间的规律（发现）</h3>
+      <div class="cols2">
+        <svg class="chart" id="kepler" viewBox="0 0 560 360" role="img" aria-label="周期和最远距离"></svg>
+        <div id="finds"></div>
+      </div>
+      <div class="scroll"><table id="final-table"></table></div>
+    </div>
     <p class="caption">更新记录 · 2026-11-11：第 4 步开始重做；① 原始光点图（不区分天体，只保留全部时间段）。② 一晚多张照片：把光点连成轨迹。③ 最外面那颗：折叠找周期。
-      2026-11-17：第 1 步的木星边缘改为 360 条射线贴圆，并按卫星光点的亮度做曝光修正（单张照片的尺子误差 ±6.2% → ±4.8%）；后面各步按新的尺子重算。</p>
+      2026-11-16：④ 一颗一颗往里认（内侧两颗一起找）。⑤ 四颗一起归属光点。⑥ “每天多转一圈”的对手。⑦ 扁圆检验。⑧ 周期之间的规律、开普勒第三定律。
+      2026-11-17：第 1 步的木星边缘改为 360 条射线贴圆，并按卫星光点的亮度做曝光修正（单张照片的尺子误差 ±6.2% → ±4.8%）；后面各步按新的尺子重算。
+      2026-11-20：④–⑧ 放回页面，按新的尺子重算；④ 找空隙时只算外面光点够折叠的空隙。</p>
   </section>
 
   <footer class="caption">数据由 <span class="mono">scripts/make_demo.py</span> 从第 1–3 步的结果生成；第 3 步方向与第 4 步周期只来自照片、EXIF、手机重力传感器和拍摄地点（地点误差可忽略，未列出）。</footer>
@@ -1000,7 +1042,120 @@ function fold4() {
   $("fold-s-cap").innerHTML = `从 0.5 天到 50 天，每个周期都折叠一次，分数 = 光点 + 一晚速度 + “该在却不在” 三项偏差加起来。` +
     `最低的是 <b>P = ${fmt(b.period_d, 2)} ± ${fmt(b.period_err_d, 2)} 天</b>（照片误差），最远 ${fmt(b.reach_rj, 1)} Rj，分数 ${fmt(b.score, 1)}；` +
     `第二名 ${fmt(r2nd.period_d, 3)} 天，分数 ${fmt(r2nd.score, 0)}，差了约 ${fmt(r2nd.score / b.score, 0)} 倍。` +
-    `只靠这一颗的 ${D4.length} 个点，“每天多转一圈”的对手（不到 1 天的那些）主要是被灰线和 12/5、1/8 两晚的多张照片排除的。灰竖线：当前试的周期。`;
+    `把“该在却不在”这一项去掉，最好的周期几乎不变（${fmt(F.without_empty.period_d, 2)} 天）：起决定作用的是光点本身，以及 12/5、1/8 两晚的多张照片（它们排除了不到 1 天的“每天多转一圈”对手）。灰线是旁证。灰竖线：当前试的周期。`;
+}
+
+/* ---------- step 4, parts 4-8: the remaining bodies ---------- */
+const JB = (k) => css(BODY_VAR[k % 6]);
+function peel4() {
+  const pe = R4.peel.bodies, inn = R4.inner, F = R4.fold;
+  const gap1 = F.gap_rj ? `（${fmt(F.gap_rj[0], 1)}–${fmt(F.gap_rj[1], 1)} 的空隙）` : "";
+  const rows = [
+    ...pe.map((b, k) => [`第 ${k + 1} 颗${k ? "" : "（最外）"}`, `|X| > ${fmt(b.limit_rj, 1)} Rj` + (b.gap_rj ? `（空隙宽 ${fmt(b.gap_rj, 2)} Rj）` : gap1), b.n_used, b.n_empty,
+      `${fmt(b.period_d, 3)} ± ${fmt(b.period_err_d, 3)}`, `${fmt(b.rivals[1].period_d, 3)} 天（分数 ${fmt(b.rivals[1].score, 0)}，本周期 ${fmt(b.score, 0)}）`]),
+    ...inn.bodies.map((b, k) => [`第 ${k + pe.length + 1} 颗`, k ? `和第 ${pe.length + 1} 颗一起找` : `剩下的 ${inn.n_free} 个光点（|X| ≤ ${fmt(inn.max_abs_x_rj, 1)} Rj），两颗重叠`,
+      b.n_dots, "—", `${fmt(b.period_d, 3)} ± ${fmt(b.period_err_d, 3)}`, "见下"]),
+  ];
+  $("peel-table").innerHTML = `<thead><tr><th>天体</th><th>用哪些光点</th><th class="n">光点数</th><th class="n">“该在却不在”照片</th><th class="n">周期（天）</th><th>第二好的周期</th></tr></thead><tbody>` +
+    rows.map(r => `<tr>${r.map((c, i) => `<td class="${i > 1 && i < 5 ? "n" : ""}">${c}</td>`).join("")}</tr>`).join("") + "</tbody>";
+  const T = inn.trials, win = T[0], others = T.slice(1);
+  const alone = [...T].sort((a, b) => a.outer_alone_score - b.outer_alone_score)[0];
+  $("peel-cap").innerHTML = `内侧两颗：先单独折叠 ${fmt(inn.limit_outer_rj, 1)} Rj 以外的 ${inn.n_beyond} 个光点，几个候选周期分数接近（${T.map(t => fmt(t.outer_alone_period_d, 2)).join("、")} 天）` +
+    (alone !== win ? `，其中单独看分数最好的是 ${fmt(alone.outer_alone_period_d, 2)} 天。` : "。") +
+    `每个候选都配上最好的搭档以后：` + T.map(t => `${fmt(t.outer_alone_period_d, 2)} + ${fmt(t.partner_period_d, 2)} 天：偏差 ${fmt(t.dot_cost, 0)}，“该在却不在” <b>${t.misses}</b> 次`).join("；") +
+    `。只有 ${fmt(win.outer_alone_period_d, 2)} + ${fmt(win.partner_period_d, 2)} 天这组几乎从不在没有光点的地方预测一颗（${win.misses} 次），其他组合至少 ${Math.min(...others.map(t => t.misses))} 次。`;
+}
+let jRange = 0;
+const J_RANGES = [["全部", [-0.5, 40.5]], ["1 月 8 日夜", [36.65, 37.1]], ["1 月 9 日夜", [37.65, 38.1]]];
+function joint4() {
+  const J = R4.joint, Bs = J.bodies, W = 960, H = 420, m = { l: 50, r: 14, t: 12, b: 42 };
+  $("j-range").innerHTML = J_RANGES.map(([l], i) => `<button type="button" data-r="${i}" class="${i === jRange ? "on" : ""}">${l}</button>`).join("");
+  const [a, b] = J_RANGES[jRange][1], short = b - a < 1;
+  const f = frame(W, H, m, [a, b], [-27, 27], { xlabel: short ? "当地时间" : "日期", ylabel: "X（木星半径）", nx: short ? 8 : 10,
+    xfmt: short ? (v) => { const h = (v % 1) * 24; return `${String(Math.floor(h) % 24).padStart(2, "0")}:${String(Math.round((h % 1) * 60) % 60).padStart(2, "0")}`; }
+                : (v) => { const d = new Date(2023, 11, 3 + Math.floor(v)); return `${d.getMonth() + 1}/${d.getDate()}`; },
+    xticks: short ? undefined : niceTicks(a, b, 10).filter(v => Number.isInteger(v)) });
+  let s = f.s + `<rect x="${m.l}" width="${W - m.l - m.r}" y="${f.y(2)}" height="${f.y(-2) - f.y(2)}" style="fill:var(--muted);opacity:0.15"/>`;
+  Bs.forEach((B, k) => { let p = ""; for (let i = 0; i <= 1500; i++) { const t = a + (b - a) * i / 1500, w = 2 * Math.PI * B.freq;
+    p += `${i ? "L" : "M"}${f.x(t)},${f.y(B.a * Math.sin(w * t) + B.b * Math.cos(w * t))}`; } s += `<path d="${p}" style="fill:none;stroke:${JB(k)};stroke-width:1.1;opacity:0.8"/>`; });
+  J.dots.forEach((d, i) => { if (d.t < a || d.t > b) return; const ks = J.assign[i], x = f.x(d.t), y = f.y(d.X), e = 0.35 + 0.08 * Math.abs(d.X);
+    s += ebar(x, f.y(d.X + e), f.y(d.X - e), "var(--muted)");
+    if (!ks.length) s += `<text x="${x}" y="${y + 4}" text-anchor="middle" style="fill:var(--fg)">×</text>`;
+    else if (ks.length === 1) s += `<circle cx="${x}" cy="${y}" r="3.6" style="fill:${JB(ks[0])}"/>`;
+    else s += `<circle cx="${x}" cy="${y}" r="4.6" style="fill:${JB(ks[0])};stroke:${JB(ks[1])};stroke-width:2.4"/>`; });
+  $("joint").innerHTML = s;
+  $("joint-legend").innerHTML = Bs.map((B, k) => `<span><span class="swatch" style="background:${JB(k)}"></span>${B.name}：P = ${fmt(B.period_d, 4)} ± ${fmt(B.period_err_d, 4)} 天</span>`).join("") + `<span>双色圈：两颗挤在一起，共用一个光点</span>`;
+  const S = J.summary;
+  $("joint-cap").innerHTML = `${S.n_dots} 个光点里 ${S.assigned} 个归给了某一颗，其中 ${S.shared} 个是两颗挤在一起（预测相距不到 0.8 Rj）共用的，${S.none} 个（×）哪颗都不像。` +
+    `光点离自己那条摆动的偏差中位约 ${fmt(S.resid_robust_rj, 2)} Rj（主要是每张照片约 ±${fmt(100 * D.ruler_summary.sig_disk_single_photo, 0)}% 的比例误差，离木星越远越大）。误差棒：照片误差。`;
+  $("j-fold").innerHTML = Bs.map((B, k) => {
+    const Wf = 280, Hf = 230, mf = { l: 36, r: 8, t: 10, b: 34 }, R = Math.hypot(B.a, B.b), ph0 = Math.atan2(B.b, B.a), yl = Math.ceil(R + 3);
+    const g = frame(Wf, Hf, mf, [0, 1], [-yl, yl], { xlabel: "一圈里的位置", nx: 4, ny: 4 });
+    let q = g.s, p = ""; for (let i = 0; i <= 200; i++) { const u = i / 200; p += `${i ? "L" : "M"}${g.x(u)},${g.y(R * Math.sin(2 * Math.PI * u))}`; }
+    q += `<path d="${p}" style="fill:none;stroke:${JB(k)};stroke-width:1.3"/>`;
+    J.dots.forEach((d, i) => { if (!J.assign[i].includes(k)) return; const u = (((B.freq * d.t + ph0 / (2 * Math.PI)) % 1) + 1) % 1, e = 0.35 + 0.08 * Math.abs(d.X);
+      q += ebar(g.x(u), g.y(d.X + e), g.y(d.X - e), "var(--muted)", 0.8) + `<circle cx="${g.x(u)}" cy="${g.y(d.X)}" r="2.8" style="fill:${JB(k)}"/>`; });
+    return `<div><svg class="chart" viewBox="0 0 ${Wf} ${Hf}">${q}</svg><div class="caption">${B.name}：按 ${fmt(B.period_d, 3)} 天折叠，${B.dots} 个光点</div></div>`;
+  }).join("");
+}
+function rivals4() {
+  const Bs = R4.joint.bodies;
+  let rows = "";
+  Bs.forEach((B, k) => {
+    const all = B.rivals_all, nb = B.rivals_without_busy_nights || [];
+    all.forEach((r, i) => { const r2 = nb.find(x => x.shift_per_day === r.shift_per_day);
+      const lab = r.shift_per_day === 0 ? "<b>本周期</b>" : `每天${r.shift_per_day > 0 ? "多" : "少"}转 ${Math.abs(r.shift_per_day)} 圈`;
+      rows += `<tr>${i ? "<td></td>" : `<td><span class="swatch" style="background:${JB(k)}"></span> ${B.name}</td>`}<td>${lab}</td><td class="n">${fmt(r.period_d, 3)}</td><td class="n">${fmt(r.chi2, 0)}</td><td class="n">${r2 ? fmt(r2.chi2, 0) : "—"}</td></tr>`; });
+  });
+  $("rival-table").innerHTML = `<thead><tr><th>天体</th><th>对手</th><th class="n">周期（天）</th><th class="n">偏差分数（全部照片）</th><th class="n">去掉一晚多张的夜晚</th></tr></thead><tbody>${rows}</tbody>`;
+  const margin = (list) => Math.min(...Bs.map(B => { const n = list(B); const own = n.find(r => r.shift_per_day === 0).chi2;
+    return Math.min(...n.filter(r => r.shift_per_day !== 0).map(r => r.chi2)) / Math.max(own, 1); }));
+  const mAll = margin(B => B.rivals_all), mNo = margin(B => B.rivals_without_busy_nights);
+  $("rival-cap").innerHTML = `每一颗的真实周期分数都最低：用全部照片，最接近的对手也至少差 <b>${fmt(mAll, 0)} 倍</b>；去掉一晚多张的夜晚，仍至少差 ${fmt(mNo, 0)} 倍。` +
+    `只靠每晚一张也分得开，是因为拍照时刻其实在 17:15 到次日 00:58 之间分散开了，每天“同一时刻”并不严格；一晚多张的夜晚是最直接的证据。`;
+}
+function tilt4() {
+  const J = R4.joint, Bs = J.bodies, W = 960, H = 330, m = { l: 50, r: 14, t: 12, b: 42 };
+  const f = frame(W, H, m, [0, 1], [-1.6, 1.6], { xlabel: "一圈里的位置（0 = 经过木星往 +X 走，0.25 = 最远 +X，0.5 = 往 −X 经过木星，0.75 = 最远 −X）", ylabel: "离线距离 Y（Rj）", nx: 8 });
+  let s = f.s;
+  Bs.forEach((B, k) => { const ph0 = Math.atan2(B.b, B.a), T = B.tilt;
+    J.dots.forEach((d, i) => { const ks = J.assign[i]; if (ks.length !== 1 || ks[0] !== k) return;
+      const u = (((B.freq * d.t + ph0 / (2 * Math.PI)) % 1) + 1) % 1; s += `<circle cx="${f.x(u)}" cy="${f.y(d.Y)}" r="2.6" style="fill:${JB(k)};opacity:0.55"/>`; });
+    let p = ""; for (let i = 0; i <= 200; i++) { const u = i / 200; p += `${i ? "L" : "M"}${f.x(u)},${f.y(T.B_rj * Math.cos(2 * Math.PI * u) + T.C_rj)}`; }
+    s += `<path d="${p}" style="fill:none;stroke:${JB(k)};stroke-width:2"/>`; });
+  $("tilt").innerHTML = s;
+  const same = Bs.every(B => Math.sign(B.tilt.B_rj) === Math.sign(Bs[0].tilt.B_rj));
+  $("tilt-cap").innerHTML = `如果只是沿一条线来回摆，Y 应该和摆到哪儿无关。实际上每颗都是“往 +X 走时在线的一侧、往 −X 走时在另一侧”，按 cos 变化：` +
+    Bs.map(B => `${B.name} 的幅度 ${fmt(B.tilt.B_rj, 2)} ± ${fmt(B.tilt.B_err_rj, 2)} Rj（${fmt(Math.abs(B.tilt.B_rj / B.tilt.B_err_rj), 0)} 倍误差）`).join("，") +
+    `。四颗<b>${same ? "符号相同" : "符号不全相同"}</b>${same ? "：转的方向一样" : ""}；换算成倾斜角（幅度 ÷ 最远距离）是 ${Bs.map(B => fmt(Math.asin(Math.abs(B.tilt.B_rj / B.reach_rj)) * 180 / Math.PI, 1) + "°").join("、")}，都只有几度，` +
+    `说明是几乎侧着看到的圆，而且大致在同一个平面里，斜了约 ${fmt(Math.asin(Bs.reduce((u, B) => u + Math.abs(B.tilt.B_rj / B.reach_rj), 0) / Bs.length) * 180 / Math.PI, 1)}°。（只用单独归属的光点。）`;
+}
+function kepler4() {
+  const J = R4.joint, Bs = J.bodies, K = J.kepler, Rt = J.ratios, W = 560, H = 360, m = { l: 54, r: 12, t: 12, b: 42 };
+  const f = frame(W, H, m, [3.5, 30], [1.2, 25], { xlog: true, ylog: true, xticks: [4, 5, 7, 10, 15, 20, 30], yticks: [1.5, 2, 3, 5, 7, 10, 15, 20], xlabel: "最远距离 a（Rj，第 1 步尺子，对数）", ylabel: "周期 P（天，对数）" });
+  let s = f.s;
+  const c = Bs.reduce((u, B) => u + Math.log(B.period_d) - 1.5 * Math.log(B.reach_rj), 0) / Bs.length;
+  s += `<line x1="${f.x(3.5)}" x2="${f.x(30)}" y1="${f.y(Math.exp(c + 1.5 * Math.log(3.5)))}" y2="${f.y(Math.exp(c + 1.5 * Math.log(30)))}" style="stroke:var(--muted);stroke-dasharray:5 4"/>`;
+  Bs.forEach((B, k) => { s += hbar(f.y(B.period_d), f.x(B.reach_rj - B.reach_err_rj), f.x(B.reach_rj + B.reach_err_rj), JB(k), 1.5) +
+    `<circle cx="${f.x(B.reach_rj)}" cy="${f.y(B.period_d)}" r="5" style="fill:${JB(k)}"/><text x="${f.x(B.reach_rj) + 9}" y="${f.y(B.period_d) + 4}">${B.name}</text>`; });
+  $("kepler").innerHTML = s;
+  // P^2/a^3: weighted mean and the largest departure from it, in units of each value's error
+  const v = K.P2_over_a3, e = K.P2_over_a3_err, wsum = e.reduce((u, x) => u + 1 / x ** 2, 0);
+  const mean = v.reduce((u, x, i) => u + x / e[i] ** 2, 0) / wsum;
+  const dev = v.map((x, i) => (x - mean) / e[i]), kmax = dev.reduce((bi, x, i) => Math.abs(x) > Math.abs(dev[bi]) ? i : bi, 0);
+  $("finds").innerHTML = `<ol class="caption" style="font-size:14px;line-height:1.8">
+    <li><b>四颗，而且都绕着木星转。</b>${J.summary.n_dots} 个光点里 ${J.summary.assigned} 个由四条来回摆动解释，没有第五颗的迹象。</li>
+    <li><b>越远越慢，而且有固定比例。</b>周期和最远距离在对数图上排成一条直线，斜率 <b>${fmt(K.slope, 2)} ± ${fmt(K.slope_err, 2)}</b>；
+      虚线是斜率 1.5，也就是 P² ∝ a³（开普勒第三定律，1619 年才提出）。P²/a³ = ${v.map((x, i) => `${fmt(x, 4)}±${fmt(e[i], 4)}`).join("、")}，
+      四颗在误差内相同（偏得最多的是 ${Bs[kmax].name}，${fmt(Math.abs(dev[kmax]), 1)} 倍误差）。</li>
+    <li><b>内侧三颗的周期几乎正好 1 : 2 : 4。</b>P₂/P₁ = ${fmt(Rt["P2/P1"], 4)}，P₃/P₂ = ${fmt(Rt["P3/P2"], 4)}；最外面那颗不在这个链上（P₄/P₃ = ${fmt(Rt["P4/P3"], 3)}）。
+      更精确的是：1/P₁ − 3/P₂ + 2/P₃ = ${fmt(Rt["laplace_1/P1-3/P2+2/P3"] * 1000, 2)} ± ${fmt(Rt.laplace_err * 1000, 2)} ×10⁻³ 圈/天，
+      <b>${Math.abs(Rt["laplace_1/P1-3/P2+2/P3"]) < 2 * Rt.laplace_err ? "和 0 一致" : "和 0 有差别"}</b>。不只是“差不多 2 倍”，三颗之间被锁住了。</li>
+    <li><b>它们是几乎侧着看到的圆，在同一个平面、朝同一个方向转</b>（⑦）。</li>
+  </ol>
+  <p class="caption">局限：最远距离用的是第 1 步的尺子（过曝的木星量出来偏大，见第 1 步），所以 a 的绝对值有系统误差；但它对四颗是同一个比例，不影响斜率和 P²/a³ 是否相同。木星的质量需要知道 Rj 的真实长度，照片给不出。</p>`;
+  $("final-table").innerHTML = `<thead><tr><th>天体</th><th class="n">周期（天）</th><th class="n">照片误差</th><th class="n">最远距离（Rj）</th><th class="n">光点数</th><th class="n">离线摆动 B（Rj）</th></tr></thead><tbody>` +
+    Bs.map((B, k) => `<tr><td><span class="swatch" style="background:${JB(k)}"></span> ${B.name}</td><td class="n">${fmt(B.period_d, 4)}</td><td class="n">± ${fmt(B.period_err_d, 4)}</td><td class="n">${fmt(B.reach_rj, 2)} ± ${fmt(B.reach_err_rj, 2)}</td><td class="n">${B.dots}</td><td class="n">${fmt(B.tilt.B_rj, 2)} ± ${fmt(B.tilt.B_err_rj, 2)}</td></tr>`).join("") + "</tbody>";
 }
 
 /* ---------- boot ---------- */
@@ -1014,7 +1169,7 @@ async function start() {
   // buttons first, then each chart on its own: one chart failing must not stop the rest of the page
   const safe = (f) => { try { f(); } catch (e) { console.error(f.name, e); } };
   bind();
-  for (const f of [ruler, wall, () => s1detail(s1cur), direction, orbit, raw4, tracks4, fold4]) safe(f);
+  for (const f of [ruler, wall, () => s1detail(s1cur), direction, orbit, raw4, tracks4, fold4, peel4, joint4, rivals4, tilt4, kepler4]) safe(f);
 }
 function bind() {
   $("ruler").addEventListener("click", (e) => { const i = e.target.dataset?.i; if (i != null) s1detail(+i); });
@@ -1030,6 +1185,7 @@ function bind() {
   document.addEventListener("keydown", (e) => { if (e.target.closest && e.target.closest("button, input")) return; if (e.key === "ArrowLeft") showPhoto(cur - 1); if (e.key === "ArrowRight") showPhoto(cur + 1); });
   $("trk-night").addEventListener("click", (e) => { const n = e.target.closest("button")?.dataset.n; if (n) { trkNight = n; tracks4(); } });
   $("fold-p").addEventListener("click", (e) => { const p = e.target.closest("button")?.dataset.p; if (p) { foldP = +p; fold4(); } });
+  $("j-range").addEventListener("click", (e) => { const r = e.target.closest("button")?.dataset.r; if (r != null) { jRange = +r; joint4(); } });
   if ($("m-range")) $("m-range").addEventListener("click", (e) => { const r = e.target.closest("button")?.dataset.r; if (r != null) { range = +r; motion(); } });
   if ($("m-legend")) $("m-legend").addEventListener("click", (e) => { const k = e.target.closest("button")?.dataset.b; if (k != null) { shown.has(+k) ? shown.delete(+k) : shown.add(+k); motion(); } });
 }
