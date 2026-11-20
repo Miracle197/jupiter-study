@@ -1,0 +1,98 @@
+{
+ "method_A_dots": {
+  "median_err_deg": 0.7683962621012629
+ },
+ "method_B_turning_sky": {
+  "photos_with_gravity": 57,
+  "photos_used_in_fit": 57,
+  "scatter_per_photo_deg": 3.9203905836391892,
+  "mirror_sense_s": -1,
+  "altitude_term_k": -1,
+  "jupiter_highest_at_on_2023_12_03": "21:20.6",
+  "jupiter_highest_err_min": 1.8648031291201366,
+  "jupiter_declination_deg": 13.814465418914263,
+  "jupiter_declination_err_deg": 0.708582365756053,
+  "jupiter_drift_min_per_day": -0.5566290676858614,
+  "jupiter_drift_err": 0.10755124709150962,
+  "candidates": [
+   {
+    "s": -1,
+    "k": -1,
+    "rms_deg": 3.79,
+    "above_horizon": true
+   },
+   {
+    "s": 1,
+    "k": -1,
+    "rms_deg": 11.59,
+    "above_horizon": true
+   },
+   {
+    "s": 1,
+    "k": 0,
+    "rms_deg": 15.83,
+    "above_horizon": true
+   },
+   {
+    "s": 1,
+    "k": 1,
+    "rms_deg": 3.79,
+    "above_horizon": false
+   },
+   {
+    "s": -1,
+    "k": 0,
+    "rms_deg": 8.7,
+    "above_horizon": false
+   },
+   {
+    "s": -1,
+    "k": 1,
+    "rms_deg": 13.19,
+    "above_horizon": false
+   }
+  ]
+ },
+ "A_vs_B": {
+  "rms_deg": 4.784762515002963,
+  "photos_disagree_over_3sigma": []
+ },
+ "method_C_same_night_pairs": {
+  "pairs": 36,
+  "agree_with_B_on_ends": 36
+ },
+ "final": {
+  "median_err_photo_deg": 0.8252530004781959,
+  "photos_where_final_differs_from_A_over_3deg": {
+   "2023-12-05T1933": 8.1,
+   "2023-12-05T2105": 8.1,
+   "2023-12-12T2104": 10.0,
+   "2023-12-23T2335": 4.2
+  },
+  "plusX_margin_min_sigma": 3.992817029336336,
+  "photos_plusX_margin_below_3sigma": []
+ },
+ "site_30m": {
+  "max_err_site_deg": 5.34958222926823e-06,
+  "max_B_shift_deg": 0.00018059307718942819,
+  "declination_shift_deg": 0.00036247049407300835,
+  "highest_time_shift_min": 9.270221278612212e-05
+ },
+ "clock_checks": [
+  {
+   "photo": "2024-01-10T1811",
+   "camera_time": "2024-01-10T20:11:25",
+   "file_name_time": "2024-01-10T18:11",
+   "A_minus_B_camera_time_deg": -4.3,
+   "A_minus_B_file_name_time_deg": -54.9
+  }
+ ],
+ "dots": {
+  "band_half_width_rj": 2.283,
+  "strong_in_band": 205,
+  "strong_outside_band": 0,
+  "band_rms_rj": 0.41827969986251207,
+  "max_abs_X_rj_in_band": 24.214,
+  "outside_band": []
+ }
+}
